@@ -1,8 +1,8 @@
-# Hetzner Cloud Kubernetes Cluster mit OpenTofu
+# Hetzner Cloud Kubernetes Cluster with OpenTofu
 
-Dieses Projekt erstellt automatisiert einen sicheren, IPv6-only Kubernetes-Cluster auf Hetzner Cloud mit SSH-Zugang über Cloudflare Tunnel.
+This project automatically provisions a secure, IPv6-only Kubernetes cluster on Hetzner Cloud with SSH access via a Cloudflare Tunnel.
 
-## Architektur
+## Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -23,191 +23,192 @@ Dieses Projekt erstellt automatisiert einen sicheren, IPv6-only Kubernetes-Clust
 │  │   ┌─────────────────┐       ┌─────────────────┐        │    │
 │  │   │  control-node   │       │  worker-node    │        │    │
 │  │   │    10.0.0.2     │◄─────►│    10.0.0.3+    │        │    │
-│  │   │  (cloudflared)  │       │  (isoliert)     │        │    │
+│  │   │  (cloudflared)  │       │  (isolated)     │        │    │
 │  │   └─────────────────┘       └─────────────────┘        │    │
 │  │                                                         │    │
 │  └─────────────────────────────────────────────────────────┘    │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-## Voraussetzungen
+## Requirements
 
-- [OpenTofu](https://opentofu.org/) >= 1.6.0 (oder Terraform >= 1.5.0)
-- Hetzner Cloud Account mit API Token
-- Cloudflare Account mit konfigurierter Domain
-- `cloudflared` auf dem lokalen Rechner installiert
+- [OpenTofu](https://opentofu.org/) >= 1.6.0 (or Terraform >= 1.5.0)
+- Hetzner Cloud account with an API token
+- Cloudflare account with a configured domain
+- `cloudflared` installed on your local machine
 
 ## Quick Start
 
-### 1. Repository klonen / Dateien kopieren
+### 1. Clone the repository / copy files
 
 ```bash
 git clone <repository-url>
 cd tofu-hetzner-cluster
 ```
 
-### 2. Konfiguration anpassen
+### 2. Adjust configuration
 
 ```bash
 cp terraform.tfvars.example terraform.tfvars
-# Bearbeite terraform.tfvars mit deinen Werten
+# Edit terraform.tfvars with your values
 ```
 
-**Wichtig:** Ersetze mindestens:
-- `hcloud_token` - Dein Hetzner API Token
-- `cloudflare_tunnel_domain` - Deine Domain (z.B. `console.example.org`)
-- `root_password` - Ein sicheres Passwort
+Important: Replace at least the following:
+- `hcloud_token` - your Hetzner API token
+- `cloudflare_tunnel_domain` - your domain (e.g. `console.example.org`)
+- `root_password` - a secure password
 
-### 3. Infrastruktur erstellen
+### 3. Create the infrastructure
 
 ```bash
-# Initialisieren
+# Initialize
 tofu init
 
-# Plan prüfen
+# Review plan
 tofu plan
 
-# Anwenden
+# Apply
 tofu apply
 ```
 
-### 4. SSH-Keys exportieren
+### 4. Export SSH keys
 
 ```bash
-# Private Keys exportieren
+# Export private keys
 tofu output -raw control_node_ssh_private_key > ~/.ssh/k3s-cluster_control-node_key
 tofu output -raw worker_node_ssh_private_key > ~/.ssh/k3s-cluster_worker-node_key
 
-# Berechtigungen setzen
+# Set permissions
 chmod 600 ~/.ssh/k3s-cluster_*_key
 ```
 
-### 5. SSH-Config einrichten
+### 5. Set up SSH config
 
 ```bash
 tofu output -raw ssh_config_snippet >> ~/.ssh/config
 ```
 
-### 6. Mit Control-Node verbinden (IPv6)
+### 6. Connect to the control node (IPv6)
 
 ```bash
-# IPv6-Adresse aus Output verwenden
-ssh -i ~/.ssh/k3s-cluster_control-node_key kubernetes-admin@<ipv6-adresse>
+# Use the IPv6 address from the outputs
+ssh -i ~/.ssh/k3s-cluster_control-node_key kubernetes-admin@<ipv6-address>
 ```
 
-### 7. Cloudflare Tunnel installieren
+### 7. Install Cloudflare Tunnel
 
-Auf dem Control-Node:
+On the control node:
 
 ```bash
-sudo cloudflared service install <DEIN_TUNNEL_TOKEN>
+sudo cloudflared service install <YOUR_TUNNEL_TOKEN>
 sudo systemctl status cloudflared
 ```
 
-### 8. Öffentliche IPs deaktivieren
+### 8. Disable public IPs
 
-Nach erfolgreicher Tunnel-Einrichtung:
+After the tunnel is successfully set up:
 
 ```bash
-# In terraform.tfvars ändern:
+# Change in terraform.tfvars:
 # enable_public_ipv6 = false
 
 tofu apply
 ```
 
-## Cloudflare Tunnel einrichten
+## Setting up the Cloudflare Tunnel
 
-### Im Cloudflare Zero Trust Dashboard
+### In the Cloudflare Zero Trust Dashboard
 
 1. **Networks → Tunnels → Create a tunnel**
-2. Name vergeben, Token kopieren
-3. **Public Hostname hinzufügen:**
+2. Give it a name, copy the token
+3. **Add a Public Hostname:**
    - Subdomain: `console`
-   - Domain: Deine Domain
+   - Domain: your domain
    - Type: `SSH`
    - URL: `localhost:22`
 
 4. **Access → Applications → Add application**
    - Self-hosted
    - Domain: `console.example.org`
-   - Policy erstellen (z.B. E-Mail-Allowlist)
+   - Create a policy (e.g. allowlist by email)
 
-## Variablen
+## Variables
 
-| Variable | Beschreibung | Default |
-|----------|--------------|---------|
-| `hcloud_token` | Hetzner API Token | - |
-| `cluster_name` | Prefix für alle Ressourcen | `k3s-cluster` |
-| `location` | Hetzner Datacenter | `fsn1` |
-| `control_node_type` | Server-Typ Control-Node | `cx22` |
-| `worker_node_type` | Server-Typ Worker-Nodes | `cx22` |
-| `worker_node_count` | Anzahl Worker-Nodes | `1` |
-| `enable_public_ipv6` | IPv6 aktivieren | `true` |
-| `admin_user` | SSH-Benutzername | `kubernetes-admin` |
-| `cloudflare_tunnel_domain` | Domain für Tunnel | `` |
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `hcloud_token` | Hetzner API token | - |
+| `cluster_name` | Prefix for all resources | `k3s-cluster` |
+| `location` | Hetzner datacenter | `fsn1` |
+| `control_node_type` | Control node server type | `cx22` |
+| `worker_node_type` | Worker node server type | `cx22` |
+| `worker_node_count` | Number of worker nodes | `1` |
+| `enable_public_ipv6` | Enable IPv6 | `true` |
+| `admin_user` | SSH username | `kubernetes-admin` |
+| `cloudflare_tunnel_domain` | Domain for the tunnel | `` |
 
 ## Outputs
 
-| Output | Beschreibung |
-|--------|--------------|
-| `control_node_ipv6` | IPv6-Adresse des Control-Node |
-| `control_node_private_ip` | Private IP des Control-Node |
-| `worker_node_private_ips` | Private IPs der Worker-Nodes |
-| `control_node_ssh_private_key` | SSH Private Key (sensitiv) |
-| `ssh_config_snippet` | Fertige SSH-Config |
-| `next_steps` | Anleitung für nächste Schritte |
+| Output | Description |
+|--------|-------------|
+| `control_node_ipv6` | IPv6 address of the control node |
+| `control_node_private_ip` | Private IP of the control node |
+| `worker_node_private_ips` | Private IPs of the worker nodes |
+| `control_node_ssh_private_key` | SSH private key (sensitive) |
+| `ssh_config_snippet` | Ready-to-use SSH config |
+| `next_steps` | Instructions for next steps |
 
-## Dateien
+## Files
 
 ```
 .
-├── main.tf                     # Hauptkonfiguration
-├── variables.tf                # Variablen-Definitionen
-├── outputs.tf                  # Output-Definitionen
-├── terraform.tfvars.example    # Beispiel-Konfiguration
-├── .gitignore                  # Git-Ignore-Regeln
-├── README.md                   # Diese Datei
+├── main.tf                     # Main configuration
+├── variables.tf                # Variable definitions
+├── outputs.tf                  # Output definitions
+├── terraform.tfvars.example    # Example configuration
+├── .gitignore                  # Git ignore rules
+├── README.md                   # This file (original language)
 └── cloud-init/
-    ├── control-node.yaml.tpl   # Cloud-Init Template Control-Node
-    └── worker-node.yaml.tpl    # Cloud-Init Template Worker-Node
+    ├── control-node.yaml.tpl   # Cloud-init template for control node
+    └── worker-node.yaml.tpl    # Cloud-init template for worker node
 ```
 
-## Sicherheitshinweise
+## Security Notes
 
-- **API Token:** Niemals in Git einchecken
-- **terraform.tfvars:** Enthält sensible Daten, nicht committen
-- **SSH-Keys:** Werden automatisch generiert, sicher aufbewahren
-- **Root-Passwort:** Nur für Notfall-Zugang via Web-Console
+- **API tokens:** Never commit to Git
+- **terraform.tfvars:** Contains sensitive data; do not commit
+- **SSH keys:** Are generated automatically; store them securely
+- **Root password:** Only use for emergency access via the web console
 
-## Ressourcen löschen
+## Destroying resources
 
 ```bash
 tofu destroy
 ```
 
-**Achtung:** Dies löscht alle erstellten Server, Netzwerke und Firewalls unwiderruflich!
+**Warning:** This will irreversibly delete all created servers, networks, and firewalls!
 
 ## Troubleshooting
 
-### Cloudflared startet nicht
+### cloudflared won't start
 
-Prüfe ob `/etc/cloudflared/config.yml` enthält:
+Check that `/etc/cloudflared/config.yml` contains:
+
 ```yaml
 edge-ip-version: "6"
 ```
 
-### SSH-Verbindung schlägt fehl
+### SSH connection fails
 
-1. Prüfe ob `cloudflared` lokal installiert ist
-2. Prüfe den Pfad in der SSH-Config (`/opt/homebrew/bin/cloudflared` für Apple Silicon)
-3. Prüfe ob der Tunnel in Cloudflare als "Connected" angezeigt wird
+1. Check that `cloudflared` is installed locally
+2. Verify the path in the SSH config (`/opt/homebrew/bin/cloudflared` for Apple Silicon)
+3. Ensure the tunnel shows as "Connected" in Cloudflare
 
-### Worker-Node nicht erreichbar
+### Worker node unreachable
 
-1. Prüfe ob der Control-Node läuft
-2. Prüfe ob ProxyJump in SSH-Config korrekt ist
-3. Teste Ping vom Control-Node: `ping 10.0.0.3`
+1. Verify the control node is running
+2. Confirm ProxyJump in the SSH config is set correctly
+3. Test ping from the control node: `ping 10.0.0.3`
 
-## Lizenz
+## License
 
 MIT

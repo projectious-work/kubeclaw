@@ -108,6 +108,24 @@ variable "keyboard_layout" {
 }
 
 # -----------------------------------------------------------------------------
+# SSH Keys (Optional - eigene Keys)
+# -----------------------------------------------------------------------------
+# Wenn leer, werden automatisch neue Keys generiert.
+# Bei Nutzung eigener Keys: Private Keys selbst verwalten!
+
+variable "control_node_public_key" {
+  description = "Public SSH key for control node. Leave empty to auto-generate."
+  type        = string
+  default     = ""
+}
+
+variable "worker_node_public_key" {
+  description = "Public SSH key for worker nodes. Leave empty to auto-generate."
+  type        = string
+  default     = ""
+}
+
+# -----------------------------------------------------------------------------
 # Cloudflare Configuration
 # -----------------------------------------------------------------------------
 

@@ -1,0 +1,121 @@
+---
+# =============================================================================
+# Security Hardening Playbook
+# =============================================================================
+# Führt zusätzliche Sicherheitsmaßnahmen auf allen Nodes aus
+#
+# Verwendung:
+#   ansible-playbook -i inventory.ini playbooks/security-hardening.yml
+# =============================================================================
+
+- name: Security Hardening
+  hosts: k3s_cluster
+  become: true
+  gather_facts: true
+  
+  vars:
+    # Unattended Upgrades für automatische Security-Updates
+    enable_unattended_upgrades: true
+    # fail2ban für SSH-Schutz
+    configure_fail2ban: true
+  
+  tasks:
+    # -------------------------------------------------------------------------
+    # Unattended Upgrades
+    # -------------------------------------------------------------------------
+    - name: Install unattended-upgrades
+      ansible.builtin.apt:
+        name:
+          - unattended-upgrades
+          - apt-listchanges
+        state: present
+      when: enable_unattended_upgrades
+        
+    - name: Configure unattended-upgrades
+      ansible.builtin.copy:
+        dest: /etc/apt/apt.conf.d/50unattended-upgrades
+        content: |
+          Unattended-Upgrade::Allowed-Origins {
+              "${distro_id}:${distro_codename}";
+              "${distro_id}:${distro_codename}-security";
+              "${distro_id}ESMApps:${distro_codename}-apps-security";
+              "${distro_id}ESM:${distro_codename}-infra-security";
+          };
+          Unattended-Upgrade::Package-Blacklist {
+          };
+          Unattended-Upgrade::DevRelease "auto";
+          Unattended-Upgrade::AutoFixInterruptedDpkg "true";
+          Unattended-Upgrade::MinimalSteps "true";
+          Unattended-Upgrade::Remove-Unused-Kernel-Packages "true";
+          Unattended-Upgrade::Remove-Unused-Dependencies "true";
+          Unattended-Upgrade::Automatic-Reboot "false";
+        mode: '0644'
+      when: enable_unattended_upgrades
+      
+    - name: Enable automatic updates
+      ansible.builtin.copy:
+        dest: /etc/apt/apt.conf.d/20auto-upgrades
+        content: |
+          APT::Periodic::Update-Package-Lists "1";
+          APT::Periodic::Unattended-Upgrade "1";
+          APT::Periodic::Download-Upgradeable-Packages "1";
+          APT::Periodic::AutocleanInterval "7";
+        mode: '0644'
+      when: enable_unattended_upgrades
+
+    # -------------------------------------------------------------------------
+    # fail2ban Configuration Check
+    # -------------------------------------------------------------------------
+    - name: Ensure fail2ban is running
+      ansible.builtin.service:
+        name: fail2ban
+        state: started
+        enabled: true
+      when: configure_fail2ban
+        
+    - name: Check fail2ban status
+      ansible.builtin.command: fail2ban-client status sshd
+      register: fail2ban_status
+      changed_when: false
+      failed_when: false
+      when: configure_fail2ban
+        
+    - name: Display fail2ban status
+      ansible.builtin.debug:
+        var: fail2ban_status.stdout_lines
+      when: 
+        - configure_fail2ban
+        - fail2ban_status.rc == 0
+
+    # -------------------------------------------------------------------------
+    # System Hardening
+    # -------------------------------------------------------------------------
+    - name: Set secure permissions on /etc/shadow
+      ansible.builtin.file:
+        path: /etc/shadow
+        mode: '0600'
+        
+    - name: Disable core dumps
+      ansible.builtin.copy:
+        dest: /etc/security/limits.d/disable-coredumps.conf
+        content: |
+          * hard core 0
+          * soft core 0
+        mode: '0644'
+        
+    - name: Configure sysctl for security
+      ansible.posix.sysctl:
+        name: "{{ item.name }}"
+        value: "{{ item.value }}"
+        sysctl_set: true
+        state: present
+        reload: true
+      loop:
+        - { name: 'net.ipv4.conf.all.rp_filter', value: '1' }
+        - { name: 'net.ipv4.conf.default.rp_filter', value: '1' }
+        - { name: 'net.ipv4.icmp_echo_ignore_broadcasts', value: '1' }
+        - { name: 'net.ipv4.conf.all.accept_source_route', value: '0' }
+        - { name: 'net.ipv6.conf.all.accept_source_route', value: '0' }
+        - { name: 'net.ipv4.conf.all.send_redirects', value: '0' }
+        - { name: 'net.ipv4.conf.default.send_redirects', value: '0' }
+        - { name: 'kernel.randomize_va_space', value: '2' }

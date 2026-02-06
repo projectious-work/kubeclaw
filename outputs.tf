@@ -17,6 +17,20 @@ output "network_name" {
 }
 
 # -----------------------------------------------------------------------------
+# Cluster Name (für Scripts)
+# -----------------------------------------------------------------------------
+
+output "cluster_name" {
+  description = "Name of the cluster"
+  value       = var.cluster_name
+}
+
+output "admin_user" {
+  description = "Admin user name"
+  value       = var.admin_user
+}
+
+# -----------------------------------------------------------------------------
 # Control Node Information
 # -----------------------------------------------------------------------------
 
@@ -44,6 +58,11 @@ output "control_node_private_ip" {
 # Worker Nodes Information
 # -----------------------------------------------------------------------------
 
+output "worker_node_count" {
+  description = "Number of worker nodes"
+  value       = var.worker_node_count
+}
+
 output "worker_node_ids" {
   description = "IDs of worker nodes"
   value       = hcloud_server.worker_node[*].id
@@ -61,28 +80,37 @@ output "worker_node_private_ips" {
 
 # -----------------------------------------------------------------------------
 # SSH Keys (Private - Handle with care!)
+# Nur verfügbar wenn automatisch generiert (nicht bei eigenen Keys)
 # -----------------------------------------------------------------------------
 
 output "control_node_ssh_private_key" {
-  description = "Private SSH key for control node"
-  value       = tls_private_key.control_node.private_key_openssh
+  description = "Private SSH key for control node (only if auto-generated)"
+  value       = length(tls_private_key.control_node) > 0 ? tls_private_key.control_node[0].private_key_openssh : "Using custom key - manage privately"
   sensitive   = true
 }
 
 output "control_node_ssh_public_key" {
   description = "Public SSH key for control node"
-  value       = tls_private_key.control_node.public_key_openssh
+  value       = local.control_node_public_key
 }
 
 output "worker_node_ssh_private_key" {
-  description = "Private SSH key for worker nodes"
-  value       = tls_private_key.worker_node.private_key_openssh
+  description = "Private SSH key for worker nodes (only if auto-generated)"
+  value       = length(tls_private_key.worker_node) > 0 ? tls_private_key.worker_node[0].private_key_openssh : (var.worker_node_count > 0 ? "Using custom key - manage privately" : "No workers configured")
   sensitive   = true
 }
 
 output "worker_node_ssh_public_key" {
   description = "Public SSH key for worker nodes"
-  value       = tls_private_key.worker_node.public_key_openssh
+  value       = var.worker_node_count > 0 ? local.worker_node_public_key : "No workers configured"
+}
+
+output "using_custom_keys" {
+  description = "Whether custom SSH keys are being used"
+  value = {
+    control_node = var.control_node_public_key != ""
+    worker_node  = var.worker_node_public_key != ""
+  }
 }
 
 # -----------------------------------------------------------------------------
@@ -126,11 +154,16 @@ output "next_steps" {
     ╔══════════════════════════════════════════════════════════════════════════════╗
     ║                              NEXT STEPS                                       ║
     ╠══════════════════════════════════════════════════════════════════════════════╣
-    ║                                                                               ║
-    ║  1. Export SSH Keys:                                                          ║
+    %{if var.control_node_public_key == ""}
+    ║  1. Export SSH Keys (auto-generated):                                         ║
     ║     tofu output -raw control_node_ssh_private_key > ~/.ssh/${var.cluster_name}_control-node_key
+    %{if var.worker_node_count > 0}
     ║     tofu output -raw worker_node_ssh_private_key > ~/.ssh/${var.cluster_name}_worker-node_key
+    %{endif}
     ║     chmod 600 ~/.ssh/${var.cluster_name}_*_key
+    %{else}
+    ║  1. SSH Keys: Using your custom keys - ensure they are in ~/.ssh/            ║
+    %{endif}
     ║                                                                               ║
     ║  2. Add SSH Config:                                                           ║
     ║     tofu output -raw ssh_config_snippet >> ~/.ssh/config                      ║

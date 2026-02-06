@@ -4,7 +4,7 @@
 # Dieses Projekt erstellt:
 # - Ein privates Netzwerk
 # - Einen Control-Node mit Cloudflare Tunnel (IPv6-only)
-# - Einen oder mehrere Worker-Nodes (IPv6-only, nur intern erreichbar)
+# - Null oder mehrere Worker-Nodes (IPv6-only, nur intern erreichbar)
 # - Firewall-Regeln für alle Server
 # =============================================================================
 
@@ -36,6 +36,19 @@ provider "hcloud" {
 }
 
 # =============================================================================
+# Locals - SSH Key Logic
+# =============================================================================
+
+locals {
+  # Verwende eigene Keys wenn angegeben, sonst generierte
+  use_custom_control_key = var.control_node_public_key != ""
+  use_custom_worker_key  = var.worker_node_public_key != ""
+  
+  control_node_public_key = local.use_custom_control_key ? var.control_node_public_key : tls_private_key.control_node[0].public_key_openssh
+  worker_node_public_key  = local.use_custom_worker_key ? var.worker_node_public_key : (var.worker_node_count > 0 ? tls_private_key.worker_node[0].public_key_openssh : "")
+}
+
+# =============================================================================
 # Data Sources
 # =============================================================================
 
@@ -63,17 +76,18 @@ resource "hcloud_network_subnet" "cluster_subnet" {
 }
 
 # =============================================================================
-# SSH Keys
+# SSH Keys - Generiert (nur wenn keine eigenen angegeben)
 # =============================================================================
 
-# Control Node SSH Key
+# Control Node SSH Key (nur generieren wenn kein eigener Key angegeben)
 resource "tls_private_key" "control_node" {
+  count     = local.use_custom_control_key ? 0 : 1
   algorithm = "ED25519"
 }
 
 resource "hcloud_ssh_key" "control_node" {
   name       = "${var.cluster_name}-control-node-key"
-  public_key = tls_private_key.control_node.public_key_openssh
+  public_key = local.control_node_public_key
 
   labels = {
     cluster = var.cluster_name
@@ -81,14 +95,16 @@ resource "hcloud_ssh_key" "control_node" {
   }
 }
 
-# Worker Node SSH Key
+# Worker Node SSH Key (nur generieren wenn Worker vorhanden UND kein eigener Key)
 resource "tls_private_key" "worker_node" {
+  count     = (var.worker_node_count > 0 && !local.use_custom_worker_key) ? 1 : 0
   algorithm = "ED25519"
 }
 
 resource "hcloud_ssh_key" "worker_node" {
+  count      = var.worker_node_count > 0 ? 1 : 0
   name       = "${var.cluster_name}-worker-node-key"
-  public_key = tls_private_key.worker_node.public_key_openssh
+  public_key = local.worker_node_public_key
 
   labels = {
     cluster = var.cluster_name
@@ -141,9 +157,10 @@ resource "hcloud_firewall" "control_node" {
   }
 }
 
-# Firewall für Worker-Nodes
+# Firewall für Worker-Nodes (nur erstellen wenn Worker vorhanden)
 resource "hcloud_firewall" "worker_node" {
-  name = "${var.cluster_name}-worker-node-fw"
+  count = var.worker_node_count > 0 ? 1 : 0
+  name  = "${var.cluster_name}-worker-node-fw"
 
   labels = {
     cluster = var.cluster_name
@@ -202,7 +219,7 @@ resource "hcloud_server" "control_node" {
   }
 
   user_data = templatefile("${path.module}/cloud-init/control-node.yaml.tpl", {
-    ssh_public_key   = tls_private_key.control_node.public_key_openssh
+    ssh_public_key   = local.control_node_public_key
     root_password    = var.root_password
     admin_user       = var.admin_user
     keyboard_layout  = var.keyboard_layout
@@ -239,9 +256,9 @@ resource "hcloud_server" "worker_node" {
   server_type = var.worker_node_type
   location    = var.location
 
-  ssh_keys = [hcloud_ssh_key.worker_node.id]
+  ssh_keys = [hcloud_ssh_key.worker_node[0].id]
 
-  firewall_ids = [hcloud_firewall.worker_node.id]
+  firewall_ids = [hcloud_firewall.worker_node[0].id]
 
   public_net {
     ipv4_enabled = false
@@ -249,7 +266,7 @@ resource "hcloud_server" "worker_node" {
   }
 
   user_data = templatefile("${path.module}/cloud-init/worker-node.yaml.tpl", {
-    ssh_public_key   = tls_private_key.worker_node.public_key_openssh
+    ssh_public_key   = local.worker_node_public_key
     root_password    = var.root_password
     admin_user       = var.admin_user
     keyboard_layout  = var.keyboard_layout

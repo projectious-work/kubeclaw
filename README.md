@@ -1,6 +1,6 @@
-# Hetzner Cloud Kubernetes Cluster with OpenTofu
+# Hetzner Cloud Kubernetes cluster with OpenTofu
 
-This project automatically provisions a secure, IPv6-only Kubernetes cluster on Hetzner Cloud with SSH access via a Cloudflare Tunnel.
+This project automates creation of a secure, IPv6-only Kubernetes cluster on Hetzner Cloud with SSH access via a Cloudflare Tunnel.
 
 ## Architecture
 
@@ -21,116 +21,327 @@ This project automatically provisions a secure, IPv6-only Kubernetes cluster on 
 │  │              Private Network (10.0.0.0/24)              │    │
 │  │                                                         │    │
 │  │   ┌─────────────────┐       ┌─────────────────┐        │    │
-│  │   │  control-node   │       │  worker-node    │        │    │
-│  │   │    10.0.0.2     │◄─────►│    10.0.0.3+    │        │    │
-│  │   │  (cloudflared)  │       │  (isolated)     │        │    │
+│  │   │  control-node   │       │  worker-nodes   │        │    │
+│  │   │    10.0.0.2     │◄─────►│   10.0.0.3+     │        │    │
+│  │   │  (cloudflared)  │       │  (0-n instances)│       │    │
 │  │   └─────────────────┘       └─────────────────┘        │    │
 │  │                                                         │    │
 │  └─────────────────────────────────────────────────────────┘    │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
+## Features
+
+- ✅ **IPv6-only** — No public IPv4 addresses required
+- ✅ **Cloudflare Tunnel** — Secure SSH access without open ports
+- ✅ **Scalable** — 0 to n worker nodes
+- ✅ **Custom SSH keys** — Optionally use your own keys
+- ✅ **Ansible-ready** — Playbooks for updates and hardening
+- ✅ **Debian 12** — Stable, Kubernetes-compatible OS
+
 ## Requirements
 
 - [OpenTofu](https://opentofu.org/) >= 1.6.0 (or Terraform >= 1.5.0)
-- Hetzner Cloud account with an API token
+- Hetzner Cloud account with API token
 - Cloudflare account with a configured domain
-- `cloudflared` installed on your local machine
+- `cloudflared` installed locally (`brew install cloudflared`)
+- (Optional) Ansible for server management
 
 ## Quick Start
 
-### 1. Clone the repository / copy files
-
 ```bash
-git clone <repository-url>
+# 1. Clone or unpack the project
 cd tofu-hetzner-cluster
-```
 
-### 2. Adjust configuration
-
-```bash
+# 2. Configure
 cp terraform.tfvars.example terraform.tfvars
-# Edit terraform.tfvars with your values
-```
+# → edit terraform.tfvars
 
-Important: Replace at least the following:
-- `hcloud_token` - your Hetzner API token
-- `cloudflare_tunnel_domain` - your domain (e.g. `console.example.org`)
-- `root_password` - a secure password
-
-### 3. Create the infrastructure
-
-```bash
-# Initialize
+# 3. Create infrastructure
 tofu init
+tofu apply
 
-# Review plan
-tofu plan
+# 4. Set up SSH
+./scripts/setup-ssh.sh
 
-# Apply
+# 5. Install Cloudflare Tunnel (on the control node)
+ssh control-node
+sudo cloudflared service install <TOKEN>
+
+# 6. Disable IPv6 (optional, after tunnel setup)
+# → set enable_public_ipv6 = false in terraform.tfvars
 tofu apply
 ```
 
-### 4. Export SSH keys
+---
+
+## SSH key management
+
+### Option A: Automatically generated keys (default)
+
+OpenTofu can generate SSH keys automatically and store them in the state.
 
 ```bash
-# Export private keys
+# Export keys after `tofu apply`
 tofu output -raw control_node_ssh_private_key > ~/.ssh/k3s-cluster_control-node_key
 tofu output -raw worker_node_ssh_private_key > ~/.ssh/k3s-cluster_worker-node_key
-
-# Set permissions
 chmod 600 ~/.ssh/k3s-cluster_*_key
 ```
 
-### 5. Set up SSH config
+Advantages:
+- No manual key creation required
+- Keys are stored in the state
+
+Disadvantages:
+- The state file contains sensitive data
+- If the state is lost, the keys are lost
+
+### Option B: Use your own SSH keys
+
+For more control you can supply your own keys:
 
 ```bash
-tofu output -raw ssh_config_snippet >> ~/.ssh/config
+# 1. Create keys
+ssh-keygen -t ed25519 -f ~/.ssh/k3s-cluster_control-node_key -C "control-node"
+ssh-keygen -t ed25519 -f ~/.ssh/k3s-cluster_worker-node_key -C "worker-node"
+
+# 2. Add them to terraform.tfvars
+control_node_public_key = "ssh-ed25519 AAAA... control-node"
+worker_node_public_key  = "ssh-ed25519 AAAA... worker-node"
 ```
 
-### 6. Connect to the control node (IPv6)
+Advantages:
+- Full control over key storage
+- Easy integration with password managers
+- State does not contain private keys
+
+### Storing SSH keys in Dashlane
+
+If you use Dashlane, recommended workflow:
+
+1. **Create keys locally**:
+   ```bash
+   ssh-keygen -t ed25519 -f ~/.ssh/k3s-control -C "k3s-control"
+   ```
+
+2. **Save to Dashlane**:
+   - Create a "Secure Note" in Dashlane
+   - Name: "K3s Cluster SSH Keys"
+   - Content: paste the private key (`cat ~/.ssh/k3s-control`)
+   - Add the public key as an additional field
+
+3. **Public key in terraform.tfvars**:
+   ```hcl
+   control_node_public_key = "ssh-ed25519 AAAA..."
+   ```
+
+4. **Restore when needed**:
+   - Copy the private key from Dashlane
+   - Save it as `~/.ssh/k3s-control`
+   - `chmod 600 ~/.ssh/k3s-control`
+
+Tip: Dashlane supports attaching files to secure notes — you can attach the key files directly.
+
+---
+
+## SSH key rotation
+
+### When to rotate
+
+- Periodically (e.g. annually)
+- If compromise is suspected
+- When personnel changes occur
+
+### How to rotate
+
+#### With auto-generated keys:
 
 ```bash
-# Use the IPv6 address from the outputs
-ssh -i ~/.ssh/k3s-cluster_control-node_key kubernetes-admin@<ipv6-address>
+# 1. Mark old key resources for recreation
+tofu taint 'tls_private_key.control_node[0]'
+tofu taint 'tls_private_key.worker_node[0]'
+
+# 2. Generate new keys
+tofu apply
+
+# 3. Export new keys
+./scripts/setup-ssh.sh
 ```
 
-### 7. Install Cloudflare Tunnel
+Warning: During rotation SSH access may be briefly interrupted. Keep Hetzner web console root access available.
 
-On the control node:
-
-```bash
-sudo cloudflared service install <YOUR_TUNNEL_TOKEN>
-sudo systemctl status cloudflared
-```
-
-### 8. Disable public IPs
-
-After the tunnel is successfully set up:
+#### With your own keys:
 
 ```bash
-# Change in terraform.tfvars:
-# enable_public_ipv6 = false
+# 1. Create new keys
+ssh-keygen -t ed25519 -f ~/.ssh/k3s-control-new -C "control-node-new"
 
+# 2. Add the new public key to the server (before rotation)
+ssh control-node
+echo "ssh-ed25519 AAAA... control-node-new" >> ~/.ssh/authorized_keys
+
+# 3. Test the new key
+ssh -i ~/.ssh/k3s-control-new kubernetes-admin@...
+
+# 4. Remove the old key
+ssh control-node
+# Remove the old line from ~/.ssh/authorized_keys
+
+# 5. Update terraform.tfvars
+control_node_public_key = "ssh-ed25519 AAAA... (new key)"
+
+# 6. Sync OpenTofu state
 tofu apply
 ```
 
-## Setting up the Cloudflare Tunnel
+---
 
-### In the Cloudflare Zero Trust Dashboard
+## Scaling worker nodes
 
-1. **Networks → Tunnels → Create a tunnel**
-2. Give it a name, copy the token
-3. **Add a Public Hostname:**
-   - Subdomain: `console`
-   - Domain: your domain
-   - Type: `SSH`
-   - URL: `localhost:22`
+### Scale to 0 workers (control node only)
 
-4. **Access → Applications → Add application**
-   - Self-hosted
-   - Domain: `console.example.org`
-   - Create a policy (e.g. allowlist by email)
+```hcl
+# terraform.tfvars
+worker_node_count = 0
+```
+
+```bash
+tofu apply
+```
+
+### Add workers
+
+```hcl
+# terraform.tfvars
+worker_node_count = 3  # e.g. increase to 3
+```
+
+```bash
+tofu apply
+./scripts/generate-ansible-inventory.sh  # update Ansible inventory
+```
+
+---
+
+## Server management with Ansible
+
+### Setup
+
+```bash
+# Install Ansible collection
+ansible-galaxy collection install ansible.posix
+
+# Generate inventory
+./scripts/generate-ansible-inventory.sh
+
+# Test
+cd ansible
+ansible all -m ping
+```
+
+### System updates
+
+```bash
+cd ansible
+
+# Update all servers
+ansible-playbook playbooks/update-system.yml
+
+# Only control node
+ansible-playbook playbooks/update-system.yml --limit control_nodes
+
+# With reboot if needed
+ansible-playbook playbooks/update-system.yml -e "reboot_after_update=true"
+```
+
+### Security hardening
+
+```bash
+ansible-playbook playbooks/security-hardening.yml
+```
+
+This enables:
+- Unattended upgrades (automatic security updates)
+- fail2ban monitoring
+- Kernel security parameters
+
+---
+
+## Available OS images
+
+Hetzner Cloud offers the following Debian/Ubuntu images:
+
+| Image | Name | Recommendation |
+|-------|------|----------------|
+| `debian-12` | Debian 12 Bookworm | ✅ **Recommended for K8s** |
+| `debian-11` | Debian 11 Bullseye | Stable, but older |
+| `ubuntu-24.04` | Ubuntu 24.04 LTS | Good for K8s |
+| `ubuntu-22.04` | Ubuntu 22.04 LTS | Well-proven |
+
+### Why Debian 12?
+
+- Stability: long support cycles
+- Compatibility: all K8s tools (kubeadm, k3s, etc.) support Debian
+- Small footprint: leaner than Ubuntu, but not as small as Alpine
+- No glibc/musl compatibility issues (as with Alpine)
+
+### No "minimal" image available
+
+Hetzner Cloud doesn't provide dedicated "slim" or "minimal" variants. The standard images are fairly compact already. If you need a smaller image:
+
+1. Use Packer: build a custom image with only required packages
+2. Optimize cloud-init: remove unnecessary packages on first boot
+
+```yaml
+# Add to cloud-init
+runcmd:
+  - apt-get purge -y snapd
+  - apt-get autoremove -y
+```
+
+---
+
+## Password management
+
+### Which credentials exist?
+
+| Credential | Purpose | Storage |
+|------------|---------|---------|
+| Hetzner API Token | Create infrastructure | `terraform.tfvars` |
+| Root password | Emergency web console | `terraform.tfvars` |
+| SSH private keys | Server access | `~/.ssh/` or Dashlane |
+| Cloudflare Tunnel token | Tunnel auth | Cloudflare Dashboard |
+
+### Recommended Dashlane structure
+
+```
+📁 K3s Cluster
+├── 🔐 Hetzner API Token
+│   └── Token: xxx
+├── 🔐 Root Password
+│   └── Password: xxx
+├── 📝 SSH Keys (Secure Note)
+│   ├── Control Node Private Key: ...
+│   ├── Control Node Public Key: ...
+│   ├── Worker Node Private Key: ...
+│   └── Worker Node Public Key: ...
+└── 🔐 Cloudflare Tunnel Token
+    └── Token: xxx
+```
+
+### Securing `terraform.tfvars`
+
+`terraform.tfvars` contains sensitive data. Options:
+
+1. Do not commit: exclude via `.gitignore` (default)
+2. Encrypt: with `git-crypt` or `sops`
+3. Use environment variables instead of tfvars
+   ```bash
+   export TF_VAR_hcloud_token="xxx"
+   export TF_VAR_root_password="xxx"
+   ```
+
+---
 
 ## Variables
 
@@ -139,76 +350,99 @@ tofu apply
 | `hcloud_token` | Hetzner API token | - |
 | `cluster_name` | Prefix for all resources | `k3s-cluster` |
 | `location` | Hetzner datacenter | `fsn1` |
+| `server_image` | OS image | `debian-12` |
 | `control_node_type` | Control node server type | `cx22` |
 | `worker_node_type` | Worker node server type | `cx22` |
-| `worker_node_count` | Number of worker nodes | `1` |
+| `worker_node_count` | Number of worker nodes (0-n) | `1` |
 | `enable_public_ipv6` | Enable IPv6 | `true` |
 | `admin_user` | SSH username | `kubernetes-admin` |
-| `cloudflare_tunnel_domain` | Domain for the tunnel | `` |
+| `control_node_public_key` | Custom SSH public key for control node | `""` (auto) |
+| `worker_node_public_key` | Custom SSH public key for worker nodes | `""` (auto) |
+| `cloudflare_tunnel_domain` | Domain for the tunnel | `""` |
 
-## Outputs
+---
 
-| Output | Description |
-|--------|-------------|
-| `control_node_ipv6` | IPv6 address of the control node |
-| `control_node_private_ip` | Private IP of the control node |
-| `worker_node_private_ips` | Private IPs of the worker nodes |
-| `control_node_ssh_private_key` | SSH private key (sensitive) |
-| `ssh_config_snippet` | Ready-to-use SSH config |
-| `next_steps` | Instructions for next steps |
-
-## Files
+## Project structure
 
 ```
-.
-├── main.tf                     # Main configuration
-├── variables.tf                # Variable definitions
-├── outputs.tf                  # Output definitions
-├── terraform.tfvars.example    # Example configuration
-├── .gitignore                  # Git ignore rules
-├── README.md                   # This file (original language)
-└── cloud-init/
-    ├── control-node.yaml.tpl   # Cloud-init template for control node
-    └── worker-node.yaml.tpl    # Cloud-init template for worker node
+tofu-hetzner-cluster/
+├── main.tf                          # Infrastructure
+├── variables.tf                     # Variables
+├── outputs.tf                       # Outputs
+├── terraform.tfvars.example         # Example configuration
+├── .gitignore
+├── README.md
+├── cloud-init/
+│   ├── control-node.yaml.tpl       # Cloud-init template for control node
+│   └── worker-node.yaml.tpl        # Cloud-init template for worker nodes
+├── scripts/
+│   ├── setup-ssh.sh                # SSH setup helper
+│   └── generate-ansible-inventory.sh
+└── ansible/
+    ├── ansible.cfg
+    ├── inventory.ini
+    └── playbooks/
+        ├── update-system.yml
+        └── security-hardening.yml
 ```
 
-## Security Notes
-
-- **API tokens:** Never commit to Git
-- **terraform.tfvars:** Contains sensitive data; do not commit
-- **SSH keys:** Are generated automatically; store them securely
-- **Root password:** Only use for emergency access via the web console
-
-## Destroying resources
-
-```bash
-tofu destroy
-```
-
-**Warning:** This will irreversibly delete all created servers, networks, and firewalls!
+---
 
 ## Troubleshooting
 
-### cloudflared won't start
+### cloudflared won't start (IPv6-only)
 
-Check that `/etc/cloudflared/config.yml` contains:
-
+Check `/etc/cloudflared/config.yml`:
 ```yaml
 edge-ip-version: "6"
 ```
 
-### SSH connection fails
+### SSH key rotation failed
 
-1. Check that `cloudflared` is installed locally
-2. Verify the path in the SSH config (`/opt/homebrew/bin/cloudflared` for Apple Silicon)
-3. Ensure the tunnel shows as "Connected" in Cloudflare
+1. Verbinde via Hetzner Web-Console (Root-Passwort)
+2. Füge neuen Key manuell hinzu:
+   ```bash
+   echo "ssh-ed25519 AAAA..." >> /home/kubernetes-admin/.ssh/authorized_keys
+   ```
 
-### Worker node unreachable
+### Ansible kann nicht verbinden
 
-1. Verify the control node is running
-2. Confirm ProxyJump in the SSH config is set correctly
-3. Test ping from the control node: `ping 10.0.0.3`
+Prüfe:
+1. `cloudflared` lokal installiert?
+2. Tunnel läuft? (`cloudflared tunnel list`)
+3. Inventory korrekt? (`./scripts/generate-ansible-inventory.sh`)
 
-## License
+### State verloren / Keys weg
+
+Bei auto-generierten Keys:
+1. Verbinde via Web-Console (Root)
+2. Erstelle neue Keys
+3. Füge zu authorized_keys hinzu
+4. Importiere Server in neuen State:
+   ```bash
+   tofu import hcloud_server.control_node <server-id>
+   ```
+
+---
+
+## Nächste Schritte nach Cluster-Setup
+
+1. **K3s installieren**:
+   ```bash
+   curl -sfL https://get.k3s.io | sh -
+   ```
+
+2. **Oder kubeadm**:
+   ```bash
+   # Siehe offizielle K8s Dokumentation
+   ```
+
+3. **Kubernetes Dashboard** installieren
+
+4. **Ingress Controller** einrichten
+
+---
+
+## Lizenz
 
 MIT

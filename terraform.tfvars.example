@@ -51,6 +51,16 @@ admin_user      = "kubernetes-admin"
 keyboard_layout = "de"
 
 # -----------------------------------------------------------------------------
+# SSH Keys (Optional - eigene Keys verwenden)
+# -----------------------------------------------------------------------------
+# Wenn leer gelassen, werden automatisch neue Keys generiert.
+# Bei Nutzung eigener Keys müssen die Private Keys selbst verwaltet werden!
+
+# Eigene Public Keys eintragen (Format: "ssh-ed25519 AAAA... comment")
+# control_node_public_key = "ssh-ed25519 AAAA..."
+# worker_node_public_key  = "ssh-ed25519 AAAA..."
+
+# -----------------------------------------------------------------------------
 # Cloudflare Tunnel
 # -----------------------------------------------------------------------------
 # Domain für SSH-Zugang via Cloudflare Tunnel

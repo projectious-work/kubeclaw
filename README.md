@@ -44,7 +44,7 @@ This project automates creation of a secure, IPv6-only Kubernetes cluster on Het
 - [OpenTofu](https://opentofu.org/) >= 1.6.0 (or Terraform >= 1.5.0)
 - Hetzner Cloud account with API token
 - Cloudflare account with a configured domain
-- `cloudflared` installed locally (`brew install cloudflared`)
+- `cloudflared` installed locally (e.g. `brew install cloudflared` on Mac)
 - (Optional) Ansible for server management
 
 ## Quick Start

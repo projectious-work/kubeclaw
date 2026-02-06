@@ -1,26 +1,26 @@
 #cloud-config
 
 # =============================================================================
-# SERVER A - Mit Cloudflare Tunnel (Gateway-Server, control node)
+# SERVER A - With Cloudflare Tunnel (gateway server, control node)
 # =============================================================================
-# Dieser Server ist der einzige mit Außenwelt-Zugang via Cloudflare Tunnel.
-# Er dient als Bastion/Jump-Host für Server B.
+# This server is the only one with external access via Cloudflare Tunnel.
+# It serves as a bastion/jump host for Server B.
 # =============================================================================
 # https://community.hetzner.com/tutorials/basic-cloud-config/de
 
 
 users:
-  # Root-User mit Passwort für Web-Console Notfall-Zugang
+  # Root user with password for Web Console emergency access
   - name: root
     plain_text_passwd: 'runny-clapper'
     lock_passwd: false
-  # Haupt-User für SSH-Zugang
+  # Main user for SSH access
   - name: kubernetes-admin
     groups: users, admin, sudo
     sudo: ALL=(ALL) NOPASSWD:ALL
     shell: /bin/bash
     ssh_authorized_keys:
-      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKywQeZ+fhz0Hq0M2wzMmVR+QcHimflU/XSifrPfAL39 
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKywQeZ+fhz0Hq0M2wzMmVR+QcHimflU/XSifrPfAL39
 
 keyboard:
   layout: de
@@ -37,31 +37,31 @@ package_update: true
 package_upgrade: true
 
 write_files:
-  # SSH-Härtung
+  # SSH hardening
   - path: /etc/ssh/sshd_config.d/ssh-hardening.conf
     content: |
-      # Grundlegende Sicherheit
+      # Basic security
       PermitRootLogin no
       PasswordAuthentication no
       KbdInteractiveAuthentication no
       ChallengeResponseAuthentication no
       MaxAuthTries 3
-      
-      # Nicht benötigte Features deaktivieren
+
+      # Disable unnecessary features
       X11Forwarding no
       AllowAgentForwarding no
-      
-      # TCP-Forwarding erlauben für ProxyJump zu Server B
+
+      # Allow TCP forwarding for ProxyJump to Server B
       AllowTcpForwarding yes
-      
-      # Nur dieser User darf sich verbinden
+
+      # Only this user may connect
       AllowUsers kubernetes-admin
-      
-      # Idle-Timeout (optional)
+
+      # Idle timeout (optional)
       ClientAliveInterval 300
       ClientAliveCountMax 2
 
-  # fail2ban Konfiguration
+  # fail2ban configuration
   - path: /etc/fail2ban/jail.local
     content: |
       [sshd]
@@ -72,42 +72,42 @@ write_files:
       findtime = 600
       bantime = 3600
 
-  # Cloudflared Config to use IPv6 only
+  # Cloudflared config to use IPv6 only
   - path: /etc/cloudflared/config.yml
     content: |
       edge-ip-version: "6"
 
 runcmd:
-  # fail2ban aktivieren
+  # Enable fail2ban
   - systemctl enable fail2ban
   - systemctl start fail2ban
-  
-  # UFW Firewall konfigurieren
-  # SSH nur vom internen Netzwerk erlauben
-  - ufw allow from 10.0.0.0/8 to any port 22 proto tcp comment 'SSH intern'
-  
-  # Falls du SSH auch über Cloudflare Tunnel nutzen willst,
-  # erlaubt diese Regel SSH von localhost (wo cloudflared läuft)
+
+  # Configure UFW firewall
+  # Allow SSH only from internal network
+  - ufw allow from 10.0.0.0/8 to any port 22 proto tcp comment 'SSH internal'
+
+  # If using SSH via Cloudflare Tunnel,
+  # this rule allows SSH from localhost (where cloudflared runs)
   - ufw allow from 127.0.0.1 to any port 22 proto tcp comment 'SSH via Tunnel'
-  
-  # Ausgehend: DNS, HTTP, HTTPS für Cloudflare Tunnel und Updates
-  # (UFW erlaubt ausgehend standardmäßig, aber explizit ist besser)
+
+  # Outbound: DNS, HTTP, HTTPS for Cloudflare Tunnel and updates
+  # (UFW allows outbound by default, but explicit is better)
   - ufw default deny incoming
   - ufw default allow outgoing
-  
-  # Firewall aktivieren
+
+  # Enable firewall
   - ufw --force enable
-  
-  # Add cloudflare gpg key
+
+  # Add Cloudflare GPG key
   - mkdir -p --mode=0755 /usr/share/keyrings
   - curl -fsSL https://pkg.cloudflare.com/cloudflare-public-v2.gpg | tee /usr/share/keyrings/cloudflare-public-v2.gpg >/dev/null
 
   # Add this repo to your apt repositories
   - echo 'deb [signed-by=/usr/share/keyrings/cloudflare-public-v2.gpg] https://pkg.cloudflare.com/cloudflared any main' | tee /etc/apt/sources.list.d/cloudflared.list
-  
+
   - mkdir -p /etc/cloudflared
-  # install cloudflared
+  # Install cloudflared
   - apt-get update && sudo apt-get install cloudflared
- 
-  # Neustart um alle Änderungen zu aktivieren
+
+  # Reboot to apply all changes
   - reboot

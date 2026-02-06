@@ -21,9 +21,11 @@ ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8
 
-# Instral Mistral Vibe code assistant
-RUN export PATH="/root/.local/bin:$PATH" \
-    && curl -LsSf https://mistral.ai/vibe/install.sh | bash
+# Install code assistants
+ENV PATH="/root/.local/bin:${PATH}"
+RUN    curl -fsSL https://claude.ai/install.sh | bash \
+    && curl -fsSL https://mistral.ai/vibe/install.sh | bash
+    
 
 # Install opentofu
 RUN install -m 0755 -d /etc/apt/keyrings \
@@ -33,7 +35,7 @@ RUN install -m 0755 -d /etc/apt/keyrings \
     && echo "deb [signed-by=/etc/apt/keyrings/opentofu.gpg,/etc/apt/keyrings/opentofu-repo.gpg] https://packages.opentofu.org/opentofu/tofu/any/ any main" | tee /etc/apt/sources.list.d/opentofu.list > /dev/null \
     && chmod a+r /etc/apt/sources.list.d/opentofu.list \
     && apt-get update \
-    && apt-get install -y tofu
-
+    && apt-get install -y tofu \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /workspaces

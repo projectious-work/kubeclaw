@@ -1,7 +1,7 @@
 #cloud-config
 
 # =============================================================================
-# Worker Node - Isoliert im internen Netzwerk
+# Worker Node - Isolated in internal network
 # =============================================================================
 
 users:
@@ -56,11 +56,11 @@ runcmd:
   - systemctl start fail2ban
   - ufw default deny incoming
   - ufw default deny outgoing
-  - ufw allow from 10.0.0.0/8 to any port 22 proto tcp comment 'SSH intern'
-  - ufw allow from 10.0.0.0/8 proto icmp comment 'ICMP intern'
+  - ufw allow from 10.0.0.0/8 to any port 22 proto tcp comment 'SSH internal'
+  - ufw allow from 10.0.0.0/8 proto icmp comment 'ICMP internal'
   - ufw allow from 10.0.0.0/8 to any port 10250 proto tcp comment 'Kubelet API'
   - ufw allow from 10.0.0.0/8 to any port 30000:32767 proto tcp comment 'NodePort'
-  - ufw allow out to 10.0.0.0/8 comment 'Ausgehend intern'
+  - ufw allow out to 10.0.0.0/8 comment 'Outbound internal'
   - ufw allow out to 185.12.64.1 port 53 proto udp comment 'DNS Hetzner'
   - ufw allow out to 185.12.64.2 port 53 proto udp comment 'DNS Hetzner'
   - ufw allow out to any port 80 proto tcp comment 'HTTP Updates'

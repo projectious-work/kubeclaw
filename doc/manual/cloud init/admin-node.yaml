@@ -1,11 +1,11 @@
 #cloud-config
 
 # =============================================================================
-# SERVER C - Temporärer Server with external ssh access (admin node)
+# SERVER C - Temporary server with external SSH access (admin node)
 # =============================================================================
 
 users:
-  # Haupt-User für SSH-Zugang
+  # Main user for SSH access
   - name: kubernetes-admin
     groups: users, admin, sudo
     sudo: ALL=(ALL) NOPASSWD:ALL
@@ -25,31 +25,31 @@ package_update: true
 package_upgrade: true
 
 write_files:
-  # SSH-Härtung (strenger als Server A)
+  # SSH hardening (stricter than Server A)
   - path: /etc/ssh/sshd_config.d/ssh-hardening.conf
     content: |
-      # Grundlegende Sicherheit
+      # Basic security
       PermitRootLogin no
       PasswordAuthentication no
       KbdInteractiveAuthentication no
       ChallengeResponseAuthentication no
       MaxAuthTries 3
-      
-      # TCP-Forwarding erlauben für ProxyJump
+
+      # Allow TCP forwarding for ProxyJump
       AllowTcpForwarding yes
 
-      # Alle anderen Forwarding-Optionen deaktiviert (nicht benötigt)
+      # All other forwarding options disabled (not needed)
       X11Forwarding no
       AllowAgentForwarding no
-      
-      # Nur dieser User darf sich verbinden
+
+      # Only this user may connect
       AllowUsers kubernetes-admin
-      
-      # Idle-Timeout
+
+      # Idle timeout
       ClientAliveInterval 300
       ClientAliveCountMax 2
 
-  # fail2ban Konfiguration
+  # fail2ban configuration
   - path: /etc/fail2ban/jail.local
     content: |
       [sshd]
@@ -61,15 +61,15 @@ write_files:
       bantime = 3600
 
 runcmd:
-  # fail2ban aktivieren
+  # Enable fail2ban
   - systemctl enable fail2ban
   - systemctl start fail2ban
-  
-  # UFW Firewall konfigurieren
+
+  # Configure UFW firewall
   - ufw allow 22
-  
-  # Firewall aktivieren
+
+  # Enable firewall
   - ufw --force enable
-  
-  # Neustart um alle Änderungen zu aktivieren
+
+  # Reboot to apply all changes
   - reboot

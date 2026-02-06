@@ -2,62 +2,62 @@
 # =============================================================================
 # System Update Playbook
 # =============================================================================
-# Führt apt update && apt upgrade auf allen Nodes aus
-# 
-# Verwendung:
+# Runs apt update && apt upgrade on all nodes
+#
+# Usage:
 #   ansible-playbook -i inventory.ini playbooks/update-system.yml
 #
-# Nur Control-Node:
+# Control node only:
 #   ansible-playbook -i inventory.ini playbooks/update-system.yml --limit control_nodes
 #
-# Mit Reboot:
+# With reboot:
 #   ansible-playbook -i inventory.ini playbooks/update-system.yml -e "reboot_after_update=true"
 # =============================================================================
 
 - name: Update System Packages
-  hosts: k3s_cluster
+  hosts: k8s_cluster
   become: true
   gather_facts: true
-  
+
   vars:
     reboot_after_update: false
     reboot_timeout: 300
-  
+
   tasks:
     - name: Update apt cache
       ansible.builtin.apt:
         update_cache: true
         cache_valid_time: 3600
-      
+
     - name: Upgrade all packages
       ansible.builtin.apt:
         upgrade: dist
         autoremove: true
         autoclean: true
       register: apt_upgrade
-      
+
     - name: Display upgrade results
       ansible.builtin.debug:
         msg: "Packages upgraded: {{ apt_upgrade.stdout_lines | default(['No changes']) }}"
       when: apt_upgrade.changed
-      
+
     - name: Check if reboot is required
       ansible.builtin.stat:
         path: /var/run/reboot-required
       register: reboot_required
-      
+
     - name: Display reboot status
       ansible.builtin.debug:
         msg: "Reboot required: {{ reboot_required.stat.exists }}"
-        
+
     - name: Reboot if required and enabled
       ansible.builtin.reboot:
         reboot_timeout: "{{ reboot_timeout }}"
         msg: "Rebooting after system update"
-      when: 
+      when:
         - reboot_after_update | bool
         - reboot_required.stat.exists
-        
+
     - name: Wait for system to come back online
       ansible.builtin.wait_for_connection:
         delay: 10

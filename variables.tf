@@ -19,7 +19,7 @@ variable "hcloud_token" {
 variable "cluster_name" {
   description = "Name prefix for all resources"
   type        = string
-  default     = "k3s-cluster"
+  default     = "k8s-cluster"
 }
 
 variable "location" {
@@ -63,7 +63,7 @@ variable "enable_public_ipv6" {
 variable "server_image" {
   description = "Server image to use"
   type        = string
-  default     = "ubuntu-24.04"
+  default     = "debian-13"
 }
 
 variable "control_node_type" {
@@ -108,10 +108,10 @@ variable "keyboard_layout" {
 }
 
 # -----------------------------------------------------------------------------
-# SSH Keys (Optional - eigene Keys)
+# SSH Keys (Optional - custom keys)
 # -----------------------------------------------------------------------------
-# Wenn leer, werden automatisch neue Keys generiert.
-# Bei Nutzung eigener Keys: Private Keys selbst verwalten!
+# If left empty, new keys will be auto-generated.
+# When using custom keys: manage private keys yourself!
 
 variable "control_node_public_key" {
   description = "Public SSH key for control node. Leave empty to auto-generate."

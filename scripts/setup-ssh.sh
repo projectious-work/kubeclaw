@@ -43,7 +43,7 @@ if [[ ! -f "$SCRIPT_DIR/terraform.tfstate" ]]; then
 fi
 
 # Get cluster name from tfvars or use default
-CLUSTER_NAME=$($TF_CMD output -raw cluster_name 2>/dev/null || echo "k3s-cluster")
+CLUSTER_NAME=$($TF_CMD output -raw cluster_name 2>/dev/null || echo "k8s-cluster")
 
 echo -e "${YELLOW}Cluster Name: $CLUSTER_NAME${NC}"
 echo ""

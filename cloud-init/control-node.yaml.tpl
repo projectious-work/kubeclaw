@@ -1,7 +1,7 @@
 #cloud-config
 
 # =============================================================================
-# Control Node - Mit Cloudflare Tunnel Support
+# Control Node - With Cloudflare Tunnel Support
 # =============================================================================
 
 users:
@@ -60,7 +60,7 @@ write_files:
 runcmd:
   - systemctl enable fail2ban
   - systemctl start fail2ban
-  - ufw allow from 10.0.0.0/8 to any port 22 proto tcp comment 'SSH intern'
+  - ufw allow from 10.0.0.0/8 to any port 22 proto tcp comment 'SSH internal'
   - ufw allow from 127.0.0.1 to any port 22 proto tcp comment 'SSH via Tunnel'
   - ufw allow from 10.0.0.0/8 to any port 6443 proto tcp comment 'Kubernetes API'
   - ufw default deny incoming

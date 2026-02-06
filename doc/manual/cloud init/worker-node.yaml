@@ -1,19 +1,19 @@
 #cloud-config
 
 # =============================================================================
-# SERVER B - Nur internes Netzwerk (isolierter Server)
+# SERVER B - Internal network only (isolated server)
 # =============================================================================
-# Dieser Server ist NUR über das interne Netzwerk erreichbar.
-# Zugang erfolgt ausschließlich über Server A (ProxyJump) oder Web-Console.
-# Nach der Einrichtung: Öffentliche IP in Hetzner Console deaktivieren!
+# This server is ONLY reachable via the internal network.
+# Access is exclusively through Server A (ProxyJump) or Web Console.
+# After setup: Disable public IP in Hetzner Console!
 # =============================================================================
 
 users:
-  # Root-User mit Passwort für Web-Console Notfall-Zugang
+  # Root user with password for Web Console emergency access
   - name: root
     plain_text_passwd: 'ranked-ridden'
     lock_passwd: false
-  # Haupt-User für SSH-Zugang
+  # Main user for SSH access
   - name: kubernetes-admin
     groups: users, admin, sudo
     sudo: ALL=(ALL) NOPASSWD:ALL
@@ -33,29 +33,29 @@ package_update: true
 package_upgrade: true
 
 write_files:
-  # SSH-Härtung (strenger als Server A)
+  # SSH hardening (stricter than Server A)
   - path: /etc/ssh/sshd_config.d/ssh-hardening.conf
     content: |
-      # Grundlegende Sicherheit
+      # Basic security
       PermitRootLogin no
       PasswordAuthentication no
       KbdInteractiveAuthentication no
       ChallengeResponseAuthentication no
       MaxAuthTries 3
-      
-      # Alle Forwarding-Optionen deaktiviert (nicht benötigt)
+
+      # All forwarding options disabled (not needed)
       AllowTcpForwarding no
       X11Forwarding no
       AllowAgentForwarding no
-      
-      # Nur dieser User darf sich verbinden
+
+      # Only this user may connect
       AllowUsers kubernetes-admin
-      
-      # Idle-Timeout
+
+      # Idle timeout
       ClientAliveInterval 300
       ClientAliveCountMax 2
 
-  # fail2ban Konfiguration
+  # fail2ban configuration
   - path: /etc/fail2ban/jail.local
     content: |
       [sshd]
@@ -67,48 +67,48 @@ write_files:
       bantime = 3600
 
 runcmd:
-  # fail2ban aktivieren
+  # Enable fail2ban
   - systemctl enable fail2ban
   - systemctl start fail2ban
-  
-  # UFW Firewall konfigurieren - SEHR restriktiv
-  # Alles verbieten außer internes Netzwerk
+
+  # Configure UFW firewall - VERY restrictive
+  # Deny everything except internal network
   - ufw default deny incoming
   - ufw default deny outgoing
-  
-  # Eingehend: Nur SSH vom internen Netzwerk
-  - ufw allow from 10.0.0.0/8 to any port 22 proto tcp comment 'SSH intern'
-  
-  # Eingehend: Ping vom internen Netzwerk (optional, für Debugging)
-  - ufw allow from 10.0.0.0/8 proto icmp comment 'ICMP intern'
-  
-  # Ausgehend: Nur zum internen Netzwerk
-  - ufw allow out to 10.0.0.0/8 comment 'Ausgehend intern'
-  
-  # Ausgehend: DNS für apt (Hetzner DNS Server)
+
+  # Inbound: Only SSH from internal network
+  - ufw allow from 10.0.0.0/8 to any port 22 proto tcp comment 'SSH internal'
+
+  # Inbound: Ping from internal network (optional, for debugging)
+  - ufw allow from 10.0.0.0/8 proto icmp comment 'ICMP internal'
+
+  # Outbound: Only to internal network
+  - ufw allow out to 10.0.0.0/8 comment 'Outbound internal'
+
+  # Outbound: DNS for apt (Hetzner DNS servers)
   - ufw allow out to 185.12.64.1 port 53 proto udp comment 'DNS Hetzner'
   - ufw allow out to 185.12.64.2 port 53 proto udp comment 'DNS Hetzner'
-  
-  # Ausgehend: HTTP/HTTPS für apt Updates (optional, kann später entfernt werden)
-  - ufw allow out to any port 80 proto tcp comment 'HTTP fuer Updates'
-  - ufw allow out to any port 443 proto tcp comment 'HTTPS fuer Updates'
-  
-  # Firewall aktivieren
+
+  # Outbound: HTTP/HTTPS for apt updates (optional, can be removed later)
+  - ufw allow out to any port 80 proto tcp comment 'HTTP for updates'
+  - ufw allow out to any port 443 proto tcp comment 'HTTPS for updates'
+
+  # Enable firewall
   - ufw --force enable
-  
-  # Neustart um alle Änderungen zu aktivieren
+
+  # Reboot to apply all changes
   - reboot
 
 # =============================================================================
-# NACH DER INSTALLATION:
+# AFTER INSTALLATION:
 # =============================================================================
-# 1. Teste SSH-Zugang über Server A:
-#    ssh -J admin@<server-a-ip> admin@<server-b-interne-ip>
+# 1. Test SSH access via Server A:
+#    ssh -J admin@<server-a-ip> admin@<server-b-internal-ip>
 #
-# 2. Wenn alles funktioniert, gehe in die Hetzner Console:
+# 2. If everything works, go to Hetzner Console:
 #    Server → Networking → Public Network → Disable
 #
-# 3. Optional: Entferne die HTTP/HTTPS ufw-Regeln wenn keine Updates mehr nötig:
+# 3. Optional: Remove HTTP/HTTPS UFW rules when updates are no longer needed:
 #    sudo ufw delete allow out to any port 80 proto tcp
 #    sudo ufw delete allow out to any port 443 proto tcp
 # =============================================================================

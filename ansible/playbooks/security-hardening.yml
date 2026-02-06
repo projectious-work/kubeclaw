@@ -2,23 +2,23 @@
 # =============================================================================
 # Security Hardening Playbook
 # =============================================================================
-# Führt zusätzliche Sicherheitsmaßnahmen auf allen Nodes aus
+# Applies additional security measures on all nodes
 #
-# Verwendung:
+# Usage:
 #   ansible-playbook -i inventory.ini playbooks/security-hardening.yml
 # =============================================================================
 
 - name: Security Hardening
-  hosts: k3s_cluster
+  hosts: k8s_cluster
   become: true
   gather_facts: true
-  
+
   vars:
-    # Unattended Upgrades für automatische Security-Updates
+    # Unattended upgrades for automatic security updates
     enable_unattended_upgrades: true
-    # fail2ban für SSH-Schutz
+    # fail2ban for SSH protection
     configure_fail2ban: true
-  
+
   tasks:
     # -------------------------------------------------------------------------
     # Unattended Upgrades
@@ -30,7 +30,7 @@
           - apt-listchanges
         state: present
       when: enable_unattended_upgrades
-        
+
     - name: Configure unattended-upgrades
       ansible.builtin.copy:
         dest: /etc/apt/apt.conf.d/50unattended-upgrades
@@ -51,7 +51,7 @@
           Unattended-Upgrade::Automatic-Reboot "false";
         mode: '0644'
       when: enable_unattended_upgrades
-      
+
     - name: Enable automatic updates
       ansible.builtin.copy:
         dest: /etc/apt/apt.conf.d/20auto-upgrades
@@ -72,18 +72,18 @@
         state: started
         enabled: true
       when: configure_fail2ban
-        
+
     - name: Check fail2ban status
       ansible.builtin.command: fail2ban-client status sshd
       register: fail2ban_status
       changed_when: false
       failed_when: false
       when: configure_fail2ban
-        
+
     - name: Display fail2ban status
       ansible.builtin.debug:
         var: fail2ban_status.stdout_lines
-      when: 
+      when:
         - configure_fail2ban
         - fail2ban_status.rc == 0
 
@@ -94,7 +94,7 @@
       ansible.builtin.file:
         path: /etc/shadow
         mode: '0600'
-        
+
     - name: Disable core dumps
       ansible.builtin.copy:
         dest: /etc/security/limits.d/disable-coredumps.conf
@@ -102,7 +102,7 @@
           * hard core 0
           * soft core 0
         mode: '0644'
-        
+
     - name: Configure sysctl for security
       ansible.posix.sysctl:
         name: "{{ item.name }}"

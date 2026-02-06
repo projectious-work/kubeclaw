@@ -1,32 +1,32 @@
 # =============================================================================
 # Hetzner Cluster Configuration
 # =============================================================================
-# Kopiere diese Datei nach terraform.tfvars und passe die Werte an.
-# WICHTIG: terraform.tfvars enthält sensible Daten und sollte NICHT
-#          in Git eingecheckt werden!
+# Copy this file to terraform.tfvars and adjust the values.
+# IMPORTANT: terraform.tfvars contains sensitive data and should NOT
+#            be checked into Git!
 # =============================================================================
 
 # -----------------------------------------------------------------------------
 # REQUIRED: Hetzner Cloud API Token
 # -----------------------------------------------------------------------------
-# Erstelle einen Token unter: https://console.hetzner.cloud
-# → Projekt → Security → API Tokens → Generate API Token (Read & Write)
+# Create a token at: https://console.hetzner.cloud
+# → Project → Security → API Tokens → Generate API Token (Read & Write)
 # -----------------------------------------------------------------------------
 hcloud_token = "YOUR_HETZNER_API_TOKEN_HERE"
 
 # -----------------------------------------------------------------------------
 # Cluster Settings
 # -----------------------------------------------------------------------------
-cluster_name = "k3s-cluster"
-location     = "fsn1"  # fsn1 (Falkenstein), nbg1 (Nürnberg), hel1 (Helsinki)
+cluster_name = "k8s-cluster"
+location     = "fsn1"  # fsn1 (Falkenstein), nbg1 (Nuremberg), hel1 (Helsinki)
 
 # -----------------------------------------------------------------------------
 # Server Configuration
 # -----------------------------------------------------------------------------
-server_image      = "ubuntu-24.04"
+server_image      = "debian-13"
 control_node_type = "cx22"  # 2 vCPU, 4 GB RAM, 40 GB SSD
 worker_node_type  = "cx22"
-worker_node_count = 1       # Anzahl der Worker-Nodes
+worker_node_count = 1       # Number of worker nodes
 
 # -----------------------------------------------------------------------------
 # Network
@@ -35,34 +35,34 @@ network_ip_range = "10.0.0.0/8"
 subnet_ip_range  = "10.0.0.0/24"
 network_zone     = "eu-central"
 
-# IPv6 für initiale Einrichtung aktiviert
-# Nach erfolgreicher Cloudflare Tunnel Installation auf 'false' setzen
+# IPv6 enabled for initial setup
+# Set to 'false' after successful Cloudflare Tunnel installation
 enable_public_ipv6 = true
 
 # -----------------------------------------------------------------------------
 # Authentication
 # -----------------------------------------------------------------------------
-# Root-Passwort nur für Notfall-Zugang via Hetzner Web-Console
-# Verwende ein einfaches Passwort ohne Sonderzeichen (Web-Console Limitierung)
+# Root password only for emergency access via Hetzner Web Console
+# Use a simple password without special characters (Web Console limitation)
 root_password = "ChangeMe123"
 
-# Admin-User für SSH-Zugang
+# Admin user for SSH access
 admin_user      = "kubernetes-admin"
 keyboard_layout = "de"
 
 # -----------------------------------------------------------------------------
-# SSH Keys (Optional - eigene Keys verwenden)
+# SSH Keys (Optional - use custom keys)
 # -----------------------------------------------------------------------------
-# Wenn leer gelassen, werden automatisch neue Keys generiert.
-# Bei Nutzung eigener Keys müssen die Private Keys selbst verwaltet werden!
+# If left empty, new keys will be auto-generated.
+# When using custom keys, private keys must be managed separately!
 
-# Eigene Public Keys eintragen (Format: "ssh-ed25519 AAAA... comment")
+# Enter custom public keys (format: "ssh-ed25519 AAAA... comment")
 # control_node_public_key = "ssh-ed25519 AAAA..."
 # worker_node_public_key  = "ssh-ed25519 AAAA..."
 
 # -----------------------------------------------------------------------------
 # Cloudflare Tunnel
 # -----------------------------------------------------------------------------
-# Domain für SSH-Zugang via Cloudflare Tunnel
-# z.B. "console.example.org"
+# Domain for SSH access via Cloudflare Tunnel
+# e.g. "console.example.org"
 cloudflare_tunnel_domain = "console.bernhard-gerlach.org"

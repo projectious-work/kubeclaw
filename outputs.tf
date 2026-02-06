@@ -17,7 +17,7 @@ output "network_name" {
 }
 
 # -----------------------------------------------------------------------------
-# Cluster Name (für Scripts)
+# Cluster Name (used by scripts)
 # -----------------------------------------------------------------------------
 
 output "cluster_name" {
@@ -80,7 +80,7 @@ output "worker_node_private_ips" {
 
 # -----------------------------------------------------------------------------
 # SSH Keys (Private - Handle with care!)
-# Nur verfügbar wenn automatisch generiert (nicht bei eigenen Keys)
+# Only available when auto-generated (not with custom keys)
 # -----------------------------------------------------------------------------
 
 output "control_node_ssh_private_key" {

@@ -29,7 +29,7 @@ fi
 cd "$PROJECT_DIR"
 
 # Get values from Terraform output
-CLUSTER_NAME=$($TF_CMD output -raw cluster_name 2>/dev/null || echo "k3s-cluster")
+CLUSTER_NAME=$($TF_CMD output -raw cluster_name 2>/dev/null || echo "k8s-cluster")
 ADMIN_USER=$($TF_CMD output -raw admin_user 2>/dev/null || echo "kubernetes-admin")
 CONTROL_IP=$($TF_CMD output -raw control_node_private_ip 2>/dev/null)
 WORKER_IPS=$($TF_CMD output -json worker_node_private_ips 2>/dev/null | jq -r '.[]' 2>/dev/null || echo "")
@@ -57,7 +57,7 @@ done
 
 cat >> "$ANSIBLE_DIR/inventory.ini" << EOF
 
-[k3s_cluster:children]
+[k8s_cluster:children]
 control_nodes
 worker_nodes
 

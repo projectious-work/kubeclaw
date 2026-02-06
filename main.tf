@@ -1,11 +1,11 @@
 # =============================================================================
 # Hetzner Cloud Kubernetes Cluster - OpenTofu Configuration
 # =============================================================================
-# Dieses Projekt erstellt:
-# - Ein privates Netzwerk
-# - Einen Control-Node mit Cloudflare Tunnel (IPv6-only)
-# - Null oder mehrere Worker-Nodes (IPv6-only, nur intern erreichbar)
-# - Firewall-Regeln für alle Server
+# This project creates:
+# - A private network
+# - A control node with Cloudflare Tunnel (IPv6-only)
+# - Zero or more worker nodes (IPv6-only, internal only)
+# - Firewall rules for all servers
 # =============================================================================
 
 terraform {
@@ -40,7 +40,7 @@ provider "hcloud" {
 # =============================================================================
 
 locals {
-  # Verwende eigene Keys wenn angegeben, sonst generierte
+  # Use custom keys if provided, otherwise use generated ones
   use_custom_control_key = var.control_node_public_key != ""
   use_custom_worker_key  = var.worker_node_public_key != ""
   
@@ -76,10 +76,10 @@ resource "hcloud_network_subnet" "cluster_subnet" {
 }
 
 # =============================================================================
-# SSH Keys - Generiert (nur wenn keine eigenen angegeben)
+# SSH Keys - Generated (only when no custom keys are provided)
 # =============================================================================
 
-# Control Node SSH Key (nur generieren wenn kein eigener Key angegeben)
+# Control Node SSH Key (only generated when no custom key is provided)
 resource "tls_private_key" "control_node" {
   count     = local.use_custom_control_key ? 0 : 1
   algorithm = "ED25519"
@@ -95,7 +95,7 @@ resource "hcloud_ssh_key" "control_node" {
   }
 }
 
-# Worker Node SSH Key (nur generieren wenn Worker vorhanden UND kein eigener Key)
+# Worker Node SSH Key (only generated when workers exist AND no custom key is provided)
 resource "tls_private_key" "worker_node" {
   count     = (var.worker_node_count > 0 && !local.use_custom_worker_key) ? 1 : 0
   algorithm = "ED25519"
@@ -116,7 +116,7 @@ resource "hcloud_ssh_key" "worker_node" {
 # Firewalls
 # =============================================================================
 
-# Firewall für Control-Node
+# Firewall for Control Node
 resource "hcloud_firewall" "control_node" {
   name = "${var.cluster_name}-control-node-fw"
 
@@ -125,7 +125,7 @@ resource "hcloud_firewall" "control_node" {
     role    = "control-node"
   }
 
-  # SSH vom internen Netzwerk
+  # SSH from internal network
   rule {
     direction  = "in"
     protocol   = "tcp"
@@ -133,7 +133,7 @@ resource "hcloud_firewall" "control_node" {
     source_ips = [var.network_ip_range]
   }
 
-  # SSH von localhost (für Cloudflare Tunnel)
+  # SSH from localhost (for Cloudflare Tunnel)
   rule {
     direction  = "in"
     protocol   = "tcp"
@@ -141,14 +141,14 @@ resource "hcloud_firewall" "control_node" {
     source_ips = ["127.0.0.1/32", "::1/128"]
   }
 
-  # ICMP vom internen Netzwerk
+  # ICMP from internal network
   rule {
     direction  = "in"
     protocol   = "icmp"
     source_ips = [var.network_ip_range]
   }
 
-  # Kubernetes API (falls später benötigt)
+  # Kubernetes API (if needed later)
   rule {
     direction  = "in"
     protocol   = "tcp"
@@ -157,7 +157,7 @@ resource "hcloud_firewall" "control_node" {
   }
 }
 
-# Firewall für Worker-Nodes (nur erstellen wenn Worker vorhanden)
+# Firewall for Worker Nodes (only created when workers exist)
 resource "hcloud_firewall" "worker_node" {
   count = var.worker_node_count > 0 ? 1 : 0
   name  = "${var.cluster_name}-worker-node-fw"
@@ -167,7 +167,7 @@ resource "hcloud_firewall" "worker_node" {
     role    = "worker-node"
   }
 
-  # SSH nur vom internen Netzwerk
+  # SSH only from internal network
   rule {
     direction  = "in"
     protocol   = "tcp"
@@ -175,7 +175,7 @@ resource "hcloud_firewall" "worker_node" {
     source_ips = [var.network_ip_range]
   }
 
-  # ICMP vom internen Netzwerk
+  # ICMP from internal network
   rule {
     direction  = "in"
     protocol   = "icmp"

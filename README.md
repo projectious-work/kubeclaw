@@ -144,6 +144,91 @@ Tip: Dashlane supports attaching files to secure notes — you can attach the ke
 
 ---
 
+## SSH keys with passphrase
+
+### Why use a passphrase?
+
+An SSH key without a passphrase is like a house key without a lock on the key cabinet. If your laptop or key file is stolen, the attacker gains immediate access.
+
+### Creating keys with a passphrase
+
+```bash
+# Control node key
+ssh-keygen -t ed25519 -f ~/.ssh/k3s-cluster_control-node_key -C "k3s-control"
+# → Enter a strong passphrase!
+
+# Worker node key
+ssh-keygen -t ed25519 -f ~/.ssh/k3s-cluster_worker-node_key -C "k3s-worker"
+# → Enter a passphrase!
+```
+
+### Using ssh-agent
+
+Since Terraform and Ansible cannot directly use encrypted keys, you must use ssh-agent:
+
+```bash
+# Start agent (if not already running)
+eval "$(ssh-agent -s)"
+
+# Add keys (prompts for passphrase)
+ssh-add ~/.ssh/k3s-cluster_control-node_key
+ssh-add ~/.ssh/k3s-cluster_worker-node_key
+
+# Check which keys are loaded
+ssh-add -l
+```
+
+### macOS: Keychain integration
+
+On macOS you can store the passphrase in the system Keychain so the key is automatically available after a reboot:
+
+```bash
+# Add key AND store passphrase in Keychain
+ssh-add --apple-use-keychain ~/.ssh/k3s-cluster_control-node_key
+ssh-add --apple-use-keychain ~/.ssh/k3s-cluster_worker-node_key
+```
+
+Also add the following to `~/.ssh/config`:
+
+```
+Host *
+    UseKeychain yes
+    AddKeysToAgent yes
+```
+
+### Helper script
+
+The project includes a script that sets up ssh-agent correctly:
+
+```bash
+# Run once before using SSH/Ansible
+source ./scripts/ssh-agent-setup.sh
+
+# Afterwards SSH and Ansible work without further passphrase prompts
+ssh control-node
+ansible all -m ping
+```
+
+### Encrypting auto-generated keys after export
+
+If you use auto-generated keys from OpenTofu, you can add a passphrase afterwards:
+
+```bash
+# Export key (unencrypted from state)
+tofu output -raw control_node_ssh_private_key > ~/.ssh/k3s-cluster_control-node_key
+chmod 600 ~/.ssh/k3s-cluster_control-node_key
+
+# Add passphrase
+ssh-keygen -p -f ~/.ssh/k3s-cluster_control-node_key
+# → Old passphrase: [Enter] (empty)
+# → New passphrase: [enter passphrase]
+# → Confirm: [repeat]
+```
+
+> **Note**: After encryption, `tofu output` still returns the unencrypted key from the state. However, your local key is now protected.
+
+---
+
 ## SSH key rotation
 
 ### When to rotate
@@ -273,12 +358,12 @@ Hetzner Cloud offers the following Debian/Ubuntu images:
 
 | Image | Name | Recommendation |
 |-------|------|----------------|
-| `debian-12` | Debian 12 Bookworm | ✅ **Recommended for K8s** |
-| `debian-11` | Debian 11 Bullseye | Stable, but older |
+| `debian-13` | Debian 13 Trixie | ✅ **Recommended for K8s** |
+| `debian-12` | Debian 12 Bookworm | Stable, well-proven |
 | `ubuntu-24.04` | Ubuntu 24.04 LTS | Good for K8s |
 | `ubuntu-22.04` | Ubuntu 22.04 LTS | Well-proven |
 
-### Why Debian 12?
+### Why Debian 13?
 
 - Stability: long support cycles
 - Compatibility: all K8s tools (kubeadm, k3s, etc.) support Debian
@@ -350,7 +435,7 @@ runcmd:
 | `hcloud_token` | Hetzner API token | - |
 | `cluster_name` | Prefix for all resources | `k3s-cluster` |
 | `location` | Hetzner datacenter | `fsn1` |
-| `server_image` | OS image | `debian-12` |
+| `server_image` | OS image | `debian-13` |
 | `control_node_type` | Control node server type | `cx22` |
 | `worker_node_type` | Worker node server type | `cx22` |
 | `worker_node_count` | Number of worker nodes (0-n) | `1` |
@@ -377,6 +462,7 @@ tofu-hetzner-cluster/
 │   └── worker-node.yaml.tpl        # Cloud-init template for worker nodes
 ├── scripts/
 │   ├── setup-ssh.sh                # SSH setup helper
+│   ├── ssh-agent-setup.sh          # ssh-agent setup (macOS Keychain support)
 │   └── generate-ansible-inventory.sh
 └── ansible/
     ├── ansible.cfg
@@ -399,50 +485,50 @@ edge-ip-version: "6"
 
 ### SSH key rotation failed
 
-1. Verbinde via Hetzner Web-Console (Root-Passwort)
-2. Füge neuen Key manuell hinzu:
+1. Connect via Hetzner web console (root password)
+2. Add the new key manually:
    ```bash
    echo "ssh-ed25519 AAAA..." >> /home/kubernetes-admin/.ssh/authorized_keys
    ```
 
-### Ansible kann nicht verbinden
+### Ansible cannot connect
 
-Prüfe:
-1. `cloudflared` lokal installiert?
-2. Tunnel läuft? (`cloudflared tunnel list`)
-3. Inventory korrekt? (`./scripts/generate-ansible-inventory.sh`)
+Check:
+1. Is `cloudflared` installed locally?
+2. Is the tunnel running? (`cloudflared tunnel list`)
+3. Is the inventory correct? (`./scripts/generate-ansible-inventory.sh`)
 
-### State verloren / Keys weg
+### State lost / keys gone
 
-Bei auto-generierten Keys:
-1. Verbinde via Web-Console (Root)
-2. Erstelle neue Keys
-3. Füge zu authorized_keys hinzu
-4. Importiere Server in neuen State:
+With auto-generated keys:
+1. Connect via web console (root)
+2. Create new keys
+3. Add them to authorized_keys
+4. Import servers into new state:
    ```bash
    tofu import hcloud_server.control_node <server-id>
    ```
 
 ---
 
-## Nächste Schritte nach Cluster-Setup
+## Next steps after cluster setup
 
-1. **K3s installieren**:
+1. **Install K3s**:
    ```bash
    curl -sfL https://get.k3s.io | sh -
    ```
 
-2. **Oder kubeadm**:
+2. **Or kubeadm**:
    ```bash
-   # Siehe offizielle K8s Dokumentation
+   # See official K8s documentation
    ```
 
-3. **Kubernetes Dashboard** installieren
+3. **Install Kubernetes Dashboard**
 
-4. **Ingress Controller** einrichten
+4. **Set up Ingress Controller**
 
 ---
 
-## Lizenz
+## License
 
 MIT

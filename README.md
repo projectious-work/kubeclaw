@@ -51,7 +51,7 @@ This project automates creation of a secure, IPv6-only Kubernetes cluster on Het
 
 ```bash
 # 1. Clone or unpack the project
-cd tofu-hetzner-cluster
+cd hetzner-k8s-cluster
 
 # 2. Configure
 cp terraform.tfvars.example terraform.tfvars

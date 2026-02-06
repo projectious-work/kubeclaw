@@ -1,0 +1,58 @@
+# =============================================================================
+# Hetzner Cluster Configuration
+# =============================================================================
+# Kopiere diese Datei nach terraform.tfvars und passe die Werte an.
+# WICHTIG: terraform.tfvars enthält sensible Daten und sollte NICHT
+#          in Git eingecheckt werden!
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# REQUIRED: Hetzner Cloud API Token
+# -----------------------------------------------------------------------------
+# Erstelle einen Token unter: https://console.hetzner.cloud
+# → Projekt → Security → API Tokens → Generate API Token (Read & Write)
+# -----------------------------------------------------------------------------
+hcloud_token = "YOUR_HETZNER_API_TOKEN_HERE"
+
+# -----------------------------------------------------------------------------
+# Cluster Settings
+# -----------------------------------------------------------------------------
+cluster_name = "k3s-cluster"
+location     = "fsn1"  # fsn1 (Falkenstein), nbg1 (Nürnberg), hel1 (Helsinki)
+
+# -----------------------------------------------------------------------------
+# Server Configuration
+# -----------------------------------------------------------------------------
+server_image      = "ubuntu-24.04"
+control_node_type = "cx22"  # 2 vCPU, 4 GB RAM, 40 GB SSD
+worker_node_type  = "cx22"
+worker_node_count = 1       # Anzahl der Worker-Nodes
+
+# -----------------------------------------------------------------------------
+# Network
+# -----------------------------------------------------------------------------
+network_ip_range = "10.0.0.0/8"
+subnet_ip_range  = "10.0.0.0/24"
+network_zone     = "eu-central"
+
+# IPv6 für initiale Einrichtung aktiviert
+# Nach erfolgreicher Cloudflare Tunnel Installation auf 'false' setzen
+enable_public_ipv6 = true
+
+# -----------------------------------------------------------------------------
+# Authentication
+# -----------------------------------------------------------------------------
+# Root-Passwort nur für Notfall-Zugang via Hetzner Web-Console
+# Verwende ein einfaches Passwort ohne Sonderzeichen (Web-Console Limitierung)
+root_password = "ChangeMe123"
+
+# Admin-User für SSH-Zugang
+admin_user      = "kubernetes-admin"
+keyboard_layout = "de"
+
+# -----------------------------------------------------------------------------
+# Cloudflare Tunnel
+# -----------------------------------------------------------------------------
+# Domain für SSH-Zugang via Cloudflare Tunnel
+# z.B. "console.example.org"
+cloudflare_tunnel_domain = "console.bernhard-gerlach.org"

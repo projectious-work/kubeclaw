@@ -1,0 +1,75 @@
+#cloud-config
+
+# =============================================================================
+# SERVER C - Temporärer Server with external ssh access (admin node)
+# =============================================================================
+
+users:
+  # Haupt-User für SSH-Zugang
+  - name: kubernetes-admin
+    groups: users, admin, sudo
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    shell: /bin/bash
+    ssh_authorized_keys:
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBX9TWFuRBHnN8yv2ORCKPyPIpNczWMJxV6/LqkV8Kuj
+
+keyboard:
+  layout: de
+  variant: mac
+
+packages:
+  - fail2ban
+  - ufw
+
+package_update: true
+package_upgrade: true
+
+write_files:
+  # SSH-Härtung (strenger als Server A)
+  - path: /etc/ssh/sshd_config.d/ssh-hardening.conf
+    content: |
+      # Grundlegende Sicherheit
+      PermitRootLogin no
+      PasswordAuthentication no
+      KbdInteractiveAuthentication no
+      ChallengeResponseAuthentication no
+      MaxAuthTries 3
+      
+      # TCP-Forwarding erlauben für ProxyJump
+      AllowTcpForwarding yes
+
+      # Alle anderen Forwarding-Optionen deaktiviert (nicht benötigt)
+      X11Forwarding no
+      AllowAgentForwarding no
+      
+      # Nur dieser User darf sich verbinden
+      AllowUsers kubernetes-admin
+      
+      # Idle-Timeout
+      ClientAliveInterval 300
+      ClientAliveCountMax 2
+
+  # fail2ban Konfiguration
+  - path: /etc/fail2ban/jail.local
+    content: |
+      [sshd]
+      enabled = true
+      port = 22
+      banaction = iptables-multiport
+      maxretry = 3
+      findtime = 600
+      bantime = 3600
+
+runcmd:
+  # fail2ban aktivieren
+  - systemctl enable fail2ban
+  - systemctl start fail2ban
+  
+  # UFW Firewall konfigurieren
+  - ufw allow 22
+  
+  # Firewall aktivieren
+  - ufw --force enable
+  
+  # Neustart um alle Änderungen zu aktivieren
+  - reboot

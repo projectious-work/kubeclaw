@@ -1,0 +1,24 @@
+{
+    "name": "Debian Trixie Slim/Terraform/Ansible",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+              "github.copilot",
+              "opentofu.vscode-opentofu",
+              "redhat.ansible"
+            ],
+            "settings": {
+            }
+        }
+    },
+    "dockerFile": "Dockerfile",
+    "runArgs": [
+        "-e",
+        "TZ=Europe/Berlin",
+        "--mount",
+        "type=bind,source=${localWorkspaceFolder}/.root/.vibe,target=/root/.vibe"
+    ],
+    "remoteEnv": {
+        "TZ": "Europe/Berlin"
+    }
+}

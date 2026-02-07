@@ -66,22 +66,28 @@ variable "server_image" {
   default     = "debian-13"
 }
 
-variable "control_node_type" {
-  description = "Server type for control node"
+variable "master_control_node_type" {
+  description = "Server type for the master control node (runs cloudflared)"
   type        = string
   default     = "cx22"
 }
 
-variable "worker_node_type" {
-  description = "Server type for worker nodes"
-  type        = string
-  default     = "cx22"
+variable "control_node_types" {
+  description = "Server types and counts for replica control nodes. Set to [] for master-only."
+  type = list(object({
+    type  = string
+    count = number
+  }))
+  default = []
 }
 
-variable "worker_node_count" {
-  description = "Number of worker nodes"
-  type        = number
-  default     = 1
+variable "worker_node_types" {
+  description = "Server types and counts for worker nodes. Set to [] for no workers."
+  type = list(object({
+    type  = string
+    count = number
+  }))
+  default = []
 }
 
 # -----------------------------------------------------------------------------
@@ -131,6 +137,38 @@ variable "worker_node_public_key" {
 
 variable "cloudflare_tunnel_domain" {
   description = "Domain for Cloudflare Tunnel SSH access (e.g., console.example.org)"
+  type        = string
+  default     = ""
+}
+
+# -----------------------------------------------------------------------------
+# Admin Node (temporary jump host for initial setup)
+# -----------------------------------------------------------------------------
+
+variable "enable_admin_node" {
+  description = "Enable a temporary admin node with public IPv6 for initial SSH access. Disable after Cloudflare Tunnel is configured."
+  type        = bool
+  default     = true
+}
+
+variable "admin_node_type" {
+  description = "Server type for admin node"
+  type        = string
+  default     = "cx22"
+}
+
+variable "admin_node_public_key" {
+  description = "Public SSH key for admin node. Leave empty to auto-generate."
+  type        = string
+  default     = ""
+}
+
+# -----------------------------------------------------------------------------
+# SSH Key File Prefix
+# -----------------------------------------------------------------------------
+
+variable "ssh_key_prefix" {
+  description = "Prefix for SSH key filenames (e.g., '2026-02-05_k8s-cluster'). Defaults to cluster_name if empty."
   type        = string
   default     = ""
 }

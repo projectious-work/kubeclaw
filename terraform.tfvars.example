@@ -23,10 +23,14 @@ location     = "fsn1"  # fsn1 (Falkenstein), nbg1 (Nuremberg), hel1 (Helsinki)
 # -----------------------------------------------------------------------------
 # Server Configuration
 # -----------------------------------------------------------------------------
-server_image      = "debian-13"
-control_node_type = "cx22"  # 2 vCPU, 4 GB RAM, 40 GB SSD
-worker_node_type  = "cx22"
-worker_node_count = 1       # Number of worker nodes
+server_image             = "debian-13"
+master_control_node_type = "cx23"  # The master runs cloudflared
+# control_node_types = [           # Additional replica control nodes
+#   { type = "cx23", count = 2 },
+# ]
+worker_node_types = [
+  { type = "cx23", count = 1 },
+]
 
 # -----------------------------------------------------------------------------
 # Network
@@ -59,6 +63,22 @@ keyboard_layout = "de"
 # Enter custom public keys (format: "ssh-ed25519 AAAA... comment")
 # control_node_public_key = "ssh-ed25519 AAAA..."
 # worker_node_public_key  = "ssh-ed25519 AAAA..."
+
+# -----------------------------------------------------------------------------
+# Admin Node (temporary jump host)
+# -----------------------------------------------------------------------------
+# Provides public IPv6 SSH access to reach the private network.
+# Disable after Cloudflare Tunnel is configured.
+enable_admin_node = true
+admin_node_type   = "cx23"
+# admin_node_public_key = "ssh-ed25519 AAAA..."
+
+# -----------------------------------------------------------------------------
+# SSH Key File Prefix
+# -----------------------------------------------------------------------------
+# Prefix for SSH key filenames. Defaults to cluster_name if empty.
+# Useful for date-stamped keys: "2026-02-05_k8s-cluster"
+# ssh_key_prefix = "2026-02-05_k8s-cluster"
 
 # -----------------------------------------------------------------------------
 # Cloudflare Tunnel

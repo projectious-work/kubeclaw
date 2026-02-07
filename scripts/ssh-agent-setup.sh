@@ -22,9 +22,11 @@ NC='\033[0m' # No Color
 
 # Configuration
 CLUSTER_NAME="${CLUSTER_NAME:-k3s-cluster}"
+SSH_KEY_PREFIX="${SSH_KEY_PREFIX:-$CLUSTER_NAME}"
 SSH_DIR="${SSH_DIR:-$HOME/.ssh}"
-CONTROL_KEY="${SSH_DIR}/${CLUSTER_NAME}_control-node_key"
-WORKER_KEY="${SSH_DIR}/${CLUSTER_NAME}_worker-node_key"
+ADMIN_KEY="${SSH_DIR}/${SSH_KEY_PREFIX}_admin-node_key"
+CONTROL_KEY="${SSH_DIR}/${SSH_KEY_PREFIX}_control-node_key"
+WORKER_KEY="${SSH_DIR}/${SSH_KEY_PREFIX}_worker-node_key"
 
 # -----------------------------------------------------------------------------
 # Helper functions
@@ -113,7 +115,7 @@ main() {
     # 3. Load keys
     local keys_added=0
     
-    for key_file in "$CONTROL_KEY" "$WORKER_KEY"; do
+    for key_file in "$ADMIN_KEY" "$CONTROL_KEY" "$WORKER_KEY"; do
         if [[ ! -f "$key_file" ]]; then
             warn "Key not found: $key_file"
             continue

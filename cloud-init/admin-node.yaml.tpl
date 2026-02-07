@@ -1,7 +1,10 @@
 #cloud-config
 
 # =============================================================================
-# ${is_master ? "Master Control Node - With Cloudflare Tunnel" : "Control Node Replica"}
+# Admin Node - Temporary jump host for initial setup
+# =============================================================================
+# This node provides public IPv6 SSH access to reach the private network.
+# Disable with enable_admin_node = false after Cloudflare Tunnel is configured.
 # =============================================================================
 
 users:
@@ -22,8 +25,6 @@ keyboard:
 packages:
   - fail2ban
   - ufw
-  - curl
-  - wget
 
 package_update: true
 package_upgrade: true
@@ -37,7 +38,7 @@ write_files:
       ChallengeResponseAuthentication no
       MaxAuthTries 3
       X11Forwarding no
-      AllowAgentForwarding no
+      AllowAgentForwarding yes
       AllowTcpForwarding yes
       AllowUsers ${admin_user}
       ClientAliveInterval 300
@@ -53,28 +54,11 @@ write_files:
       findtime = 600
       bantime = 3600
 
-%{ if is_master ~}
-  - path: /etc/cloudflared/config.yml
-    content: |
-      edge-ip-version: "6"
-%{ endif ~}
-
 runcmd:
   - systemctl enable fail2ban
   - systemctl start fail2ban
-  - ufw allow from 10.0.0.0/8 to any port 22 proto tcp comment 'SSH internal'
-%{ if is_master ~}
-  - ufw allow from 127.0.0.1 to any port 22 proto tcp comment 'SSH via Tunnel'
-%{ endif ~}
-  - ufw allow from 10.0.0.0/8 to any port 6443 proto tcp comment 'Kubernetes API'
+  - ufw allow 22/tcp comment 'SSH public'
   - ufw default deny incoming
   - ufw default allow outgoing
   - ufw --force enable
-%{ if is_master ~}
-  - mkdir -p --mode=0755 /usr/share/keyrings
-  - curl -fsSL https://pkg.cloudflare.com/cloudflare-public-v2.gpg | tee /usr/share/keyrings/cloudflare-public-v2.gpg >/dev/null
-  - echo 'deb [signed-by=/usr/share/keyrings/cloudflare-public-v2.gpg] https://pkg.cloudflare.com/cloudflared any main' | tee /etc/apt/sources.list.d/cloudflared.list
-  - mkdir -p /etc/cloudflared
-  - apt-get update && apt-get install -y cloudflared
-%{ endif ~}
   - reboot

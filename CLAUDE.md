@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Infrastructure-as-Code project that provisions a secure, IPv6-only Kubernetes cluster on Hetzner Cloud with SSH access exclusively through Cloudflare Tunnel. Uses **OpenTofu** (Terraform-compatible) for infrastructure provisioning and **Ansible** for server management.
 
-**Architecture**: Internet → Cloudflare Tunnel → Control Node (10.0.0.2, runs cloudflared) → Private Network (10.0.0.0/24) → Worker Nodes (10.0.0.3+, fully isolated). No public IPv4 addresses; workers have no external connectivity except DNS and HTTP/S for updates.
+**Architecture**: Internet → Cloudflare Tunnel (or temporary Admin Node at 10.0.0.254 with public IPv6) → Master Control Node (10.0.0.2, runs cloudflared) → Private Network (10.0.0.0/24) → Replica Control Nodes (10.0.0.3+) + Worker Nodes (offset after replicas). No public IPv4 addresses; workers have no external connectivity except DNS and HTTP/S for updates. The Admin Node is a temporary jump host (`enable_admin_node = true` by default) that provides public IPv6 SSH access for initial Cloudflare Tunnel setup; disable it after the tunnel is configured. The master control node always exists; replica control nodes and workers are optional and support mixed server types via list-of-objects variables.
 
 ## Key Commands
 
@@ -43,19 +43,20 @@ tofu apply
 ./scripts/setup-ssh.sh
 ```
 
-### Scaling Workers
-Edit `terraform.tfvars` to change `worker_node_count`, then `tofu apply` and `./scripts/generate-ansible-inventory.sh`.
+### Scaling Nodes
+Edit `terraform.tfvars` to change `control_node_types` or `worker_node_types`, then `tofu apply` and `./scripts/generate-ansible-inventory.sh`.
 
 ## Architecture & Code Relationships
 
 ### Terraform (root level)
-- **main.tf** — Core infrastructure: providers, SSH keys (conditional on custom vs auto-generated), network/subnet, firewalls (role-specific), servers (control + N workers), cloud-init template rendering
+- **main.tf** — Core infrastructure: providers, SSH keys (conditional on custom vs auto-generated), network/subnet, firewalls (role-specific), servers (master control node + replica control nodes + N workers), cloud-init template rendering. Uses `locals` to flatten `control_node_types` and `worker_node_types` into indexed lists for mixed server type support.
 - **variables.tf** — All configurable inputs; required: `hcloud_token`, `root_password`
 - **outputs.tf** — Exposes IPs, SSH keys (sensitive), ssh_config_snippet, and a next-steps banner; consumed by `setup-ssh.sh` and `generate-ansible-inventory.sh`
 - **terraform.tfvars.example** — Reference config (actual `.tfvars` is gitignored)
 
 ### Cloud-Init Templates (`cloud-init/`)
-- **control-node.yaml.tpl** — Creates admin user, installs cloudflared, configures UFW (SSH + K8s API port 6443), fail2ban, SSH hardening
+- **admin-node.yaml.tpl** — Minimal jump host: admin user, SSH hardening with `AllowTcpForwarding yes` for ProxyJump, fail2ban, UFW allowing public SSH
+- **control-node.yaml.tpl** — Creates admin user, configures UFW (SSH + K8s API port 6443), fail2ban, SSH hardening. Uses `is_master` boolean: master installs cloudflared and allows localhost SSH; replicas skip cloudflared sections.
 - **worker-node.yaml.tpl** — Similar but restrictive: no cloudflared, outbound limited to DNS/HTTP/S only, no TCP forwarding
 
 ### Scripts (`scripts/`)
@@ -72,8 +73,8 @@ Edit `terraform.tfvars` to change `worker_node_count`, then `tofu apply` and `./
 
 - **Resource naming**: All resources prefixed with `var.cluster_name` (default: "k8s-cluster")
 - **Resource labels**: Always include `cluster`, `role`, and `managed="opentofu"` labels on Hetzner resources
-- **Conditional creation**: Use `locals` for boolean logic, then `count` on resources (e.g., SSH keys only created when custom key not provided, worker firewall only when `worker_node_count > 0`)
-- **SSH key strategy**: Supports both auto-generated (stored in state) and custom keys (user-managed); logic centralized in `local.use_custom_control_key` / `local.use_custom_worker_key`
+- **Conditional creation**: Use `locals` for boolean logic, then `count` on resources (e.g., SSH keys only created when custom key not provided, worker firewall only when `local.worker_node_count > 0`). Master control node has no count (always exists); replicas use `local.control_node_replica_count`.
+- **SSH key strategy**: Supports both auto-generated (stored in state) and custom keys (user-managed); logic centralized in `local.use_custom_control_key` / `local.use_custom_worker_key` / `local.use_custom_admin_key`. Key filenames use `local.ssh_key_prefix` (defaults to `var.cluster_name`, overridable via `var.ssh_key_prefix`)
 - **Cloud-init as `.tpl` files**: Variables injected via `templatefile()` in main.tf
 - **Ansible inventory is generated, not hand-edited**: Always regenerate after infrastructure changes
 - **Documentation**: All comments and documentation are in English. Detailed manual under `doc/manual/`

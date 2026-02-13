@@ -24,7 +24,8 @@ ENV LC_ALL en_US.UTF-8
 # Install code assistants
 ENV PATH="/root/.local/bin:${PATH}"
 RUN    curl -fsSL https://claude.ai/install.sh | bash \
-    && curl -fsSL https://mistral.ai/vibe/install.sh | bash
+    && curl -fsSL https://mistral.ai/vibe/install.sh | bash \
+    && curl -fsSL https://opencode.ai/install | bash
     
 
 # Install opentofu

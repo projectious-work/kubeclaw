@@ -5,7 +5,8 @@
             "extensions": [
               "github.copilot",
               "opentofu.vscode-opentofu",
-              "redhat.ansible"
+              "redhat.ansible",
+              "codeium.codeium"
             ],
             "settings": {
             }

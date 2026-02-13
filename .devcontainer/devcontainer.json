@@ -17,7 +17,9 @@
         "-e",
         "TZ=Europe/Berlin",
         "--mount",
-        "type=bind,source=${localWorkspaceFolder}/.root/.vibe,target=/root/.vibe"
+        "type=bind,source=${localWorkspaceFolder}/.root/.vibe,target=/root/.vibe",
+        "--mount",
+        "type=bind,source=${localWorkspaceFolder}/.root/.ssh,target=/root/.ssh"
     ],
     "remoteEnv": {
         "TZ": "Europe/Berlin"

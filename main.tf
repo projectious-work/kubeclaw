@@ -148,35 +148,27 @@ resource "hcloud_firewall" "control_node" {
     role    = "control-node"
   }
 
-  # SSH from internal network
   rule {
-    direction  = "in"
-    protocol   = "tcp"
-    port       = "22"
-    source_ips = [var.network_ip_range]
+    description = "SSH from private network"
+    direction   = "in"
+    protocol    = "tcp"
+    port        = "22"
+    source_ips  = [var.network_ip_range]
   }
 
-  # SSH from localhost (for Cloudflare Tunnel)
   rule {
-    direction  = "in"
-    protocol   = "tcp"
-    port       = "22"
-    source_ips = ["127.0.0.1/32", "::1/128"]
+    description = "SSH from localhost for Cloudflare Tunnel"
+    direction   = "in"
+    protocol    = "tcp"
+    port        = "22"
+    source_ips  = ["127.0.0.1/32", "::1/128"]
   }
 
-  # ICMP from internal network
   rule {
-    direction  = "in"
-    protocol   = "icmp"
-    source_ips = [var.network_ip_range]
-  }
-
-  # Kubernetes API (if needed later)
-  rule {
-    direction  = "in"
-    protocol   = "tcp"
-    port       = "6443"
-    source_ips = [var.network_ip_range]
+    description = "ICMP from private network"
+    direction   = "in"
+    protocol    = "icmp"
+    source_ips  = [var.network_ip_range]
   }
 }
 
@@ -190,36 +182,25 @@ resource "hcloud_firewall" "worker_node" {
     role    = "worker-node"
   }
 
-  # SSH only from internal network
   rule {
-    direction  = "in"
-    protocol   = "tcp"
-    port       = "22"
-    source_ips = [var.network_ip_range]
+    description = "SSH from private network"
+    direction   = "in"
+    protocol    = "tcp"
+    port        = "22"
+    source_ips  = [var.network_ip_range]
   }
 
-  # ICMP from internal network
   rule {
-    direction  = "in"
-    protocol   = "icmp"
-    source_ips = [var.network_ip_range]
+    description = "ICMP from private network"
+    direction   = "in"
+    protocol    = "icmp"
+    source_ips  = [var.network_ip_range]
   }
 
-  # Kubelet API
-  rule {
-    direction  = "in"
-    protocol   = "tcp"
-    port       = "10250"
-    source_ips = [var.network_ip_range]
-  }
-
-  # NodePort Services Range
-  rule {
-    direction  = "in"
-    protocol   = "tcp"
-    port       = "30000-32767"
-    source_ips = [var.network_ip_range]
-  }
+  # NOTE: When deploying K3s, add these rules:
+  # - Kubelet API (port 10250) from var.network_ip_range
+  # - NodePort Services (ports 30000-32767) from var.network_ip_range
+  # - K8s API (port 6443) on control node firewall from var.network_ip_range
 }
 
 # =============================================================================
@@ -399,19 +380,19 @@ resource "hcloud_firewall" "admin_node" {
     managed = "opentofu"
   }
 
-  # SSH from anywhere (this is the public entry point)
   rule {
-    direction  = "in"
-    protocol   = "tcp"
-    port       = "22"
-    source_ips = ["0.0.0.0/0", "::/0"]
+    description = "SSH from anywhere (public entry point for initial setup)"
+    direction   = "in"
+    protocol    = "tcp"
+    port        = "22"
+    source_ips  = ["0.0.0.0/0", "::/0"]
   }
 
-  # ICMP from internal network
   rule {
-    direction  = "in"
-    protocol   = "icmp"
-    source_ips = [var.network_ip_range]
+    description = "ICMP from private network"
+    direction   = "in"
+    protocol    = "icmp"
+    source_ips  = [var.network_ip_range]
   }
 }
 

@@ -135,7 +135,7 @@ echo -e "║ Private IP:       $CONTROL_PRIVATE"
 echo -e "╠══════════════════════════════════════════════════════════════╣"
 if [[ "$ADMIN_NODE_ENABLED" == "true" ]]; then
     echo -e "║ Connect via Admin Node:                                      ║"
-    echo -e "║   ssh -J admin-node -i $CONTROL_KEY_FILE $ADMIN_USER@$CONTROL_PRIVATE"
+    echo -e "║   ssh control-node"
 else
     echo -e "║ Connect via Cloudflare Tunnel:                                ║"
     echo -e "║   ssh control-node"

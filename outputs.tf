@@ -190,23 +190,44 @@ output "ssh_config_snippet" {
         HostName ${hcloud_server.admin_node[0].ipv6_address}
         User ${var.admin_user}
         IdentityFile ~/.ssh/${local.ssh_key_prefix}_admin-node_key
+        IdentitiesOnly yes
 
-    %{endif~}
-    # Master Control Node (control-01)%{if var.cloudflare_tunnel_domain != ""} via Cloudflare Tunnel%{endif}
-    Host ${var.cloudflare_tunnel_domain != "" ? var.cloudflare_tunnel_domain : "control-node"}
-        HostName ${var.cloudflare_tunnel_domain != "" ? var.cloudflare_tunnel_domain : hcloud_server_network.master_control_node.ip}
+    # Master Control Node (control-01) via Admin Node
+    Host control-node
+        HostName ${hcloud_server_network.master_control_node.ip}
         User ${var.admin_user}
         IdentityFile ~/.ssh/${local.ssh_key_prefix}_control-node_key
-        %{if var.cloudflare_tunnel_domain != ""}ProxyCommand /opt/homebrew/bin/cloudflared access ssh --hostname %h%{endif}
-        %{if var.cloudflare_tunnel_domain == "" && var.enable_admin_node}ProxyJump admin-node%{endif}
+        IdentitiesOnly yes
+        ProxyJump admin-node
 
+    %{endif~}
+    %{if var.cloudflare_tunnel_domain != ""~}
+    # Master Control Node (control-01) via Cloudflare Tunnel
+    Host ${var.cloudflare_tunnel_domain}
+        HostName ${var.cloudflare_tunnel_domain}
+        User ${var.admin_user}
+        IdentityFile ~/.ssh/${local.ssh_key_prefix}_control-node_key
+        IdentitiesOnly yes
+        ProxyCommand /opt/homebrew/bin/cloudflared access ssh --hostname %h
+
+    %{endif~}
+    %{if !var.enable_admin_node && var.cloudflare_tunnel_domain == ""~}
+    # Master Control Node (control-01) - direct
+    Host control-node
+        HostName ${hcloud_server_network.master_control_node.ip}
+        User ${var.admin_user}
+        IdentityFile ~/.ssh/${local.ssh_key_prefix}_control-node_key
+        IdentitiesOnly yes
+
+    %{endif~}
     %{for i, ip in hcloud_server_network.control_node_replica[*].ip~}
     # Replica Control Node ${format("%02d", i + 2)}
     Host control-${format("%02d", i + 2)}
         HostName ${ip}
         User ${var.admin_user}
         IdentityFile ~/.ssh/${local.ssh_key_prefix}_control-node_key
-        ProxyJump ${var.cloudflare_tunnel_domain != "" ? var.cloudflare_tunnel_domain : (var.enable_admin_node ? "admin-node" : "control-node")}
+        IdentitiesOnly yes
+        ProxyJump ${var.enable_admin_node ? "admin-node" : (var.cloudflare_tunnel_domain != "" ? var.cloudflare_tunnel_domain : "control-node")}
 
     %{endfor~}
     %{for i, ip in hcloud_server_network.worker_node[*].ip~}
@@ -215,7 +236,8 @@ output "ssh_config_snippet" {
         HostName ${ip}
         User ${var.admin_user}
         IdentityFile ~/.ssh/${local.ssh_key_prefix}_worker-node_key
-        ProxyJump ${var.cloudflare_tunnel_domain != "" ? var.cloudflare_tunnel_domain : (var.enable_admin_node ? "admin-node" : "control-node")}
+        IdentitiesOnly yes
+        ProxyJump ${var.enable_admin_node ? "admin-node" : (var.cloudflare_tunnel_domain != "" ? var.cloudflare_tunnel_domain : "control-node")}
 
     %{endfor~}
   EOT
@@ -271,7 +293,7 @@ output "next_steps" {
     ║                                                                               ║
     %{if var.enable_admin_node}
     ║  3. Connect to Master Control Node (via admin node):                          ║
-    ║     ssh -J admin-node -i ~/.ssh/${local.ssh_key_prefix}_control-node_key ${var.admin_user}@${hcloud_server_network.master_control_node.ip}
+    ║     ssh control-node                                                          ║
     %{else}
     ║  3. Connect to Master Control Node (via Cloudflare Tunnel):                   ║
     ║     ssh ${var.cloudflare_tunnel_domain != "" ? var.cloudflare_tunnel_domain : "control-node"}

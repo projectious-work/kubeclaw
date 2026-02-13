@@ -493,13 +493,429 @@ tofu-hetzner-cluster/
 │   ├── setup-ssh.sh                # SSH setup helper
 │   ├── ssh-agent-setup.sh          # ssh-agent setup (macOS Keychain support)
 │   └── generate-ansible-inventory.sh
-└── ansible/
-    ├── ansible.cfg
-    ├── inventory.ini
-    └── playbooks/
-        ├── update-system.yml
-        └── security-hardening.yml
+├── ansible/
+│   ├── ansible.cfg
+│   ├── inventory.ini
+│   └── playbooks/
+│       ├── update-system.yml
+│       └── security-hardening.yml
+└── doc/
+    ├── manual/                      # Detailed manual
+    └── k3s/
+        └── README.md                # K3s deployment example (OpenClaw)
 ```
+
+---
+
+## Kubernetes Deployment with K3s
+
+After provisioning the infrastructure with OpenTofu and configuring SSH access, deploy a lightweight Kubernetes cluster using [K3s](https://k3s.io/) with [Cilium](https://cilium.io/) as the CNI.
+
+### Why K3s + Cilium?
+
+- **K3s**: Lightweight, single-binary Kubernetes distribution ideal for small clusters. Includes built-in containerd, CoreDNS, and metrics-server.
+- **Cilium**: eBPF-based CNI providing advanced network policies with FQDN-based egress filtering — critical for restricting outbound traffic per namespace.
+
+### Cost estimate (example: 2-node cluster)
+
+| Component | Specification | Monthly Cost |
+|-----------|---------------|--------------|
+| Node 1 (CX22, IPv6-only) | 2 vCPU / 4 GB RAM | ~€3.29 |
+| Node 2 (CX22, IPv6-only) | 2 vCPU / 4 GB RAM | ~€3.29 |
+| Block Volumes (10 GB each) | Hetzner CSI | ~€0.96 |
+| Private Network | — | Free |
+| Cloudflare Tunnel + Access | Up to 50 users | Free |
+| **Total** | | **~€7.54/month** |
+
+Costs vary with server types and volume count. See [Hetzner Cloud pricing](https://www.hetzner.com/cloud/).
+
+### Step 1: Install K3s Server (master control node)
+
+SSH into the master control node (`10.0.0.2`) and install K3s without Flannel (Cilium replaces it):
+
+```bash
+# Install K3s server with Cilium-compatible flags
+curl -sfL https://get.k3s.io | sh -s - server \
+  --disable traefik \
+  --disable servicelb \
+  --flannel-backend=none \
+  --disable-network-policy \
+  --node-ip 10.0.0.2 \
+  --advertise-address 10.0.0.2 \
+  --tls-san 10.0.0.2
+
+# Save the join token (needed for agents)
+cat /var/lib/rancher/k3s/server/node-token
+
+# Verify K3s is running
+kubectl get nodes
+```
+
+Flags explained:
+- `--disable traefik` / `--disable servicelb`: We manage ingress separately
+- `--flannel-backend=none` / `--disable-network-policy`: Cilium handles both CNI and network policies
+- `--node-ip` / `--advertise-address`: Bind to the private network IP
+
+### Step 2: Install K3s Agents (replica/worker nodes)
+
+On each additional node (replicas at `10.0.0.3+`, workers after), join the cluster:
+
+```bash
+curl -sfL https://get.k3s.io | K3S_URL=https://10.0.0.2:6443 \
+  K3S_TOKEN=<TOKEN> sh -s - agent \
+  --node-ip <NODE_PRIVATE_IP>
+```
+
+Replace `<TOKEN>` with the token from Step 1 and `<NODE_PRIVATE_IP>` with the node's private network IP.
+
+### Step 3: Install Cilium CNI
+
+On the master control node:
+
+```bash
+# Install Cilium CLI
+CILIUM_CLI_VERSION=$(curl -s https://raw.githubusercontent.com/cilium/cilium-cli/main/stable.txt)
+CLI_ARCH=amd64
+curl -L --fail --remote-name-all \
+  https://github.com/cilium/cilium-cli/releases/download/${CILIUM_CLI_VERSION}/cilium-linux-${CLI_ARCH}.tar.gz
+tar xzvf cilium-linux-${CLI_ARCH}.tar.gz
+mv cilium /usr/local/bin/
+rm cilium-linux-${CLI_ARCH}.tar.gz
+
+# Install Cilium into the cluster
+cilium install --version 1.16.5
+
+# Wait for Cilium to be ready
+cilium status --wait
+
+# Verify
+kubectl get pods -n kube-system | grep cilium
+```
+
+After Cilium is ready, all nodes should show `Ready`:
+
+```bash
+kubectl get nodes
+```
+
+### Step 4: Install Hetzner CSI Driver
+
+The Hetzner CSI driver enables persistent storage via Hetzner Block Volumes.
+
+#### 4.1 Create a dedicated API token
+
+In the Hetzner Cloud Console: **Security** → **API Tokens** → **Generate API Token** (Read & Write). Name it `k3s-csi`.
+
+#### 4.2 Deploy the CSI driver
+
+```bash
+# Create secret with API token
+kubectl create secret generic hcloud \
+  --namespace kube-system \
+  --from-literal=token=<YOUR_HETZNER_CSI_API_TOKEN>
+
+# Deploy CSI driver
+kubectl apply -f https://raw.githubusercontent.com/hetznercloud/csi-driver/main/deploy/kubernetes/hcloud-csi.yml
+
+# Set hcloud-volumes as default storage class
+kubectl patch storageclass local-path \
+  -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"false"}}}'
+kubectl patch storageclass hcloud-volumes \
+  -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+
+# Verify
+kubectl get storageclass
+kubectl get pods -n kube-system | grep hcloud
+```
+
+### Step 5: Namespace Isolation and Network Policies
+
+Use namespaces with Cilium network policies to isolate workloads and control egress traffic.
+
+#### 5.1 Create namespaces
+
+```yaml
+# namespaces.yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: system-unrestricted
+  labels:
+    egress-policy: unrestricted
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: apps-restricted
+  labels:
+    egress-policy: restricted
+```
+
+```bash
+kubectl apply -f namespaces.yaml
+```
+
+- **system-unrestricted**: For infrastructure services (cloudflared, monitoring) that need full network access.
+- **apps-restricted**: For application workloads with egress locked down to specific destinations.
+
+#### 5.2 Default deny egress for restricted namespace
+
+```yaml
+# default-deny-egress.yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-egress
+  namespace: apps-restricted
+spec:
+  podSelector: {}
+  policyTypes:
+    - Egress
+  egress: []
+```
+
+```bash
+kubectl apply -f default-deny-egress.yaml
+```
+
+#### 5.3 Whitelist specific egress with Cilium
+
+Cilium supports FQDN-based egress rules, allowing fine-grained control over which external services an application can reach:
+
+```yaml
+# example-app-egress.yaml
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: example-app-egress
+  namespace: apps-restricted
+spec:
+  endpointSelector:
+    matchLabels:
+      app: my-app
+  egress:
+    # DNS resolution (required for FQDN rules)
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+
+    # Allow internal cluster communication
+    - toEntities:
+        - cluster
+
+    # Allow specific external API (example)
+    - toFQDNs:
+        - matchName: "api.example.com"
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+```
+
+#### 5.4 Unrestricted egress for system namespace
+
+```yaml
+# system-unrestricted-egress.yaml
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-all-egress
+  namespace: system-unrestricted
+spec:
+  endpointSelector: {}
+  egress:
+    - toEntities:
+        - all
+```
+
+```bash
+kubectl apply -f system-unrestricted-egress.yaml
+```
+
+#### 5.5 Verify network policies
+
+```bash
+# Start a test pod in the restricted namespace
+kubectl run test --namespace apps-restricted --rm -it --image=alpine -- sh
+
+# Inside the pod:
+apk add curl
+
+# Should FAIL (no egress policy for this pod)
+curl -v https://google.com
+
+# Exit test pod
+exit
+```
+
+### Step 6: Cloudflare Tunnel as Kubernetes Workload
+
+The infrastructure provisioning installs `cloudflared` on the master control node as a system service via cloud-init. Alternatively, you can run cloudflared as a Kubernetes deployment for better integration with the cluster:
+
+```yaml
+# cloudflared.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: cloudflared-token
+  namespace: system-unrestricted
+type: Opaque
+stringData:
+  token: "<YOUR_CLOUDFLARE_TUNNEL_TOKEN>"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cloudflared
+  namespace: system-unrestricted
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: cloudflared
+  template:
+    metadata:
+      labels:
+        app: cloudflared
+    spec:
+      containers:
+        - name: cloudflared
+          image: cloudflare/cloudflared:latest
+          args:
+            - tunnel
+            - --no-autoupdate
+            - run
+            - --token
+            - $(TUNNEL_TOKEN)
+          env:
+            - name: TUNNEL_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: cloudflared-token
+                  key: token
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "128Mi"
+              cpu: "200m"
+```
+
+```bash
+kubectl apply -f cloudflared.yaml
+```
+
+Advantages over system-level cloudflared:
+- Multiple replicas for high availability
+- Managed by Kubernetes (auto-restart, resource limits)
+- Network policies control its egress
+
+If using this approach, disable the system-level cloudflared installed via cloud-init:
+
+```bash
+ssh control-node sudo systemctl stop cloudflared
+ssh control-node sudo systemctl disable cloudflared
+```
+
+### Step 7: Configure Cloudflare Access
+
+1. Go to **Cloudflare Zero Trust** → **Networks** → **Tunnels** → your tunnel → **Public Hostnames**
+2. Map hostnames to internal Kubernetes services:
+
+| Hostname | Service |
+|----------|---------|
+| `app.yourdomain.com` | `http://my-app.apps-restricted.svc.cluster.local:8080` |
+
+3. Add authentication policies under **Access** → **Applications** to restrict who can reach the services
+
+---
+
+## K3s Cluster Maintenance
+
+### Upgrade K3s
+
+```bash
+# On each node (server first, then agents)
+curl -sfL https://get.k3s.io | sh -
+```
+
+### Backup PVC data
+
+```bash
+# Create snapshot via Hetzner Console or API
+# Hetzner Console → Volumes → Select volume → Create Snapshot
+```
+
+### Useful kubectl commands
+
+```bash
+# Check nodes
+kubectl get nodes -o wide
+
+# Check all pods across namespaces
+kubectl get pods -A
+
+# Check storage
+kubectl get pvc -A
+kubectl get pv
+
+# Check CSI driver
+kubectl get pods -n kube-system | grep hcloud
+
+# Check Cilium status
+cilium status
+
+# Check network policies
+kubectl get ciliumnetworkpolicies -A
+
+# Logs for cloudflared (if running as K8s workload)
+kubectl logs -n system-unrestricted -l app=cloudflared
+
+# Restart a workload
+kubectl rollout restart deployment/my-app -n apps-restricted
+```
+
+---
+
+## Security Summary
+
+| Layer | Protection |
+|-------|------------|
+| **Network (Hetzner)** | Firewall blocks all inbound; IPv6-only, no public IPv4 |
+| **Network (K8s)** | Cilium egress whitelist per namespace/app (FQDN-based) |
+| **Access** | Cloudflare Tunnel (outbound-only connection, no open ports) |
+| **Authentication** | Cloudflare Access policies |
+| **Container** | Non-root user, dropped capabilities, resource limits |
+| **SSH** | Key-only auth, fail2ban, no TCP forwarding on workers |
+| **Storage** | Isolated PVCs per workload |
+
+### What this setup protects against
+
+- Direct server attacks (no public IPs, no open inbound ports)
+- Unauthorized access (Cloudflare Access + SSH key-only auth)
+- Data exfiltration (FQDN-based egress whitelist)
+- Lateral movement (namespace isolation, per-pod network policies)
+- Resource abuse (container resource limits)
+
+### What to monitor
+
+- API key and token compromise — rotate regularly
+- Cloudflare Tunnel health — monitor via Zero Trust dashboard
+- Node resource utilization — watch for memory pressure on small instances
+
+---
+
+## Example Application Deployment
+
+For a complete example of deploying an application (OpenClaw) on this cluster — including application-specific Cilium egress rules, StatefulSet with persistent storage, and Cloudflare Tunnel routing — see [`doc/k3s/README.md`](doc/k3s/README.md).
 
 ---
 
@@ -538,23 +954,54 @@ With auto-generated keys:
    tofu import hcloud_server.master_control_node <server-id>
    ```
 
----
+### K3s nodes not joining
 
-## Next steps after cluster setup
+```bash
+# On the agent node, check K3s service logs
+journalctl -u k3s-agent -f
 
-1. **Install K3s**:
-   ```bash
-   curl -sfL https://get.k3s.io | sh -
-   ```
+# Verify the server is reachable from the agent
+curl -k https://10.0.0.2:6443
+```
 
-2. **Or kubeadm**:
-   ```bash
-   # See official K8s documentation
-   ```
+### Cilium pods not ready
 
-3. **Install Kubernetes Dashboard**
+```bash
+# Check Cilium status
+cilium status
 
-4. **Set up Ingress Controller**
+# Check Cilium pod logs
+kubectl logs -n kube-system -l k8s-app=cilium
+
+# Check Cilium endpoint status
+cilium endpoint list
+```
+
+### Network policy blocking traffic unexpectedly
+
+```bash
+# Check which policies apply
+kubectl get ciliumnetworkpolicies -n apps-restricted
+
+# Check if FQDN rules are resolving
+kubectl exec -n kube-system -it \
+  $(kubectl get pods -n kube-system -l k8s-app=cilium -o name | head -1) \
+  -- cilium fqdn cache list
+```
+
+### CSI volume not attaching
+
+```bash
+kubectl describe pvc -n apps-restricted
+kubectl get events -n apps-restricted --sort-by='.lastTimestamp'
+```
+
+### Pod not starting (general)
+
+```bash
+kubectl describe pod -n <namespace> <pod-name>
+kubectl logs -n <namespace> <pod-name> --previous
+```
 
 ---
 

@@ -1,9 +1,10 @@
 #!/bin/bash
 
 # =============================================================================
-# SSH-Agent Setup for K3s Cluster
+# SSH-Agent Setup for K8s Cluster
 # =============================================================================
 # This script sets up ssh-agent and loads the SSH keys.
+# It auto-detects key names from OpenTofu state when available.
 #
 # Usage:
 #   source ./scripts/ssh-agent-setup.sh
@@ -12,7 +13,8 @@
 #            current shell!
 # =============================================================================
 
-set -e
+# Note: no "set -e" here — this script is sourced, so set -e would apply to
+# the user's shell and kill it on any non-zero exit (e.g. arithmetic returning 0).
 
 # Colors for output
 RED='\033[0;31m'
@@ -20,8 +22,18 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-# Configuration
-CLUSTER_NAME="${CLUSTER_NAME:-k3s-cluster}"
+# Detect project directory (script may be sourced from anywhere)
+_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+_PROJECT_DIR="$(dirname "$_SCRIPT_DIR")"
+
+# Auto-detect configuration from OpenTofu state if available
+if [[ -z "$SSH_KEY_PREFIX" ]] && command -v tofu &>/dev/null && [[ -f "$_PROJECT_DIR/main.tf" ]]; then
+    SSH_KEY_PREFIX=$(cd "$_PROJECT_DIR" && tofu output -raw ssh_key_prefix 2>/dev/null || echo "")
+    CLUSTER_NAME=$(cd "$_PROJECT_DIR" && tofu output -raw cluster_name 2>/dev/null || echo "")
+fi
+
+# Configuration (env vars override auto-detection)
+CLUSTER_NAME="${CLUSTER_NAME:-k8s-cluster}"
 SSH_KEY_PREFIX="${SSH_KEY_PREFIX:-$CLUSTER_NAME}"
 SSH_DIR="${SSH_DIR:-$HOME/.ssh}"
 ADMIN_KEY="${SSH_DIR}/${SSH_KEY_PREFIX}_admin-node_key"
@@ -78,8 +90,45 @@ main() {
     echo "  SSH-Agent Setup for ${CLUSTER_NAME}"
     echo "=========================================="
     echo ""
-    
-    # 1. Start ssh-agent if needed
+
+    # 1. Fix SSH permissions (needed for bind-mounted .root/.ssh/ in Dev Container)
+    if [[ -d "$SSH_DIR" ]]; then
+        local perms_fixed=0
+
+        # Directory must be 700
+        if [[ "$(stat -c '%a' "$SSH_DIR" 2>/dev/null)" != "700" ]]; then
+            chmod 700 "$SSH_DIR"
+            perms_fixed=$((perms_fixed + 1))
+        fi
+
+        # Config must be 600
+        if [[ -f "$SSH_DIR/config" && "$(stat -c '%a' "$SSH_DIR/config" 2>/dev/null)" != "600" ]]; then
+            chmod 600 "$SSH_DIR/config"
+            perms_fixed=$((perms_fixed + 1))
+        fi
+
+        # Private keys must be 600, public keys 644
+        for key_file in "$SSH_DIR"/*_key "$SSH_DIR"/id_*; do
+            [[ -f "$key_file" ]] || continue
+            if [[ "$key_file" == *.pub ]]; then
+                if [[ "$(stat -c '%a' "$key_file" 2>/dev/null)" != "644" ]]; then
+                    chmod 644 "$key_file"
+                    perms_fixed=$((perms_fixed + 1))
+                fi
+            else
+                if [[ "$(stat -c '%a' "$key_file" 2>/dev/null)" != "600" ]]; then
+                    chmod 600 "$key_file"
+                    perms_fixed=$((perms_fixed + 1))
+                fi
+            fi
+        done
+
+        if [[ $perms_fixed -gt 0 ]]; then
+            info "Fixed SSH permissions ($perms_fixed items — bind-mount override)"
+        fi
+    fi
+
+    # 2. Start ssh-agent if needed
     if ! agent_is_running; then
         info "Starting ssh-agent..."
         eval "$(ssh-agent -s)"
@@ -88,7 +137,7 @@ main() {
         info "ssh-agent is already running (SSH_AUTH_SOCK=${SSH_AUTH_SOCK})"
     fi
     
-    # 2. Check macOS Keychain configuration
+    # 3. Check macOS Keychain configuration
     if is_macos; then
         info "macOS detected — Keychain integration available"
         
@@ -112,7 +161,7 @@ main() {
         fi
     fi
     
-    # 3. Load keys
+    # 4. Load keys
     local keys_added=0
     
     for key_file in "$ADMIN_KEY" "$CONTROL_KEY" "$WORKER_KEY"; do
@@ -132,24 +181,24 @@ main() {
             # macOS: With Keychain integration
             if ssh-add --apple-use-keychain "$key_file" 2>/dev/null; then
                 info "Key loaded and passphrase stored in Keychain"
-                ((keys_added++))
+                keys_added=$((keys_added + 1))
             elif ssh-add "$key_file"; then
                 # Fallback without Keychain (e.g. for keys without passphrase)
-                ((keys_added++))
+                keys_added=$((keys_added + 1))
             else
                 error "Failed to load: $key_file"
             fi
         else
             # Linux: Standard ssh-add
             if ssh-add "$key_file"; then
-                ((keys_added++))
+                keys_added=$((keys_added + 1))
             else
                 error "Failed to load: $key_file"
             fi
         fi
     done
     
-    # 4. Show status
+    # 5. Show status
     echo ""
     echo "=========================================="
     echo "  Loaded keys:"

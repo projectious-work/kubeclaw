@@ -41,7 +41,7 @@ This project automates creation of a secure, IPv6-only Kubernetes cluster on Het
 
 ## Features
 
-- ✅ **IPv6-only** — No public IPv4 addresses required
+- ✅ **IPv6-only** — No public IPv4 addresses required, NAT64/DNS64 for transparent IPv4 reachability
 - ✅ **Cloudflare Tunnel** — Secure SSH access without open ports
 - ✅ **Admin Node** — Temporary jump host with public IPv6 for initial setup (removable)
 - ✅ **Scalable** — Master + replica control nodes, 0 to n worker nodes, mixed server types
@@ -132,6 +132,46 @@ tofu apply
 ```
 
 Infrastructure is ready. Continue with [Kubernetes Deployment with K3s](#kubernetes-deployment-with-k3s) to set up the cluster.
+
+---
+
+## NAT64/DNS64 (IPv4 reachability)
+
+The cluster is IPv6-only — but many services (GitHub CDN, container registries, package repos) are IPv4-only. **NAT64/DNS64** provides transparent IPv4 reachability at the network layer, no application changes needed.
+
+### How it works
+
+1. **DNS64 resolver** receives a query for `github.com`, sees it only has an A record (IPv4), and synthesizes an AAAA record with the `64:ff9b::/96` prefix
+2. Node sends traffic to the synthesized IPv6 address
+3. **NAT64 gateway** translates the traffic to IPv4 and forwards it
+
+Default resolvers are from [nat64.net](https://nat64.net/public-providers) (Nuremberg, Helsinki, Amsterdam) — close to Hetzner's `fsn1` datacenter.
+
+### Configuration
+
+NAT64/DNS64 is **enabled by default** (`enable_nat64 = true`). Cloud-init configures it on new nodes automatically. For existing nodes, run the Ansible playbook:
+
+```bash
+cd ansible
+ansible-playbook playbooks/configure-nat64.yml
+```
+
+To disable (e.g., if you set up your own DNS):
+
+```hcl
+# terraform.tfvars
+enable_nat64 = false
+```
+
+### Verification
+
+```bash
+# DNS64 synthesis (should show AAAA record with 64:ff9b:: prefix)
+resolvectl query github.com
+
+# End-to-end connectivity
+curl -6 https://github.com
+```
 
 ---
 
@@ -383,16 +423,18 @@ tofu apply
 ### Setup
 
 ```bash
-# Install Ansible collection
-ansible-galaxy collection install ansible.posix
-
 # Generate inventory
 ./scripts/generate-ansible-inventory.sh
 
-# Test
+# Load SSH keys into the agent (must be sourced, not executed)
+source ./scripts/ssh-agent-setup.sh
+
+# Test connectivity
 cd ansible
 ansible all -m ping
 ```
+
+> **Important**: The ssh-agent must be running with the cluster keys loaded before Ansible can connect. Run `source ./scripts/ssh-agent-setup.sh` in every new terminal session.
 
 ### System updates
 
@@ -517,6 +559,8 @@ runcmd:
 | `enable_admin_node` | Enable temporary admin node with public IPv6 | `true` |
 | `admin_node_type` | Admin node server type | `cx22` |
 | `admin_node_public_key` | Custom SSH public key for admin node | `""` (auto) |
+| `enable_nat64` | Enable NAT64/DNS64 for IPv4 reachability | `true` |
+| `dns64_resolvers` | DNS64 resolver addresses (nat64.net) | `["2a01:4f8:c2c:123f::1", ...]` |
 | `ssh_key_prefix` | Prefix for SSH key filenames (defaults to `cluster_name`) | `""` |
 
 ---
@@ -524,29 +568,35 @@ runcmd:
 ## Project structure
 
 ```
-tofu-hetzner-cluster/
-├── main.tf                          # Infrastructure
-├── variables.tf                     # Variables
-├── outputs.tf                       # Outputs
+hetzner-k8s-cluster/
+├── main.tf                          # Infrastructure (providers, network, firewalls, servers)
+├── variables.tf                     # All configurable inputs
+├── outputs.tf                       # IPs, SSH keys, ssh_config_snippet, next-steps banner
 ├── terraform.tfvars.example         # Example configuration
-├── .gitignore
+├── CLAUDE.md                        # Claude Code project instructions
 ├── README.md
+├── .gitignore
+├── .devcontainer/
+│   ├── devcontainer.json            # Container config (bind mounts, extensions)
+│   └── Dockerfile                   # Debian Trixie with tofu, ansible, cloudflared, jq
 ├── cloud-init/
-│   ├── admin-node.yaml.tpl         # Cloud-init template for admin node (jump host)
-│   ├── control-node.yaml.tpl       # Cloud-init template for control node
-│   └── worker-node.yaml.tpl        # Cloud-init template for worker nodes
+│   ├── admin-node.yaml.tpl         # Admin node (temporary jump host with public IPv6)
+│   ├── control-node.yaml.tpl       # Control node (cloudflared on master, UFW, fail2ban)
+│   └── worker-node.yaml.tpl        # Worker node (isolated, outbound DNS/HTTP/S only)
 ├── scripts/
-│   ├── setup-ssh.sh                # SSH setup helper
-│   ├── ssh-agent-setup.sh          # ssh-agent setup (macOS Keychain support)
-│   └── generate-ansible-inventory.sh
+│   ├── setup-ssh.sh                # Export SSH keys from tofu state, generate ~/.ssh/config
+│   ├── ssh-agent-setup.sh          # Fix SSH permissions, start ssh-agent, load keys
+│   └── generate-ansible-inventory.sh  # Build ansible/inventory.ini from tofu state
 ├── ansible/
-│   ├── ansible.cfg
-│   ├── inventory.ini
+│   ├── ansible.cfg                  # Ansible defaults (user, pipelining, SSH args)
+│   ├── inventory.ini                # Auto-generated inventory (do not hand-edit)
 │   └── playbooks/
-│       ├── update-system.yml
-│       └── security-hardening.yml
+│       ├── update-system.yml        # System updates with optional reboot
+│       ├── security-hardening.yml   # Unattended upgrades, fail2ban, sysctl hardening
+│       └── configure-nat64.yml      # NAT64/DNS64 for IPv4 reachability on running nodes
 └── doc/
-    ├── manual/                      # Detailed manual
+    ├── manual/
+    │   └── README.md                # Step-by-step manual setup guide
     └── k3s/
         └── README.md                # K3s deployment example (OpenClaw)
 ```

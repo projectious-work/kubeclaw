@@ -228,6 +228,8 @@ resource "hcloud_server" "master_control_node" {
     admin_user      = var.admin_user
     keyboard_layout = var.keyboard_layout
     is_master       = true
+    enable_nat64    = var.enable_nat64
+    dns64_resolvers = var.dns64_resolvers
   })
 
   labels = {
@@ -276,6 +278,8 @@ resource "hcloud_server" "control_node_replica" {
     admin_user      = var.admin_user
     keyboard_layout = var.keyboard_layout
     is_master       = false
+    enable_nat64    = var.enable_nat64
+    dns64_resolvers = var.dns64_resolvers
   })
 
   labels = {
@@ -325,6 +329,8 @@ resource "hcloud_server" "worker_node" {
     root_password   = var.root_password
     admin_user      = var.admin_user
     keyboard_layout = var.keyboard_layout
+    enable_nat64    = var.enable_nat64
+    dns64_resolvers = var.dns64_resolvers
   })
 
   labels = {

@@ -208,7 +208,7 @@ output "ssh_config_snippet" {
         User ${var.admin_user}
         IdentityFile ~/.ssh/${local.ssh_key_prefix}_control-node_key
         IdentitiesOnly yes
-        ProxyCommand /opt/homebrew/bin/cloudflared access ssh --hostname %h
+        ProxyCommand cloudflared access ssh --hostname %h
 
     %{endif~}
     %{if !var.enable_admin_node && var.cloudflare_tunnel_domain == ""~}
@@ -250,6 +250,15 @@ output "ssh_config_snippet" {
 output "cloudflare_tunnel_domain" {
   description = "Configured Cloudflare Tunnel domain"
   value       = var.cloudflare_tunnel_domain
+}
+
+# -----------------------------------------------------------------------------
+# NAT64/DNS64
+# -----------------------------------------------------------------------------
+
+output "nat64_enabled" {
+  description = "Whether NAT64/DNS64 is enabled for IPv4 reachability"
+  value       = var.enable_nat64
 }
 
 # -----------------------------------------------------------------------------

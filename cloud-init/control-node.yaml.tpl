@@ -28,6 +28,18 @@ packages:
 package_update: true
 package_upgrade: true
 
+%{ if enable_nat64 ~}
+bootcmd:
+  - mkdir -p /etc/systemd/resolved.conf.d
+  - |
+    cat > /etc/systemd/resolved.conf.d/dns64.conf <<'DNSEOF'
+    [Resolve]
+    DNS=${join(" ", dns64_resolvers)}
+    Domains=~.
+    DNSEOF
+  - systemctl restart systemd-resolved
+%{ endif ~}
+
 write_files:
   - path: /etc/ssh/sshd_config.d/ssh-hardening.conf
     content: |
@@ -59,6 +71,26 @@ write_files:
       edge-ip-version: "6"
 %{ endif ~}
 
+%{ if enable_nat64 ~}
+  - path: /etc/systemd/resolved.conf.d/dns64.conf
+    content: |
+      [Resolve]
+      DNS=${join(" ", dns64_resolvers)}
+      Domains=~.
+
+  - path: /etc/networkd-dispatcher/routable.d/50-nat64-route
+    permissions: '0755'
+    content: |
+      #!/bin/bash
+      # Add NAT64 route via default IPv6 gateway
+      if [ "$IFACE" = "eth0" ]; then
+        GW6=$(ip -6 route show default dev eth0 | awk '{print $3}' | head -1)
+        if [ -n "$GW6" ]; then
+          ip -6 route replace 64:ff9b::/96 via "$GW6" dev eth0
+        fi
+      fi
+%{ endif ~}
+
 runcmd:
   - systemctl enable fail2ban
   - systemctl start fail2ban
@@ -76,5 +108,13 @@ runcmd:
   - echo 'deb [signed-by=/usr/share/keyrings/cloudflare-public-v2.gpg] https://pkg.cloudflare.com/cloudflared any main' | tee /etc/apt/sources.list.d/cloudflared.list
   - mkdir -p /etc/cloudflared
   - apt-get update && apt-get install -y cloudflared
+%{ endif ~}
+%{ if enable_nat64 ~}
+  - systemctl restart systemd-resolved
+  - |
+    GW6=$(ip -6 route show default dev eth0 | awk '{print $3}' | head -1)
+    if [ -n "$GW6" ]; then
+      ip -6 route replace 64:ff9b::/96 via "$GW6" dev eth0
+    fi
 %{ endif ~}
   - reboot

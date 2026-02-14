@@ -164,6 +164,22 @@ variable "admin_node_public_key" {
 }
 
 # -----------------------------------------------------------------------------
+# NAT64/DNS64 (IPv4 reachability for IPv6-only nodes)
+# -----------------------------------------------------------------------------
+
+variable "enable_nat64" {
+  description = "Enable NAT64/DNS64 for IPv4 reachability on IPv6-only nodes. Required to download binaries, container images, etc. from IPv4-only hosts."
+  type        = bool
+  default     = true
+}
+
+variable "dns64_resolvers" {
+  description = "DNS64 resolver addresses (must be from a provider that also runs a NAT64 gateway). Default: nat64.net resolvers in Nuremberg, Helsinki, Amsterdam."
+  type        = list(string)
+  default     = ["2a01:4f8:c2c:123f::1", "2a01:4f9:c010:3f02::1", "2a00:1098:2b::1"]
+}
+
+# -----------------------------------------------------------------------------
 # SSH Key File Prefix
 # -----------------------------------------------------------------------------
 

@@ -12,6 +12,7 @@ RUN apt-get update && apt-get install -y \
     apt-transport-https \
     ca-certificates \
     gnupg \
+    jq \
     ansible \
     && rm -rf /var/lib/apt/lists/*
 
@@ -37,6 +38,16 @@ RUN install -m 0755 -d /etc/apt/keyrings \
     && chmod a+r /etc/apt/sources.list.d/opentofu.list \
     && apt-get update \
     && apt-get install -y tofu \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Ansible collections
+RUN ansible-galaxy collection install ansible.posix
+
+# Install cloudflared (for SSH ProxyCommand via Cloudflare Tunnel)
+RUN curl -fsSL https://pkg.cloudflare.com/cloudflare-main.gpg | tee /usr/share/keyrings/cloudflare-main.gpg >/dev/null \
+    && echo "deb [signed-by=/usr/share/keyrings/cloudflare-main.gpg] https://pkg.cloudflare.com/cloudflared any main" | tee /etc/apt/sources.list.d/cloudflared.list \
+    && apt-get update \
+    && apt-get install -y cloudflared \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /workspaces

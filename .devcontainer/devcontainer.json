@@ -3,7 +3,6 @@
     "customizations": {
         "vscode": {
             "extensions": [
-              "github.copilot",
               "opentofu.vscode-opentofu",
               "redhat.ansible",
               "codeium.codeium"

@@ -4,15 +4,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Infrastructure-as-Code project that provisions a secure, IPv6-only Kubernetes cluster on Hetzner Cloud with SSH access exclusively through Cloudflare Tunnel. Uses **OpenTofu** (Terraform-compatible) for infrastructure provisioning and **Ansible** for server management. The next phase deploys **K3s with Cilium** on the provisioned infrastructure.
+Infrastructure-as-Code project that provisions a secure, IPv6-only Kubernetes cluster on Hetzner Cloud with SSH access exclusively through Cloudflare Tunnel. Uses **OpenTofu** (Terraform-compatible) for infrastructure provisioning and **Ansible** for server management. The next phase deploys **kubeadm** (chosen over K3s for CKA certification preparation) on the provisioned infrastructure.
 
-**Architecture**: Internet → Cloudflare Tunnel (or temporary Admin Node at 10.0.0.254 with public IPv6) → Master Control Node (10.0.0.2, runs cloudflared) → Private Network (10.0.0.0/24) → Replica Control Nodes (10.0.0.3+) + Worker Nodes (offset after replicas). No public IPv4 addresses; workers have no external connectivity except DNS and HTTP/S for updates. The Admin Node is a temporary jump host (`enable_admin_node = true` by default) that provides public IPv6 SSH access for initial Cloudflare Tunnel setup; disable it after the tunnel is configured. The master control node always exists; replica control nodes and workers are optional and support mixed server types via list-of-objects variables.
+**Architecture**: Internet → Cloudflare Tunnel (or temporary Admin Node at 10.0.0.254 with public IPv6) → Master Control Node (10.0.0.2, runs cloudflared) → Private Network (10.0.0.0/24) → Replica Control Nodes (10.0.0.3+) + Worker Nodes (offset after replicas). No public IPv4 addresses; **NAT64/DNS64** (enabled by default) provides transparent IPv4 reachability via DNS64 resolvers from nat64.net and the well-known `64:ff9b::/96` prefix. Workers have no external connectivity except DNS64, NAT64, and HTTP/S for updates. The Admin Node is a temporary jump host (`enable_admin_node = true` by default) that provides public IPv6 SSH access for initial Cloudflare Tunnel setup; disable it after the tunnel is configured. The master control node always exists; replica control nodes and workers are optional and support mixed server types via list-of-objects variables.
 
 ## Dev Container (primary workflow)
 
 All work happens inside the Dev Container (Debian Trixie). No tools (tofu, ansible, ssh) need to be installed on the host.
 
-- **Persistent SSH**: `.root/.ssh/` in the project directory is bind-mounted to `/root/.ssh/` in the container. SSH keys, config, and known_hosts survive container rebuilds.
+- **Persistent SSH**: `.root/.ssh/` in the project directory is bind-mounted to `/root/.ssh/` in the container. SSH keys, config, and known_hosts survive container rebuilds. Docker bind mounts from macOS don't preserve Unix permissions (files appear as 777), so `ssh-agent-setup.sh` automatically fixes permissions on every run.
 - **Persistent Vibe**: `.root/.vibe/` is bind-mounted to `/root/.vibe/`.
 - `.root/` is gitignored — never committed.
 - After cloning, `mkdir -p .root/.ssh && chmod 700 .root/.ssh` must be run before building the container.
@@ -46,6 +46,13 @@ ansible-playbook playbooks/update-system.yml --limit control_nodes     # Only co
 ansible-playbook playbooks/security-hardening.yml                      # Apply security hardening
 ```
 
+### NAT64/DNS64 (configure on running nodes)
+```bash
+cd ansible
+ansible-playbook playbooks/configure-nat64.yml                         # All nodes
+ansible-playbook playbooks/configure-nat64.yml --limit control_nodes   # Control nodes only
+```
+
 ### SSH Key Rotation (auto-generated keys)
 ```bash
 tofu taint 'tls_private_key.control_node[0]'
@@ -67,18 +74,18 @@ Edit `terraform.tfvars` to change `control_node_types` or `worker_node_types`, t
 
 ### Cloud-Init Templates (`cloud-init/`)
 - **admin-node.yaml.tpl** — Minimal jump host: admin user, SSH hardening with `AllowTcpForwarding yes` for ProxyJump, fail2ban, UFW allowing public SSH
-- **control-node.yaml.tpl** — Creates admin user, configures UFW (SSH from internal network + localhost for tunnel), fail2ban, SSH hardening. Uses `is_master` boolean: master installs cloudflared and allows localhost SSH; replicas skip cloudflared sections.
-- **worker-node.yaml.tpl** — Similar but restrictive: no cloudflared, outbound limited to DNS/HTTP/S only, no TCP forwarding
+- **control-node.yaml.tpl** — Creates admin user, configures UFW (SSH from internal network + localhost for tunnel), fail2ban, SSH hardening. Uses `is_master` boolean: master installs cloudflared and allows localhost SSH; replicas skip cloudflared sections. When `enable_nat64`: configures DNS64 resolvers, NAT64 route, and networkd-dispatcher persistence.
+- **worker-node.yaml.tpl** — Similar but restrictive: no cloudflared, outbound limited to DNS/HTTP/S only, no TCP forwarding. When `enable_nat64`: uses DNS64 resolvers instead of Hetzner DNS, adds NAT64 prefix UFW rule.
 
 ### Scripts (`scripts/`)
 - **setup-ssh.sh** — Detects tofu/terraform, exports private keys, generates SSH config with backup. Writes to `~/.ssh/` which persists via the `.root/.ssh/` mount.
 - **generate-ansible-inventory.sh** — Queries Terraform outputs to build `ansible/inventory.ini` dynamically
-- **ssh-agent-setup.sh** — Starts ssh-agent, loads keys; customizable via `CLUSTER_NAME` env var. Run inside the Dev Container for Ansible.
+- **ssh-agent-setup.sh** — Fixes SSH permissions (bind-mounted dirs default to 777), starts ssh-agent, loads keys; customizable via `CLUSTER_NAME` env var. Run inside the Dev Container for Ansible.
 
 ### Ansible (`ansible/`)
 - **ansible.cfg** — Remote user: kubernetes-admin, host key checking disabled, become via sudo NOPASSWD
 - **inventory.ini** — Auto-generated by script; groups: `control_nodes`, `worker_nodes`, `k8s_cluster`
-- Playbooks handle system updates and security hardening (unattended-upgrades, fail2ban, sysctl)
+- Playbooks handle system updates, security hardening (unattended-upgrades, fail2ban, sysctl), and NAT64/DNS64 configuration
 
 ### Documentation (`doc/`)
 - **doc/k3s/README.md** — K3s deployment example with OpenClaw application (Cilium egress rules, StatefulSet, Cloudflare Tunnel routing)
@@ -99,7 +106,7 @@ Edit `terraform.tfvars` to change `control_node_types` or `worker_node_types`, t
 ## Known Quirks
 
 - `keyboard_variant` in cloud-init templates is hardcoded to `"mac"` — may need changing for non-Mac keyboards
-- ProxyCommand in generated SSH configs uses `/opt/homebrew/bin/cloudflared` (macOS ARM path); Intel Macs need `/usr/local/bin/cloudflared`
+- ProxyCommand in generated SSH configs uses `cloudflared` from `$PATH`; ensure it is installed locally (`brew install cloudflared` on macOS, included in the Dev Container)
 - Terraform state contains sensitive data (private keys when auto-generated)
 - No CI/CD pipelines configured
 
@@ -109,12 +116,13 @@ Edit `terraform.tfvars` to change `control_node_types` or `worker_node_types`, t
 - Infrastructure provisioning layer (OpenTofu): network, firewalls, SSH keys, cloud-init, admin/control/worker nodes
 - SSH config generation with independent admin-node and cloudflare-tunnel entries, IdentitiesOnly fix
 - Firewall rules with descriptions; K3s-specific ports removed until deployment
-- Ansible playbooks for system updates and security hardening
+- NAT64/DNS64 for IPv4 reachability on IPv6-only nodes (cloud-init + Ansible playbook)
+- Ansible playbooks for system updates, security hardening, and NAT64/DNS64 configuration
 - K3s deployment guide integrated into README (Cilium CNI, Hetzner CSI, namespace isolation, network policies)
 - Dev Container with persistent SSH mount (.root/.ssh/)
 
 ### Next Steps
 - Deploy infrastructure with `tofu apply` (currently destroyed)
 - Set up Cloudflare Tunnel on master control node
-- Deploy K3s cluster following the guide in README
-- Add K3s-specific firewall rules (6443, 10250, 30000-32767) to main.tf when deploying
+- Deploy Kubernetes cluster with kubeadm (replacing K3s for CKA certification preparation)
+- Add Kubernetes-specific firewall rules (6443, 10250, 30000-32767) to main.tf when deploying

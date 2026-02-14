@@ -445,10 +445,10 @@ Host console.bernhard-gerlach.org
     HostName console.bernhard-gerlach.org
     User kubernetes-admin
     IdentityFile ~/.ssh/2026-02-05_k3s-cluster_control-node_key
-    ProxyCommand /opt/homebrew/bin/cloudflared access ssh --hostname %h
+    ProxyCommand cloudflared access ssh --hostname %h
 ```
 
-> **Note for Intel Macs**: Replace `/opt/homebrew/bin/cloudflared` with `/usr/local/bin/cloudflared`
+> **Note**: `cloudflared` must be installed and available in `$PATH` (`brew install cloudflared` on macOS, included in the Dev Container)
 
 ### Test connection
 
@@ -499,7 +499,7 @@ Host control-node-01
     HostName console.bernhard-gerlach.org
     User kubernetes-admin
     IdentityFile ~/.ssh/2026-02-05_k3s-cluster_control-node_key
-    ProxyCommand /opt/homebrew/bin/cloudflared access ssh --hostname %h
+    ProxyCommand cloudflared access ssh --hostname %h
 
 # Worker Node via Cloudflare Tunnel → Control Node → Internal network
 Host worker-node-01

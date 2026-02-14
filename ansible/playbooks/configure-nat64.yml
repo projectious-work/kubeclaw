@@ -1,0 +1,124 @@
+---
+# =============================================================================
+# NAT64/DNS64 Configuration Playbook
+# =============================================================================
+# Configures DNS64 resolvers and NAT64 routing on already-running nodes.
+# Cloud-init only runs at first boot — use this playbook for existing nodes.
+#
+# Usage:
+#   ansible-playbook playbooks/configure-nat64.yml
+#   ansible-playbook playbooks/configure-nat64.yml --limit control_nodes
+#   ansible-playbook playbooks/configure-nat64.yml -e '{"dns64_resolvers":["2a01:4f8:c2c:123f::1"]}'
+# =============================================================================
+
+- name: Configure NAT64/DNS64
+  hosts: k8s_cluster
+  become: true
+  gather_facts: true
+
+  vars:
+    dns64_resolvers:
+      - "2a01:4f8:c2c:123f::1"   # nat64.net Nuremberg
+      - "2a01:4f9:c010:3f02::1"  # nat64.net Helsinki
+      - "2a00:1098:2b::1"        # nat64.net Amsterdam
+    nat64_prefix: "64:ff9b::/96"
+
+  tasks:
+    # -------------------------------------------------------------------------
+    # DNS64 Configuration (systemd-resolved)
+    # -------------------------------------------------------------------------
+    - name: Create resolved.conf.d directory
+      ansible.builtin.file:
+        path: /etc/systemd/resolved.conf.d
+        state: directory
+        mode: '0755'
+
+    - name: Configure DNS64 resolvers
+      ansible.builtin.copy:
+        dest: /etc/systemd/resolved.conf.d/dns64.conf
+        content: |
+          [Resolve]
+          DNS={{ dns64_resolvers | join(' ') }}
+          Domains=~.
+        mode: '0644'
+      notify: Restart systemd-resolved
+
+    # -------------------------------------------------------------------------
+    # NAT64 Route (immediate + persistent)
+    # -------------------------------------------------------------------------
+    - name: Get default IPv6 gateway
+      ansible.builtin.shell: ip -6 route show default dev eth0 | awk '{print $3}' | head -1
+      register: ipv6_gateway
+      changed_when: false
+
+    - name: Add NAT64 route immediately
+      ansible.builtin.command: ip -6 route replace {{ nat64_prefix }} via {{ ipv6_gateway.stdout }} dev eth0
+      when: ipv6_gateway.stdout | length > 0
+      changed_when: true
+
+    - name: Create networkd-dispatcher script for persistent NAT64 route
+      ansible.builtin.copy:
+        dest: /etc/networkd-dispatcher/routable.d/50-nat64-route
+        content: |
+          #!/bin/bash
+          # Add NAT64 route via default IPv6 gateway
+          if [ "$IFACE" = "eth0" ]; then
+            GW6=$(ip -6 route show default dev eth0 | awk '{print $3}' | head -1)
+            if [ -n "$GW6" ]; then
+              ip -6 route replace {{ nat64_prefix }} via "$GW6" dev eth0
+            fi
+          fi
+        mode: '0755'
+
+    # -------------------------------------------------------------------------
+    # Worker Node UFW Updates
+    # -------------------------------------------------------------------------
+    - name: Remove old Hetzner DNS UFW rules (workers only)
+      ansible.builtin.shell: |
+        ufw status numbered | grep -i 'DNS Hetzner' | awk -F'[][]' '{print $2}' | sort -rn | while read num; do
+          ufw --force delete $num
+        done
+      when: "'worker_nodes' in group_names"
+      changed_when: true
+
+    - name: Allow DNS64 resolvers in UFW (workers only)
+      ansible.builtin.command: ufw allow out to {{ item.0 }} port 53 proto {{ item.1 }} comment 'DNS64 nat64.net'
+      loop: "{{ dns64_resolvers | product(['udp', 'tcp']) | list }}"
+      loop_control:
+        label: "{{ item.0 }} {{ item.1 }}"
+      when: "'worker_nodes' in group_names"
+      changed_when: true
+
+    - name: Allow NAT64 prefix in UFW (workers only)
+      ansible.builtin.command: ufw allow out to {{ nat64_prefix }} comment 'NAT64 prefix'
+      when: "'worker_nodes' in group_names"
+      changed_when: true
+
+    # -------------------------------------------------------------------------
+    # Verification
+    # -------------------------------------------------------------------------
+    - name: Verify DNS64 — resolve github.com
+      ansible.builtin.command: resolvectl query github.com
+      register: dns_result
+      changed_when: false
+      failed_when: false
+
+    - name: Display DNS64 resolution result
+      ansible.builtin.debug:
+        var: dns_result.stdout_lines
+
+    - name: Verify NAT64 — curl github.com
+      ansible.builtin.command: curl -6 -sf --connect-timeout 10 -o /dev/null -w '%{http_code}' https://github.com
+      register: curl_result
+      changed_when: false
+      failed_when: false
+
+    - name: Display NAT64 connectivity result
+      ansible.builtin.debug:
+        msg: "github.com HTTP status: {{ curl_result.stdout | default('FAILED') }}"
+
+  handlers:
+    - name: Restart systemd-resolved
+      ansible.builtin.service:
+        name: systemd-resolved
+        state: restarted

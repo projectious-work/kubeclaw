@@ -66,6 +66,23 @@ for ip in $WORKER_IPS; do
     ((i++))
 done
 
+# Determine proxy configuration
+# Prefer admin node when available (simpler: direct access to all private IPs)
+# Fall back to Cloudflare Tunnel when admin node is disabled
+if [[ "$ADMIN_NODE_ENABLED" == "true" ]]; then
+    ADMIN_IPV6=$($TF_CMD output -raw admin_node_ipv6 2>/dev/null || echo "")
+    ALL_PROXY_ARGS="ansible_ssh_common_args='-o ProxyJump=${ADMIN_USER}@${ADMIN_IPV6}'"
+    WORKER_PROXY_ARGS=""
+elif [[ -n "$TUNNEL_DOMAIN" && "$TUNNEL_DOMAIN" != "" ]]; then
+    # Control nodes: ProxyCommand via cloudflared (tunnel lands directly on control node SSH)
+    ALL_PROXY_ARGS="ansible_ssh_common_args='-o ProxyCommand=\"cloudflared access ssh --hostname ${TUNNEL_DOMAIN}\"'"
+    # Workers: ProxyJump through tunnel host (cloudflared → control node → worker private IP)
+    WORKER_PROXY_ARGS="ansible_ssh_common_args='-o ProxyJump=${TUNNEL_DOMAIN}'"
+else
+    ALL_PROXY_ARGS="# ansible_ssh_common_args='-o ProxyJump=control-01'"
+    WORKER_PROXY_ARGS=""
+fi
+
 cat >> "$ANSIBLE_DIR/inventory.ini" << EOF
 
 [k8s_cluster:children]
@@ -75,20 +92,14 @@ worker_nodes
 [all:vars]
 ansible_user=${ADMIN_USER}
 ansible_ssh_private_key_file=~/.ssh/${SSH_KEY_PREFIX}_control-node_key
+${ALL_PROXY_ARGS}
 
 [worker_nodes:vars]
 ansible_ssh_private_key_file=~/.ssh/${SSH_KEY_PREFIX}_worker-node_key
-
-# ProxyJump configuration
 EOF
 
-if [[ -n "$TUNNEL_DOMAIN" && "$TUNNEL_DOMAIN" != "" ]]; then
-    echo "ansible_ssh_common_args='-o ProxyCommand=\"cloudflared access ssh --hostname ${TUNNEL_DOMAIN}\"'" >> "$ANSIBLE_DIR/inventory.ini"
-elif [[ "$ADMIN_NODE_ENABLED" == "true" ]]; then
-    ADMIN_IPV6=$($TF_CMD output -raw admin_node_ipv6 2>/dev/null || echo "")
-    echo "ansible_ssh_common_args='-o ProxyJump=${ADMIN_USER}@${ADMIN_IPV6}'" >> "$ANSIBLE_DIR/inventory.ini"
-else
-    echo "# ansible_ssh_common_args='-o ProxyJump=control-01'" >> "$ANSIBLE_DIR/inventory.ini"
+if [[ -n "$WORKER_PROXY_ARGS" ]]; then
+    echo "$WORKER_PROXY_ARGS" >> "$ANSIBLE_DIR/inventory.ini"
 fi
 
 echo ""

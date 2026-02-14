@@ -81,6 +81,15 @@ admin_node_type   = "cx23"
 # ssh_key_prefix = "2026-02-05_k8s-cluster"
 
 # -----------------------------------------------------------------------------
+# NAT64/DNS64 (IPv4 reachability for IPv6-only nodes)
+# -----------------------------------------------------------------------------
+# Enables transparent IPv4 access via NAT64 translation. Required for
+# downloading binaries, container images, etc. from IPv4-only hosts.
+# Default DNS64 resolvers are from nat64.net (Nuremberg, Helsinki, Amsterdam).
+enable_nat64 = true
+# dns64_resolvers = ["2a01:4f8:c2c:123f::1", "2a01:4f9:c010:3f02::1", "2a00:1098:2b::1"]
+
+# -----------------------------------------------------------------------------
 # Cloudflare Tunnel
 # -----------------------------------------------------------------------------
 # Domain for SSH access via Cloudflare Tunnel

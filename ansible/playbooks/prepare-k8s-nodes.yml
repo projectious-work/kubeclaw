@@ -1,0 +1,206 @@
+---
+# =============================================================================
+# Kubernetes Prerequisites Playbook
+# =============================================================================
+# Installs containerd, kubeadm, kubelet, and kubectl on already-running nodes.
+# Cloud-init only runs at first boot — use this playbook for existing nodes.
+#
+# Usage:
+#   ansible-playbook playbooks/prepare-k8s-nodes.yml
+#   ansible-playbook playbooks/prepare-k8s-nodes.yml --limit control_nodes
+#   ansible-playbook playbooks/prepare-k8s-nodes.yml -e "kubernetes_version=1.32"
+# =============================================================================
+
+- name: Prepare nodes for Kubernetes (kubeadm)
+  hosts: k8s_cluster
+  become: true
+  gather_facts: true
+
+  vars:
+    kubernetes_version: "1.32"
+
+  tasks:
+    # -------------------------------------------------------------------------
+    # Kernel Modules
+    # -------------------------------------------------------------------------
+    - name: Write kernel modules config for Kubernetes
+      ansible.builtin.copy:
+        dest: /etc/modules-load.d/k8s.conf
+        content: |
+          overlay
+          br_netfilter
+        mode: '0644'
+
+    - name: Load overlay module
+      ansible.builtin.command: modprobe overlay
+      changed_when: true
+
+    - name: Load br_netfilter module
+      ansible.builtin.command: modprobe br_netfilter
+      changed_when: true
+
+    # -------------------------------------------------------------------------
+    # Sysctl Parameters
+    # -------------------------------------------------------------------------
+    - name: Set net.bridge.bridge-nf-call-iptables
+      ansible.posix.sysctl:
+        name: net.bridge.bridge-nf-call-iptables
+        value: '1'
+        sysctl_file: /etc/sysctl.d/k8s.conf
+        reload: true
+
+    - name: Set net.bridge.bridge-nf-call-ip6tables
+      ansible.posix.sysctl:
+        name: net.bridge.bridge-nf-call-ip6tables
+        value: '1'
+        sysctl_file: /etc/sysctl.d/k8s.conf
+        reload: true
+
+    - name: Set net.ipv4.ip_forward
+      ansible.posix.sysctl:
+        name: net.ipv4.ip_forward
+        value: '1'
+        sysctl_file: /etc/sysctl.d/k8s.conf
+        reload: true
+
+    # -------------------------------------------------------------------------
+    # Disable Swap (required by kubeadm)
+    # -------------------------------------------------------------------------
+    - name: Disable swap immediately
+      ansible.builtin.command: swapoff -a
+      changed_when: true
+
+    - name: Remove swap entries from fstab
+      ansible.builtin.lineinfile:
+        path: /etc/fstab
+        regexp: '\sswap\s'
+        state: absent
+
+    # -------------------------------------------------------------------------
+    # Install and Configure containerd
+    # -------------------------------------------------------------------------
+    - name: Install containerd
+      ansible.builtin.apt:
+        name: containerd
+        state: present
+        update_cache: true
+
+    - name: Create containerd config directory
+      ansible.builtin.file:
+        path: /etc/containerd
+        state: directory
+        mode: '0755'
+
+    - name: Generate default containerd config
+      ansible.builtin.shell: containerd config default > /etc/containerd/config.toml
+      args:
+        creates: /etc/containerd/config.toml
+
+    - name: Enable SystemdCgroup in containerd config
+      ansible.builtin.replace:
+        path: /etc/containerd/config.toml
+        regexp: 'SystemdCgroup = false'
+        replace: 'SystemdCgroup = true'
+      notify: Restart containerd
+
+    - name: Enable and start containerd
+      ansible.builtin.service:
+        name: containerd
+        state: started
+        enabled: true
+
+    # -------------------------------------------------------------------------
+    # Kubernetes APT Repository
+    # -------------------------------------------------------------------------
+    - name: Install apt prerequisites
+      ansible.builtin.apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - gnupg
+        state: present
+
+    - name: Create keyrings directory
+      ansible.builtin.file:
+        path: /usr/share/keyrings
+        state: directory
+        mode: '0755'
+
+    - name: Download Kubernetes apt signing key
+      ansible.builtin.shell: >
+        curl -fsSL https://pkgs.k8s.io/core:/stable:/v{{ kubernetes_version }}/deb/Release.key
+        | gpg --dearmor -o /usr/share/keyrings/kubernetes-apt-keyring.gpg
+      args:
+        creates: /usr/share/keyrings/kubernetes-apt-keyring.gpg
+
+    - name: Add Kubernetes apt repository
+      ansible.builtin.copy:
+        dest: /etc/apt/sources.list.d/kubernetes.list
+        content: "deb [signed-by=/usr/share/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v{{ kubernetes_version }}/deb/ /\n"
+        mode: '0644'
+
+    # -------------------------------------------------------------------------
+    # Install kubeadm, kubelet, kubectl
+    # -------------------------------------------------------------------------
+    - name: Install kubelet, kubeadm, kubectl
+      ansible.builtin.apt:
+        name:
+          - kubelet
+          - kubeadm
+          - kubectl
+        state: present
+        update_cache: true
+
+    - name: Hold kubelet, kubeadm, kubectl at current version
+      ansible.builtin.dpkg_selections:
+        name: "{{ item }}"
+        selection: hold
+      loop:
+        - kubelet
+        - kubeadm
+        - kubectl
+
+    - name: Enable kubelet service
+      ansible.builtin.service:
+        name: kubelet
+        enabled: true
+
+    # -------------------------------------------------------------------------
+    # UFW Rules (control nodes: kubelet + etcd; workers already have kubelet)
+    # -------------------------------------------------------------------------
+    - name: Allow Kubelet API in UFW (control nodes)
+      ansible.builtin.command: ufw allow from 10.0.0.0/8 to any port 10250 proto tcp comment 'Kubelet API'
+      when: "'control_nodes' in group_names"
+      changed_when: true
+
+    - name: Allow etcd in UFW (control nodes)
+      ansible.builtin.command: ufw allow from 10.0.0.0/8 to any port 2379:2380 proto tcp comment 'etcd'
+      when: "'control_nodes' in group_names"
+      changed_when: true
+
+    # -------------------------------------------------------------------------
+    # Verification
+    # -------------------------------------------------------------------------
+    - name: Verify kubeadm version
+      ansible.builtin.command: kubeadm version -o short
+      register: kubeadm_version
+      changed_when: false
+
+    - name: Display kubeadm version
+      ansible.builtin.debug:
+        msg: "kubeadm version: {{ kubeadm_version.stdout }}"
+
+    - name: Verify containerd is running
+      ansible.builtin.command: systemctl is-active containerd
+      register: containerd_status
+      changed_when: false
+
+    - name: Display containerd status
+      ansible.builtin.debug:
+        msg: "containerd status: {{ containerd_status.stdout }}"
+
+  handlers:
+    - name: Restart containerd
+      ansible.builtin.service:
+        name: containerd
+        state: restarted

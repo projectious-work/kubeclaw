@@ -188,3 +188,19 @@ variable "ssh_key_prefix" {
   type        = string
   default     = ""
 }
+
+# -----------------------------------------------------------------------------
+# Kubernetes Prerequisites (kubeadm, kubelet, containerd)
+# -----------------------------------------------------------------------------
+
+variable "enable_k8s_prereqs" {
+  description = "Install Kubernetes prerequisites (containerd, kubelet, kubeadm, kubectl) via cloud-init."
+  type        = bool
+  default     = true
+}
+
+variable "kubernetes_version" {
+  description = "Kubernetes minor version for the pkgs.k8s.io apt source (e.g., '1.32')."
+  type        = string
+  default     = "1.32"
+}

@@ -131,7 +131,7 @@ sudo cloudflared service install <TOKEN>
 tofu apply
 ```
 
-Infrastructure is ready. Continue with [Kubernetes Deployment with K3s](#kubernetes-deployment-with-k3s) to set up the cluster.
+Infrastructure is ready. Continue with [Kubernetes Deployment with kubeadm](#kubernetes-deployment-with-kubeadm) to set up the cluster.
 
 ---
 
@@ -562,6 +562,8 @@ runcmd:
 | `enable_nat64` | Enable NAT64/DNS64 for IPv4 reachability | `true` |
 | `dns64_resolvers` | DNS64 resolver addresses (nat64.net) | `["2a01:4f8:c2c:123f::1", ...]` |
 | `ssh_key_prefix` | Prefix for SSH key filenames (defaults to `cluster_name`) | `""` |
+| `enable_k8s_prereqs` | Install Kubernetes prerequisites (containerd, kubeadm, kubelet, kubectl) via cloud-init | `true` |
+| `kubernetes_version` | Kubernetes minor version for the pkgs.k8s.io apt source | `"1.32"` |
 
 ---
 
@@ -581,8 +583,8 @@ hetzner-k8s-cluster/
 │   └── Dockerfile                   # Debian Trixie with tofu, ansible, cloudflared, jq
 ├── cloud-init/
 │   ├── admin-node.yaml.tpl         # Admin node (temporary jump host with public IPv6)
-│   ├── control-node.yaml.tpl       # Control node (cloudflared on master, UFW, fail2ban)
-│   └── worker-node.yaml.tpl        # Worker node (isolated, outbound DNS/HTTP/S only)
+│   ├── control-node.yaml.tpl       # Control node (cloudflared on master, UFW, fail2ban, k8s prereqs)
+│   └── worker-node.yaml.tpl        # Worker node (isolated, outbound DNS/HTTP/S only, k8s prereqs)
 ├── scripts/
 │   ├── setup-ssh.sh                # Export SSH keys from tofu state, generate ~/.ssh/config
 │   ├── ssh-agent-setup.sh          # Fix SSH permissions, start ssh-agent, load keys
@@ -593,23 +595,24 @@ hetzner-k8s-cluster/
 │   └── playbooks/
 │       ├── update-system.yml        # System updates with optional reboot
 │       ├── security-hardening.yml   # Unattended upgrades, fail2ban, sysctl hardening
-│       └── configure-nat64.yml      # NAT64/DNS64 for IPv4 reachability on running nodes
+│       ├── configure-nat64.yml      # NAT64/DNS64 for IPv4 reachability on running nodes
+│       └── prepare-k8s-nodes.yml   # Kubernetes prerequisites (containerd, kubeadm) on running nodes
 └── doc/
     ├── manual/
     │   └── README.md                # Step-by-step manual setup guide
-    └── k3s/
-        └── README.md                # K3s deployment example (OpenClaw)
+    └── kubeadm/
+        └── README.md                # kubeadm deployment example (OpenClaw)
 ```
 
 ---
 
-## Kubernetes Deployment with K3s
+## Kubernetes Deployment with kubeadm
 
-After provisioning the infrastructure with OpenTofu and configuring SSH access, deploy a lightweight Kubernetes cluster using [K3s](https://k3s.io/) with [Cilium](https://cilium.io/) as the CNI.
+After provisioning the infrastructure with OpenTofu and configuring SSH access, deploy a standard Kubernetes cluster using [kubeadm](https://kubernetes.io/docs/reference/setup-tools/kubeadm/) with [Cilium](https://cilium.io/) as the CNI.
 
-### Why K3s + Cilium?
+### Why kubeadm + Cilium?
 
-- **K3s**: Lightweight, single-binary Kubernetes distribution ideal for small clusters. Includes built-in containerd, CoreDNS, and metrics-server.
+- **kubeadm**: The official Kubernetes bootstrapper. Produces a standard, upstream cluster — exactly what the CKA exam expects. Full control over every component (etcd, kube-apiserver, kube-scheduler, kube-controller-manager).
 - **Cilium**: eBPF-based CNI providing advanced network policies with FQDN-based egress filtering — critical for restricting outbound traffic per namespace.
 
 ### Cost estimate (example: 2-node cluster)
@@ -625,44 +628,96 @@ After provisioning the infrastructure with OpenTofu and configuring SSH access, 
 
 Costs vary with server types and volume count. See [Hetzner Cloud pricing](https://www.hetzner.com/cloud/).
 
-### Step 1: Install K3s Server (master control node)
+### Step 1: Initialize the Control Plane
 
-SSH into the master control node (`10.0.0.2`) and install K3s without Flannel (Cilium replaces it):
+SSH into the master control node (`10.0.0.2`). Prerequisites (containerd, kubeadm, kubelet, kubectl) are already installed via cloud-init when `enable_k8s_prereqs = true` (default).
+
+#### 1.1 Verify prerequisites
 
 ```bash
-# Install K3s server with Cilium-compatible flags
-curl -sfL https://get.k3s.io | sh -s - server \
-  --disable traefik \
-  --disable servicelb \
-  --flannel-backend=none \
-  --disable-network-policy \
-  --node-ip 10.0.0.2 \
-  --advertise-address 10.0.0.2 \
-  --tls-san 10.0.0.2
+# Kernel modules loaded
+lsmod | grep -E 'overlay|br_netfilter'
 
-# Save the join token (needed for agents)
-cat /var/lib/rancher/k3s/server/node-token
+# Sysctl parameters
+sysctl net.bridge.bridge-nf-call-iptables net.bridge.bridge-nf-call-ip6tables net.ipv4.ip_forward
 
-# Verify K3s is running
-kubectl get nodes
+# containerd running
+systemctl status containerd
+
+# kubeadm available
+kubeadm version
+```
+
+#### 1.2 Initialize with kubeadm
+
+```bash
+sudo kubeadm init \
+  --apiserver-advertise-address=10.0.0.2 \
+  --pod-network-cidr=10.244.0.0/16 \
+  --skip-phases=addon/kube-proxy
 ```
 
 Flags explained:
-- `--disable traefik` / `--disable servicelb`: We manage ingress separately
-- `--flannel-backend=none` / `--disable-network-policy`: Cilium handles both CNI and network policies
-- `--node-ip` / `--advertise-address`: Bind to the private network IP
+- `--apiserver-advertise-address=10.0.0.2` — Bind the API server to the private network IP
+- `--pod-network-cidr=10.244.0.0/16` — Pod CIDR for Cilium
+- `--skip-phases=addon/kube-proxy` — Cilium replaces kube-proxy with eBPF datapath
 
-### Step 2: Install K3s Agents (replica/worker nodes)
+> **CKA note:** The CKA exam typically uses kube-proxy. This cluster skips it because Cilium provides a more efficient replacement. On the exam, omit `--skip-phases=addon/kube-proxy`.
 
-On each additional node (replicas at `10.0.0.3+`, workers after), join the cluster:
+**What `kubeadm init` does behind the scenes:**
+1. Generates PKI certificates (CA, API server, kubelet, etc.) in `/etc/kubernetes/pki/`
+2. Writes static pod manifests for etcd, kube-apiserver, kube-controller-manager, kube-scheduler in `/etc/kubernetes/manifests/`
+3. Bootstraps etcd and starts the API server
+4. Configures RBAC and creates bootstrap tokens
+5. Generates `admin.conf` kubeconfig for cluster administration
+
+#### 1.3 Set up kubeconfig
 
 ```bash
-curl -sfL https://get.k3s.io | K3S_URL=https://10.0.0.2:6443 \
-  K3S_TOKEN=<TOKEN> sh -s - agent \
-  --node-ip <NODE_PRIVATE_IP>
+mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
 ```
 
-Replace `<TOKEN>` with the token from Step 1 and `<NODE_PRIVATE_IP>` with the node's private network IP.
+#### 1.4 Save join command
+
+```bash
+# Print the join command (token valid for 24h)
+kubeadm token create --print-join-command
+```
+
+Save this output — you'll need it for worker nodes.
+
+#### 1.5 Verify
+
+```bash
+# Node will be NotReady until CNI (Cilium) is installed
+kubectl get nodes
+
+# Core system pods should be Running (except coredns — needs CNI)
+kubectl get pods -n kube-system
+```
+
+### Step 2: Join Worker Nodes
+
+SSH into each worker node and run the join command from Step 1.4:
+
+```bash
+sudo kubeadm join 10.0.0.2:6443 --token <TOKEN> \
+  --discovery-token-ca-cert-hash sha256:<HASH>
+```
+
+> **CKA explainer — TLS bootstrap:** The worker uses the bootstrap token to authenticate with the API server, then requests a kubelet client certificate. The API server validates the token, signs the certificate, and the kubelet starts using it for all subsequent communication. This is the TLS bootstrap process.
+
+**For HA control plane (replica control nodes):**
+
+```bash
+sudo kubeadm join 10.0.0.2:6443 --token <TOKEN> \
+  --discovery-token-ca-cert-hash sha256:<HASH> \
+  --control-plane --certificate-key <CERT_KEY>
+```
+
+Generate the certificate key on the master: `sudo kubeadm init phase upload-certs --upload-certs`
 
 ### Step 3: Install Cilium CNI
 
@@ -675,11 +730,11 @@ CLI_ARCH=amd64
 curl -L --fail --remote-name-all \
   https://github.com/cilium/cilium-cli/releases/download/${CILIUM_CLI_VERSION}/cilium-linux-${CLI_ARCH}.tar.gz
 tar xzvf cilium-linux-${CLI_ARCH}.tar.gz
-mv cilium /usr/local/bin/
+sudo mv cilium /usr/local/bin/
 rm cilium-linux-${CLI_ARCH}.tar.gz
 
-# Install Cilium into the cluster
-cilium install --version 1.16.5
+# Install Cilium (with kube-proxy replacement since we skipped it)
+cilium install --version 1.16.5 --set kubeProxyReplacement=true
 
 # Wait for Cilium to be ready
 cilium status --wait
@@ -700,7 +755,7 @@ The Hetzner CSI driver enables persistent storage via Hetzner Block Volumes.
 
 #### 4.1 Create a dedicated API token
 
-In the Hetzner Cloud Console: **Security** → **API Tokens** → **Generate API Token** (Read & Write). Name it `k3s-csi`.
+In the Hetzner Cloud Console: **Security** → **API Tokens** → **Generate API Token** (Read & Write). Name it `k8s-csi`.
 
 #### 4.2 Deploy the CSI driver
 
@@ -714,8 +769,6 @@ kubectl create secret generic hcloud \
 kubectl apply -f https://raw.githubusercontent.com/hetznercloud/csi-driver/main/deploy/kubernetes/hcloud-csi.yml
 
 # Set hcloud-volumes as default storage class
-kubectl patch storageclass local-path \
-  -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"false"}}}'
 kubectl patch storageclass hcloud-volumes \
   -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
 
@@ -934,13 +987,61 @@ ssh control-node sudo systemctl disable cloudflared
 
 ---
 
-## K3s Cluster Maintenance
+## Maintenance — Upgrade Kubernetes with kubeadm
 
-### Upgrade K3s
+Kubernetes upgrades follow a strict order: **control plane first, then workers**. This is the standard CKA upgrade workflow.
+
+### Upgrade control plane
 
 ```bash
-# On each node (server first, then agents)
-curl -sfL https://get.k3s.io | sh -
+# 1. Unhold packages
+sudo apt-mark unhold kubeadm
+
+# 2. Upgrade kubeadm
+sudo apt-get update && sudo apt-get install -y kubeadm=1.33.*-*
+
+# 3. Check available upgrade
+sudo kubeadm upgrade plan
+
+# 4. Apply the upgrade
+sudo kubeadm upgrade apply v1.33.0
+
+# 5. Drain the control node (if running workloads)
+kubectl drain $(hostname) --ignore-daemonsets --delete-emptydir-data
+
+# 6. Upgrade kubelet and kubectl
+sudo apt-mark unhold kubelet kubectl
+sudo apt-get install -y kubelet=1.33.*-* kubectl=1.33.*-*
+sudo apt-mark hold kubelet kubeadm kubectl
+sudo systemctl daemon-reload
+sudo systemctl restart kubelet
+
+# 7. Uncordon the node
+kubectl uncordon $(hostname)
+```
+
+### Upgrade worker nodes
+
+On each worker node:
+
+```bash
+# 1. From the control plane: drain the worker
+kubectl drain <worker-name> --ignore-daemonsets --delete-emptydir-data
+
+# 2. On the worker: upgrade packages
+sudo apt-mark unhold kubeadm kubelet kubectl
+sudo apt-get update && sudo apt-get install -y kubeadm=1.33.*-* kubelet=1.33.*-* kubectl=1.33.*-*
+sudo apt-mark hold kubeadm kubelet kubectl
+
+# 3. Upgrade node config
+sudo kubeadm upgrade node
+
+# 4. Restart kubelet
+sudo systemctl daemon-reload
+sudo systemctl restart kubelet
+
+# 5. From the control plane: uncordon the worker
+kubectl uncordon <worker-name>
 ```
 
 ### Backup PVC data
@@ -1011,7 +1112,7 @@ kubectl rollout restart deployment/my-app -n apps-restricted
 
 ## Example Application Deployment
 
-For a complete example of deploying an application (OpenClaw) on this cluster — including application-specific Cilium egress rules, StatefulSet with persistent storage, and Cloudflare Tunnel routing — see [`doc/k3s/README.md`](doc/k3s/README.md).
+For a complete example of deploying an application (OpenClaw) on this cluster — including application-specific Cilium egress rules, StatefulSet with persistent storage, and Cloudflare Tunnel routing — see [`doc/kubeadm/README.md`](doc/kubeadm/README.md).
 
 ---
 
@@ -1050,14 +1151,17 @@ With auto-generated keys:
    tofu import hcloud_server.master_control_node <server-id>
    ```
 
-### K3s nodes not joining
+### Worker nodes not joining
 
 ```bash
-# On the agent node, check K3s service logs
-journalctl -u k3s-agent -f
+# On the worker node, check kubelet logs
+journalctl -xeu kubelet
 
-# Verify the server is reachable from the agent
-curl -k https://10.0.0.2:6443
+# Common issues:
+# - Swap not disabled: swapoff -a
+# - containerd not running: systemctl status containerd
+# - Port 6443 not reachable: curl -k https://10.0.0.2:6443
+# - Token expired (24h default): kubeadm token create --print-join-command
 ```
 
 ### Cilium pods not ready

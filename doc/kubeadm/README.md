@@ -10,11 +10,11 @@ A step-by-step guide to deploying OpenClaw as an isolated AI problem-solving ass
 │                        (10.0.0.0/24)                                │
 │                                                                     │
 │  ┌────────────────────────────────────────────────────────────┐    │
-│  │                  K3s Cluster + Cilium                       │    │
+│  │            Kubernetes Cluster (kubeadm) + Cilium             │    │
 │  │                                                             │    │
 │  │   ┌─────────────────┐       ┌─────────────────┐            │    │
-│  │   │     Node 1      │       │     Node 2      │            │    │
-│  │   │  (K3s Server)   │◀─────▶│  (K3s Agent)    │            │    │
+│  │   │   control-01    │       │   worker-01     │            │    │
+│  │   │  (control plane)│◀─────▶│  (worker node)  │            │    │
 │  │   │   10.0.0.2      │       │   10.0.0.3      │            │    │
 │  │   │                 │       │                 │            │    │
 │  │   │  ┌───────────┐  │       │  ┌───────────┐  │            │    │
@@ -73,7 +73,7 @@ A step-by-step guide to deploying OpenClaw as an isolated AI problem-solving ass
 
 1. Go to **Hetzner Cloud Console** → **Networks** → **Create Network**
 2. Configure:
-   - **Name:** `k3s-internal`
+   - **Name:** `k8s-internal`
    - **IP Range:** `10.0.0.0/24`
    - **Subnet:** `10.0.0.0/24`
    - **Zone:** `eu-central` (or your preferred region)
@@ -81,7 +81,7 @@ A step-by-step guide to deploying OpenClaw as an isolated AI problem-solving ass
 ### 1.2 Create Firewall
 
 1. Go to **Firewalls** → **Create Firewall**
-2. **Name:** `k3s-lockdown`
+2. **Name:** `k8s-lockdown`
 3. **Inbound Rules:** None (drop all by default)
 4. **Outbound Rules:**
 
@@ -93,7 +93,7 @@ A step-by-step guide to deploying OpenClaw as an isolated AI problem-solving ass
 ### 1.3 Create API Token for CSI Driver
 
 1. Go to **Security** → **API Tokens** → **Generate API Token**
-2. **Name:** `k3s-csi`
+2. **Name:** `k8s-csi`
 3. **Permissions:** Read & Write
 4. **Save the token securely** — you'll need it later
 
@@ -103,60 +103,50 @@ Create two CX22 instances with these settings:
 
 | Setting | Node 1 | Node 2 |
 |---------|--------|--------|
-| **Name** | `k3s-server` | `k3s-agent` |
-| **Image** | Ubuntu 24.04 | Ubuntu 24.04 |
+| **Name** | `k8s-control-01` | `k8s-worker-01` |
+| **Image** | Debian 13 | Debian 13 |
 | **Type** | CX22 | CX22 |
 | **Location** | Falkenstein (fsn1) | Falkenstein (fsn1) |
 | **Networking** | IPv6 only ✓ | IPv6 only ✓ |
-| **Private Network** | `k3s-internal` | `k3s-internal` |
-| **Firewall** | `k3s-lockdown` | `k3s-lockdown` |
+| **Private Network** | `k8s-internal` | `k8s-internal` |
+| **Firewall** | `k8s-lockdown` | `k8s-lockdown` |
 | **SSH Key** | Add your key | Add your key |
 
 After creation, note the private IPs (should be `10.0.0.2` and `10.0.0.3`).
 
 ---
 
-## Step 2: Install K3s with Cilium
+## Step 2: Initialize Kubernetes with kubeadm
 
-Access both servers via **Hetzner Cloud Console** → **Server** → **Console (>_)**.
+Prerequisites (containerd, kubeadm, kubelet, kubectl) are installed automatically via cloud-init when `enable_k8s_prereqs = true`. For details on the full kubeadm workflow, see the [main README](../../README.md#kubernetes-deployment-with-kubeadm).
 
-### 2.1 Node 1 (K3s Server)
-
-```bash
-# Update system
-apt update && apt upgrade -y
-
-# Install K3s server without Flannel (we'll use Cilium)
-curl -sfL https://get.k3s.io | sh -s - server \
-  --disable traefik \
-  --disable servicelb \
-  --flannel-backend=none \
-  --disable-network-policy \
-  --node-ip 10.0.0.2 \
-  --advertise-address 10.0.0.2 \
-  --tls-san 10.0.0.2
-
-# Get the token for joining agents
-cat /var/lib/rancher/k3s/server/node-token
-# Save this token!
-
-# Verify K3s is running
-kubectl get nodes
-```
-
-### 2.2 Node 2 (K3s Agent)
+### 2.1 Initialize the Control Plane (control-01)
 
 ```bash
-# Update system
-apt update && apt upgrade -y
+# Initialize the control plane
+sudo kubeadm init \
+  --apiserver-advertise-address=10.0.0.2 \
+  --pod-network-cidr=10.244.0.0/16 \
+  --skip-phases=addon/kube-proxy
 
-# Install K3s agent (replace <TOKEN> with token from Node 1)
-curl -sfL https://get.k3s.io | K3S_URL=https://10.0.0.2:6443 \
-  K3S_TOKEN=<TOKEN> sh -s - agent \
-  --node-ip 10.0.0.3
+# Set up kubeconfig
+mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+# Save the join command for worker nodes
+kubeadm token create --print-join-command
 ```
 
-### 2.3 Install Cilium (on Node 1)
+### 2.2 Join Worker Nodes (worker-01)
+
+```bash
+# Run the join command from Step 2.1
+sudo kubeadm join 10.0.0.2:6443 --token <TOKEN> \
+  --discovery-token-ca-cert-hash sha256:<HASH>
+```
+
+### 2.3 Install Cilium (on control-01)
 
 ```bash
 # Install Cilium CLI
@@ -165,11 +155,11 @@ CLI_ARCH=amd64
 curl -L --fail --remote-name-all \
   https://github.com/cilium/cilium-cli/releases/download/${CILIUM_CLI_VERSION}/cilium-linux-${CLI_ARCH}.tar.gz
 tar xzvf cilium-linux-${CLI_ARCH}.tar.gz
-mv cilium /usr/local/bin/
+sudo mv cilium /usr/local/bin/
 rm cilium-linux-${CLI_ARCH}.tar.gz
 
-# Install Cilium
-cilium install --version 1.16.5
+# Install Cilium (with kube-proxy replacement since we skipped it)
+cilium install --version 1.16.5 --set kubeProxyReplacement=true
 
 # Wait for Cilium to be ready
 cilium status --wait
@@ -186,9 +176,9 @@ kubectl get nodes
 
 Expected output:
 ```
-NAME         STATUS   ROLES                  AGE   VERSION
-k3s-server   Ready    control-plane,master   5m    v1.31.x+k3s1
-k3s-agent    Ready    <none>                 3m    v1.31.x+k3s1
+NAME                    STATUS   ROLES           AGE   VERSION
+k8s-cluster-control-01  Ready    control-plane   5m    v1.32.x
+k8s-cluster-worker-01   Ready    <none>          3m    v1.32.x
 ```
 
 ---
@@ -220,9 +210,9 @@ kubectl get pods -n kube-system | grep hcloud
 # Check storage classes
 kubectl get storageclass
 
-# Set hcloud-volumes as default
-kubectl patch storageclass local-path -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"false"}}}'
-kubectl patch storageclass hcloud-volumes -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+# Set hcloud-volumes as default storage class
+kubectl patch storageclass hcloud-volumes \
+  -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
 ```
 
 ---
@@ -359,7 +349,7 @@ kubectl apply -f system-unrestricted-egress.yaml
 
 1. Go to **Cloudflare Zero Trust** → **Networks** → **Tunnels**
 2. Click **Create a tunnel**
-3. **Name:** `k3s-cluster`
+3. **Name:** `k8s-cluster`
 4. Copy the **tunnel token**
 
 ### 5.2 Deploy cloudflared
@@ -713,12 +703,9 @@ kubectl rollout restart statefulset/openclaw -n apps-restricted
 # Volumes → Select volume → Create Snapshot
 ```
 
-### Upgrade K3s
+### Upgrade Kubernetes
 
-```bash
-# On each node
-curl -sfL https://get.k3s.io | sh -
-```
+See the [main README](../../README.md#maintenance--upgrade-kubernetes-with-kubeadm) for the full CKA-style kubeadm upgrade workflow.
 
 ---
 
@@ -764,6 +751,6 @@ This guide is provided as-is. Use at your own risk.
 
 - [Hetzner Cloud](https://www.hetzner.com/cloud)
 - [Cloudflare Zero Trust](https://www.cloudflare.com/zero-trust/)
-- [K3s](https://k3s.io/)
+- [kubeadm](https://kubernetes.io/docs/reference/setup-tools/kubeadm/)
 - [Cilium](https://cilium.io/)
 - [OpenClaw](https://github.com/openclaw/openclaw)

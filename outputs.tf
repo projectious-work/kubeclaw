@@ -262,6 +262,15 @@ output "nat64_enabled" {
 }
 
 # -----------------------------------------------------------------------------
+# Kubernetes Prerequisites
+# -----------------------------------------------------------------------------
+
+output "k8s_prereqs_enabled" {
+  description = "Whether Kubernetes prerequisites are installed via cloud-init"
+  value       = var.enable_k8s_prereqs
+}
+
+# -----------------------------------------------------------------------------
 # Admin Node Enabled (used by scripts)
 # -----------------------------------------------------------------------------
 

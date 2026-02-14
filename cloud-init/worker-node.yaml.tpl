@@ -22,6 +22,11 @@ keyboard:
 packages:
   - fail2ban
   - ufw
+%{ if enable_k8s_prereqs ~}
+  - apt-transport-https
+  - ca-certificates
+  - gnupg
+%{ endif ~}
 
 package_update: true
 package_upgrade: true
@@ -83,6 +88,19 @@ write_files:
       fi
 %{ endif ~}
 
+%{ if enable_k8s_prereqs ~}
+  - path: /etc/modules-load.d/k8s.conf
+    content: |
+      overlay
+      br_netfilter
+
+  - path: /etc/sysctl.d/k8s.conf
+    content: |
+      net.bridge.bridge-nf-call-iptables  = 1
+      net.bridge.bridge-nf-call-ip6tables = 1
+      net.ipv4.ip_forward                 = 1
+%{ endif ~}
+
 runcmd:
   - systemctl enable fail2ban
   - systemctl start fail2ban
@@ -106,6 +124,30 @@ runcmd:
   - ufw allow out to any port 80 proto tcp comment 'HTTP Updates'
   - ufw allow out to any port 443 proto tcp comment 'HTTPS Updates'
   - ufw --force enable
+%{ if enable_k8s_prereqs ~}
+  # Disable swap (required by kubeadm)
+  - swapoff -a
+  - sed -i '/\sswap\s/d' /etc/fstab
+  # Load kernel modules
+  - modprobe overlay
+  - modprobe br_netfilter
+  - sysctl --system
+  # Install and configure containerd
+  - apt-get update && apt-get install -y containerd
+  - mkdir -p /etc/containerd
+  - containerd config default > /etc/containerd/config.toml
+  - sed -i 's/SystemdCgroup = false/SystemdCgroup = true/' /etc/containerd/config.toml
+  - systemctl restart containerd
+  - systemctl enable containerd
+  # Add Kubernetes apt repository
+  - mkdir -p --mode=0755 /usr/share/keyrings
+  - curl -fsSL https://pkgs.k8s.io/core:/stable:/v${kubernetes_version}/deb/Release.key | gpg --dearmor -o /usr/share/keyrings/kubernetes-apt-keyring.gpg
+  - echo 'deb [signed-by=/usr/share/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v${kubernetes_version}/deb/ /' | tee /etc/apt/sources.list.d/kubernetes.list
+  # Install kubeadm, kubelet, kubectl
+  - apt-get update && apt-get install -y kubelet kubeadm kubectl
+  - apt-mark hold kubelet kubeadm kubectl
+  - systemctl enable kubelet
+%{ endif ~}
 %{ if enable_nat64 ~}
   - systemctl restart systemd-resolved
   - |

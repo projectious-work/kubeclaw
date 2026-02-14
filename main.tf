@@ -197,8 +197,9 @@ resource "hcloud_firewall" "worker_node" {
     source_ips  = [var.network_ip_range]
   }
 
-  # NOTE: When deploying K3s, add these rules:
+  # NOTE: When deploying Kubernetes, add these rules:
   # - Kubelet API (port 10250) from var.network_ip_range
+  # - etcd (ports 2379-2380) on control node firewall from var.network_ip_range
   # - NodePort Services (ports 30000-32767) from var.network_ip_range
   # - K8s API (port 6443) on control node firewall from var.network_ip_range
 }
@@ -223,13 +224,15 @@ resource "hcloud_server" "master_control_node" {
   }
 
   user_data = templatefile("${path.module}/cloud-init/control-node.yaml.tpl", {
-    ssh_public_key  = local.control_node_public_key
-    root_password   = var.root_password
-    admin_user      = var.admin_user
-    keyboard_layout = var.keyboard_layout
-    is_master       = true
-    enable_nat64    = var.enable_nat64
-    dns64_resolvers = var.dns64_resolvers
+    ssh_public_key     = local.control_node_public_key
+    root_password      = var.root_password
+    admin_user         = var.admin_user
+    keyboard_layout    = var.keyboard_layout
+    is_master          = true
+    enable_nat64       = var.enable_nat64
+    dns64_resolvers    = var.dns64_resolvers
+    enable_k8s_prereqs = var.enable_k8s_prereqs
+    kubernetes_version = var.kubernetes_version
   })
 
   labels = {
@@ -273,13 +276,15 @@ resource "hcloud_server" "control_node_replica" {
   }
 
   user_data = templatefile("${path.module}/cloud-init/control-node.yaml.tpl", {
-    ssh_public_key  = local.control_node_public_key
-    root_password   = var.root_password
-    admin_user      = var.admin_user
-    keyboard_layout = var.keyboard_layout
-    is_master       = false
-    enable_nat64    = var.enable_nat64
-    dns64_resolvers = var.dns64_resolvers
+    ssh_public_key     = local.control_node_public_key
+    root_password      = var.root_password
+    admin_user         = var.admin_user
+    keyboard_layout    = var.keyboard_layout
+    is_master          = false
+    enable_nat64       = var.enable_nat64
+    dns64_resolvers    = var.dns64_resolvers
+    enable_k8s_prereqs = var.enable_k8s_prereqs
+    kubernetes_version = var.kubernetes_version
   })
 
   labels = {
@@ -325,12 +330,14 @@ resource "hcloud_server" "worker_node" {
   }
 
   user_data = templatefile("${path.module}/cloud-init/worker-node.yaml.tpl", {
-    ssh_public_key  = local.worker_node_public_key
-    root_password   = var.root_password
-    admin_user      = var.admin_user
-    keyboard_layout = var.keyboard_layout
-    enable_nat64    = var.enable_nat64
-    dns64_resolvers = var.dns64_resolvers
+    ssh_public_key     = local.worker_node_public_key
+    root_password      = var.root_password
+    admin_user         = var.admin_user
+    keyboard_layout    = var.keyboard_layout
+    enable_nat64       = var.enable_nat64
+    dns64_resolvers    = var.dns64_resolvers
+    enable_k8s_prereqs = var.enable_k8s_prereqs
+    kubernetes_version = var.kubernetes_version
   })
 
   labels = {

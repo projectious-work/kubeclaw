@@ -28,6 +28,7 @@ packages:
   - apt-transport-https
   - ca-certificates
   - gnupg
+  - procps
 %{ endif ~}
 
 package_update: true

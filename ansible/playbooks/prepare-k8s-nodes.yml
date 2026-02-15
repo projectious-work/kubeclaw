@@ -118,6 +118,7 @@
           - apt-transport-https
           - ca-certificates
           - gnupg
+          - procps
         state: present
 
     - name: Create keyrings directory

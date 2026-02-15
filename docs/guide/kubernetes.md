@@ -13,18 +13,54 @@ SSH into the master control node (`10.0.0.2`). Prerequisites (containerd, kubead
 
 ### 1.1 Verify prerequisites
 
+**Kernel modules**
+
 ```bash
-# Kernel modules loaded
 lsmod | grep -E 'overlay|br_netfilter'
+```
 
-# Sysctl parameters
-sysctl net.bridge.bridge-nf-call-iptables net.bridge.bridge-nf-call-ip6tables net.ipv4.ip_forward
+Expected output (both modules present):
 
-# containerd running
-systemctl status containerd
+```
+br_netfilter           ...
+overlay                ...
+```
 
-# kubeadm available
-kubeadm version
+**Sysctl parameters**
+
+```bash
+sudo sysctl net.bridge.bridge-nf-call-iptables net.bridge.bridge-nf-call-ip6tables net.ipv4.ip_forward
+```
+
+Expected output:
+
+```
+net.bridge.bridge-nf-call-iptables = 1
+net.bridge.bridge-nf-call-ip6tables = 1
+net.ipv4.ip_forward = 1
+```
+
+**containerd**
+
+```bash
+systemctl is-active containerd
+```
+
+Expected output: `active`
+
+**kubeadm**
+
+```bash
+kubeadm version -o yaml
+```
+
+Expected output (version numbers will vary):
+
+```yaml
+clientVersion:
+  gitVersion: v1.32.x
+  platform: linux/amd64
+  ...
 ```
 
 ### 1.2 Initialize with kubeadm

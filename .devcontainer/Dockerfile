@@ -14,6 +14,9 @@ RUN apt-get update && apt-get install -y \
     gnupg \
     jq \
     ansible \
+    python3 \
+    python3-pip \
+    python3-venv \
     && rm -rf /var/lib/apt/lists/*
 
 RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen
@@ -21,6 +24,9 @@ RUN locale-gen
 ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8
+
+# Install MkDocs with Material theme
+RUN pip install --break-system-packages mkdocs-material
 
 # Install code assistants
 ENV PATH="/root/.local/bin:${PATH}"

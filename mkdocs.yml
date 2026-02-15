@@ -1,0 +1,72 @@
+site_name: KubClaw
+site_description: Secure IPv6-only Kubernetes cluster on Hetzner Cloud with Cloudflare Tunnel
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: cyan
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: cyan
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - navigation.footer
+    - content.code.copy
+    - content.code.annotate
+    - search.suggest
+    - search.highlight
+    - toc.follow
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.snippets
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Requirements: getting-started/requirements.md
+    - Quick Start: getting-started/quick-start.md
+    - Dev Container: getting-started/dev-container.md
+  - Guide:
+    - Architecture: guide/architecture.md
+    - Infrastructure (OpenTofu): guide/infrastructure.md
+    - Manual Setup (Alternative): guide/manual-setup.md
+    - NAT64/DNS64: guide/nat64.md
+    - Server Management (Ansible): guide/ansible.md
+    - Kubernetes (kubeadm): guide/kubernetes.md
+    - OpenClaw Deployment: guide/openclaw.md
+  - Reference:
+    - Variables: reference/variables.md
+    - Outputs: reference/outputs.md
+    - Cloud-Init Templates: reference/cloud-init.md
+    - Ansible Playbooks: reference/playbooks.md
+    - Project Structure: reference/project-structure.md
+    - Cost Estimate: reference/cost-estimate.md
+  - Operations:
+    - Troubleshooting: operations/troubleshooting.md
+    - Security: operations/security.md
+    - Password Management: operations/password-management.md
+  - Contributing:
+    - How to Contribute: contributing/index.md
+    - Code of Conduct: contributing/code-of-conduct.md
+    - Development Setup: contributing/development.md
+  - Roadmap: roadmap.md

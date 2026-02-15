@@ -20,6 +20,7 @@
         "--mount",
         "type=bind,source=${localWorkspaceFolder}/.root/.ssh,target=/root/.ssh"
     ],
+    "forwardPorts": [8000],
     "remoteEnv": {
         "TZ": "Europe/Berlin"
     }

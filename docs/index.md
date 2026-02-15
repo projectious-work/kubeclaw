@@ -1,6 +1,10 @@
 # KubClaw
 
-Secure IPv6-only Kubernetes cluster on Hetzner Cloud with Cloudflare Tunnel.
+**Secure IPv6-only Kubernetes cluster on Hetzner Cloud with Cloudflare Tunnel**
+
+KubClaw automates the creation of a production-ready Kubernetes cluster using OpenTofu for infrastructure provisioning, Ansible for server management, and kubeadm for cluster bootstrapping. The cluster is designed with security-first principles: no public IPv4 addresses, SSH access exclusively through Cloudflare Tunnel, and Cilium-based network policies for fine-grained egress control.
+
+## Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -39,64 +43,24 @@ Secure IPv6-only Kubernetes cluster on Hetzner Cloud with Cloudflare Tunnel.
 
 ## Features
 
-- **IPv6-only** -- no public IPv4, NAT64/DNS64 for transparent IPv4 reachability
-- **Cloudflare Tunnel** -- secure SSH access without open ports
-- **Scalable** -- master + replica control nodes, 0-n worker nodes, mixed server types
-- **kubeadm** -- standard Kubernetes bootstrapper (CKA-ready)
-- **Cilium CNI** -- eBPF-based networking with FQDN egress filtering
-- **Ansible-ready** -- playbooks for updates, hardening, NAT64, K8s prerequisites
-- **Dev Container** -- all tools pre-installed, nothing needed on the host
+- **IPv6-only** -- No public IPv4 addresses required, NAT64/DNS64 for transparent IPv4 reachability
+- **Cloudflare Tunnel** -- Secure SSH access without open ports
+- **Admin Node** -- Temporary jump host with public IPv6 for initial setup (removable)
+- **Scalable** -- Master + replica control nodes, 0 to n worker nodes, mixed server types
+- **Custom SSH keys** -- Optionally use your own keys, with configurable key file prefix
+- **Ansible-ready** -- Playbooks for updates, hardening, NAT64 configuration, and Kubernetes prerequisites
+- **Debian 13** -- Stable, Kubernetes-compatible OS
+- **kubeadm** -- Standard Kubernetes bootstrapper for CKA certification preparation
+- **Cilium CNI** -- eBPF-based networking with FQDN-based egress filtering
 
-## Requirements
+## Getting Started
 
-- Hetzner Cloud account with API token
-- Cloudflare account with a domain
-- Docker + IDE with Dev Container support
+Ready to deploy? Start with the [Requirements](getting-started/requirements.md) page, then follow the [Quick Start](getting-started/quick-start.md) guide.
 
-## Quick Start
+## How It Works
 
-```bash
-git clone <repo-url> && cd hetzner-k8s-cluster
-mkdir -p .root/.ssh && chmod 700 .root/.ssh
-# Open in Dev Container (VS Code: "Reopen in Container")
-
-# Inside the Dev Container:
-cp terraform.tfvars.example terraform.tfvars  # edit with your token
-tofu init && tofu apply
-./scripts/setup-ssh.sh
-ssh control-node
-sudo cloudflared service install <TOKEN>
-```
-
-See the [full Quick Start guide](docs/getting-started/quick-start.md) for detailed steps.
-
-## Documentation
-
-Full documentation is available via MkDocs:
-
-```bash
-mkdocs serve   # http://localhost:8000
-```
-
-Key sections:
-
-- [Getting Started](docs/getting-started/quick-start.md) -- requirements, quick start, dev container
-- [Architecture](docs/guide/architecture.md) -- network design, node roles, security model
-- [Infrastructure](docs/guide/infrastructure.md) -- SSH keys, scaling, OpenTofu workflow
-- [Kubernetes](docs/guide/kubernetes.md) -- kubeadm deployment with Cilium and Hetzner CSI
-- [Reference](docs/reference/variables.md) -- all variables, outputs, templates, playbooks
-- [Operations](docs/operations/troubleshooting.md) -- troubleshooting, security, credentials
-
-## Project Status
-
-**Working**: Infrastructure provisioning (OpenTofu), SSH config generation, NAT64/DNS64, Ansible playbooks (updates, hardening, K8s prerequisites), kubeadm deployment guide, Dev Container, MkDocs documentation.
-
-**Next**: Deploy infrastructure, set up Cloudflare Tunnel, deploy Kubernetes cluster, add K8s firewall rules.
-
-## Contributing
-
-Contributions are welcome. See the [contributing guide](docs/contributing/index.md) for details.
-
-## License
-
-MIT -- see [LICENSE](LICENSE).
+1. **OpenTofu** provisions the infrastructure: private network, firewalls, SSH keys, and servers on Hetzner Cloud
+2. **Cloud-init** configures each server on first boot: SSH hardening, fail2ban, UFW, NAT64/DNS64, and Kubernetes prerequisites
+3. **Ansible** handles ongoing server management: updates, security hardening, and configuration changes
+4. **kubeadm** bootstraps a standard Kubernetes cluster with Cilium CNI and Hetzner CSI for persistent storage
+5. **Cloudflare Tunnel** provides secure, outbound-only SSH access without exposing any ports

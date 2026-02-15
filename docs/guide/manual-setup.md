@@ -1,6 +1,7 @@
-# Hetzner Cloud IPv6-Only Cluster with Cloudflare Tunnel
+# Manual Setup (Alternative)
 
-A step-by-step guide for building a secure, IPv6-only server cluster on Hetzner Cloud with SSH access via Cloudflare Tunnel.
+!!! note "This guide is an alternative to OpenTofu"
+    This guide shows the manual steps that OpenTofu automates. Use this if you want to understand what happens behind the scenes, or if you prefer to set up infrastructure manually via the Hetzner Cloud Console. For the automated approach, see [Infrastructure (OpenTofu)](infrastructure.md).
 
 ## Overview
 
@@ -21,7 +22,7 @@ This setup creates a secure server infrastructure with the following properties:
                               ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │                    Cloudflare Tunnel                             │
-│                 console.bernhard-gerlach.org                     │
+│                 console.yourdomain.org                           │
 └─────────────────────────────────────────────────────────────────┘
                               │
                               ▼
@@ -51,9 +52,9 @@ This setup creates a secure server infrastructure with the following properties:
 
 1. Open the [Hetzner Cloud Console](https://console.hetzner.cloud)
 2. Select your project
-3. Go to **Networks** → **Create Network**
+3. Go to **Networks** > **Create Network**
 4. Configure:
-   - **Name**: `k3s-network` (or any name)
+   - **Name**: `k8s-network` (or any name)
    - **IP Range**: `10.0.0.0/8`
 5. Click **Create Network**
 
@@ -63,18 +64,18 @@ Create a separate SSH key for each server:
 
 ```bash
 # Control Node Key
-ssh-keygen -t ed25519 -f ~/.ssh/2026-02-05_k3s-cluster_control-node_key -C "control-node"
+ssh-keygen -t ed25519 -f ~/.ssh/k8s-cluster_control-node_key -C "control-node"
 
 # Worker Node Key
-ssh-keygen -t ed25519 -f ~/.ssh/2026-02-05_k3s-cluster_worker-node_key -C "worker-node"
+ssh-keygen -t ed25519 -f ~/.ssh/k8s-cluster_worker-node_key -C "worker-node"
 
 # Temporary Admin Node Key (for initial setup)
-ssh-keygen -t ed25519 -f ~/.ssh/2026-02-05_k3s-cluster_admin-node_key -C "admin-node"
+ssh-keygen -t ed25519 -f ~/.ssh/k8s-cluster_admin-node_key -C "admin-node"
 ```
 
 ## Step 3: Create temporary Admin Node
 
-Since the Hetzner Web Console (VNC) has issues with copy/paste (especially on Firefox/macOS), we create a temporary admin server with a public IPv6 address for the initial setup.
+Since the Hetzner Web Console (VNC) has issues with copy/paste (especially on Firefox/macOS), create a temporary admin server with a public IPv6 address for the initial setup.
 
 ### Cloud-Init for Admin Node
 
@@ -135,13 +136,13 @@ runcmd:
 
 ### Create the server
 
-1. **Servers** → **Add Server**
+1. **Servers** > **Add Server**
 2. **Location**: Any (e.g. Falkenstein)
-3. **Image**: Ubuntu 24.04
+3. **Image**: Debian 13
 4. **Type**: CX22 (smallest size is sufficient)
 5. **Networking**:
    - Public IPv6 enabled
-   - Private Network: add `k3s-network`
+   - Private Network: add your network
 6. **SSH Keys**: Add Admin Node key
 7. **Cloud config**: Paste the YAML above
 8. **Create & Buy now**
@@ -157,10 +158,11 @@ The IPv6 address is displayed in Hetzner only as a subnet (e.g. `2a01:4f8:1c19:c
 ### Test connection
 
 ```bash
-ssh -i ~/.ssh/2026-02-05_k3s-cluster_admin-node_key kubernetes-admin@2a01:4f8:1c19:c886::1
+ssh -i ~/.ssh/k8s-cluster_admin-node_key kubernetes-admin@2a01:4f8:1c19:c886::1
 ```
 
-> **Note**: Your local machine needs IPv6 connectivity. Test with `ping6 google.com`.
+!!! note
+    Your local machine needs IPv6 connectivity. Test with `ping6 google.com`.
 
 ## Step 4: Create Control Node (with Cloudflare Tunnel)
 
@@ -240,18 +242,19 @@ runcmd:
 
 ### Create the server
 
-1. **Servers** → **Add Server**
-2. **Image**: Ubuntu 24.04
+1. **Servers** > **Add Server**
+2. **Image**: Debian 13
 3. **Type**: As needed (e.g. CX22 or larger)
 4. **Networking**:
    - **Public IPv4**: Disabled
    - **Public IPv6**: Enabled (temporarily, for installation)
-   - **Private Network**: add `k3s-network`
+   - **Private Network**: add your network
 5. **SSH Keys**: Add Control Node key
 6. **Cloud config**: Paste the YAML above
 7. **Create & Buy now**
 
-> **Important**: The `edge-ip-version: "6"` setting is essential! Cloudflared attempts IPv4 connections to Cloudflare's edge servers by default. Since the server is IPv6-only, this must be set to `"6"` (as a string!).
+!!! important
+    The `edge-ip-version: "6"` setting is essential! Cloudflared attempts IPv4 connections to Cloudflare's edge servers by default. Since the server is IPv6-only, this must be set to `"6"` (as a string!).
 
 ## Step 5: Create Worker Node (isolated)
 
@@ -325,13 +328,13 @@ runcmd:
 
 ### Create the server
 
-1. **Servers** → **Add Server**
-2. **Image**: Ubuntu 24.04
+1. **Servers** > **Add Server**
+2. **Image**: Debian 13
 3. **Type**: As needed
 4. **Networking**:
    - **Public IPv4**: Disabled
    - **Public IPv6**: Enabled (temporarily)
-   - **Private Network**: add `k3s-network`
+   - **Private Network**: add your network
 5. **SSH Keys**: Add Worker Node key
 6. **Cloud config**: Paste the YAML above
 7. **Create & Buy now**
@@ -341,7 +344,7 @@ runcmd:
 ### 6.1 Create tunnel in Cloudflare
 
 1. Open the [Cloudflare Zero Trust Dashboard](https://one.dash.cloudflare.com)
-2. Go to **Networks** → **Tunnels**
+2. Go to **Networks** > **Tunnels**
 3. Click **Create a tunnel**
 4. Select **Cloudflared** as connector
 5. **Tunnel name**: e.g. `hetzner-cluster`
@@ -374,26 +377,26 @@ The tunnel should now appear as "Connected" in Cloudflare.
 
 ### 6.3 Configure SSH access in Cloudflare
 
-1. In Cloudflare Zero Trust Dashboard → **Networks** → **Tunnels**
-2. Click on your tunnel → **Configure**
+1. In Cloudflare Zero Trust Dashboard > **Networks** > **Tunnels**
+2. Click on your tunnel > **Configure**
 3. Go to the **Public Hostname** tab
 4. Click **Add a public hostname**
 5. Configure:
    - **Subdomain**: `console`
-   - **Domain**: `bernhard-gerlach.org` (your domain)
+   - **Domain**: `yourdomain.org` (your domain)
    - **Type**: `SSH`
    - **URL**: `localhost:22`
 6. **Save hostname**
 
 ### 6.4 Create Access Application
 
-1. Go to **Access** → **Applications**
+1. Go to **Access** > **Applications**
 2. Click **Add an application**
 3. Select **Self-hosted**
 4. Configure:
    - **Application name**: `SSH Console`
    - **Session Duration**: As needed (e.g. 24 hours)
-   - **Application domain**: `console.bernhard-gerlach.org`
+   - **Application domain**: `console.yourdomain.org`
 5. Click **Next**
 6. Create a **Policy**:
    - **Policy name**: e.g. `Allow Admin`
@@ -416,10 +419,10 @@ Add the following to `~/.ssh/config`:
 ```
 # Temporary Admin Node (can be removed after setup)
 Host admin-node
-    HostName 2a01:4f8:1c19:c886::1
+    HostName 2a01:4f8:xxxx:xxxx::1
     User kubernetes-admin
     Port 22
-    IdentityFile ~/.ssh/2026-02-05_k3s-cluster_admin-node_key
+    IdentityFile ~/.ssh/k8s-cluster_admin-node_key
     PreferredAuthentications publickey
 
 # Control Node via Admin Node (temporary)
@@ -427,7 +430,7 @@ Host control-node-01
     HostName 10.0.0.2
     User kubernetes-admin
     Port 22
-    IdentityFile ~/.ssh/2026-02-05_k3s-cluster_control-node_key
+    IdentityFile ~/.ssh/k8s-cluster_control-node_key
     PreferredAuthentications publickey
     ProxyJump admin-node
 
@@ -436,25 +439,26 @@ Host worker-node-01
     HostName 10.0.0.3
     User kubernetes-admin
     Port 22
-    IdentityFile ~/.ssh/2026-02-05_k3s-cluster_worker-node_key
+    IdentityFile ~/.ssh/k8s-cluster_worker-node_key
     PreferredAuthentications publickey
     ProxyJump admin-node
 
 # Control Node via Cloudflare Tunnel (permanent)
-Host console.bernhard-gerlach.org
-    HostName console.bernhard-gerlach.org
+Host console.yourdomain.org
+    HostName console.yourdomain.org
     User kubernetes-admin
-    IdentityFile ~/.ssh/2026-02-05_k3s-cluster_control-node_key
+    IdentityFile ~/.ssh/k8s-cluster_control-node_key
     ProxyCommand cloudflared access ssh --hostname %h
 ```
 
-> **Note**: `cloudflared` must be installed and available in `$PATH` (`brew install cloudflared` on macOS, included in the Dev Container)
+!!! note
+    `cloudflared` must be installed and available in `$PATH` (`brew install cloudflared` on macOS, included in the Dev Container)
 
 ### Test connection
 
 ```bash
 # Via Cloudflare Tunnel
-ssh console.bernhard-gerlach.org
+ssh console.yourdomain.org
 ```
 
 On first connection, a browser window will open for Cloudflare Access authentication.
@@ -463,8 +467,8 @@ On first connection, a browser window will open for Cloudflare Access authentica
 
 After the Cloudflare Tunnel is working:
 
-1. **Hetzner Console** → **Servers** → **control-node-01**
-2. **Networking** → **Public Network** → **Disable**
+1. **Hetzner Console** > **Servers** > **control-node-01**
+2. **Networking** > **Public Network** > **Disable**
 3. Repeat for **worker-node-01**
 
 The servers are now only reachable via the Cloudflare Tunnel (Control Node) or the internal network (Worker Node).
@@ -473,10 +477,10 @@ The servers are now only reachable via the Cloudflare Tunnel (Control Node) or t
 
 The temporary Admin Node is no longer needed:
 
-1. **Hetzner Console** → **Servers** → **admin-node**
-2. **Delete** → Confirm
+1. **Hetzner Console** > **Servers** > **admin-node**
+2. **Delete** > Confirm
 
-Also remove the corresponding entries from `~/.ssh/config` and update the `ProxyJump` entries:
+Also remove the corresponding entries from `~/.ssh/config` and update the ProxyJump entries:
 
 ```
 # Worker Node via Cloudflare Tunnel (through Control Node)
@@ -484,9 +488,9 @@ Host worker-node-01
     HostName 10.0.0.3
     User kubernetes-admin
     Port 22
-    IdentityFile ~/.ssh/2026-02-05_k3s-cluster_worker-node_key
+    IdentityFile ~/.ssh/k8s-cluster_worker-node_key
     PreferredAuthentications publickey
-    ProxyJump console.bernhard-gerlach.org
+    ProxyJump console.yourdomain.org
 ```
 
 ## Final SSH configuration
@@ -496,9 +500,9 @@ After completing all steps:
 ```
 # Control Node via Cloudflare Tunnel
 Host control-node-01
-    HostName console.bernhard-gerlach.org
+    HostName console.yourdomain.org
     User kubernetes-admin
-    IdentityFile ~/.ssh/2026-02-05_k3s-cluster_control-node_key
+    IdentityFile ~/.ssh/k8s-cluster_control-node_key
     ProxyCommand cloudflared access ssh --hostname %h
 
 # Worker Node via Cloudflare Tunnel → Control Node → Internal network
@@ -506,73 +510,13 @@ Host worker-node-01
     HostName 10.0.0.3
     User kubernetes-admin
     Port 22
-    IdentityFile ~/.ssh/2026-02-05_k3s-cluster_worker-node_key
+    IdentityFile ~/.ssh/k8s-cluster_worker-node_key
     PreferredAuthentications publickey
     ProxyJump control-node-01
 ```
-
-## Troubleshooting
-
-### Cloudflared fails to start (IPv6-only server)
-
-**Problem**: `network is unreachable` error in the log
-
-**Solution**: Make sure `/etc/cloudflared/config.yml` contains:
-
-```yaml
-edge-ip-version: "6"
-```
-
-> **Important**: The value must be a string in quotes!
-
-### Hetzner Web Console does not work
-
-**Problem**: Copy/paste does not work, TTY hangs
-
-**Solution**:
-- Use the "Send Clipboard" button above the console
-- Use a simple password without special characters for the initial login
-- Alternative: Create a temporary Admin Node with a public IP
-
-### SSH connection via tunnel fails
-
-**Problem**: No response when attempting SSH
-
-**Checklist**:
-1. Is `cloudflared` installed locally? (`brew install cloudflared`)
-2. Is the ProxyCommand path correct? (`which cloudflared`)
-3. Is the Cloudflare Access Application configured?
-4. Is the tunnel shown as "Connected" in Cloudflare?
-
-### Cloud-Init password does not work
-
-**Problem**: Login with the set password fails
-
-**Cause**: The old `chpasswd.list` syntax is deprecated.
-
-**Solution**: Use the new syntax:
-
-```yaml
-users:
-  - name: root
-    plain_text_passwd: 'your-password'
-    lock_passwd: false
-```
-
-## Security notes
-
-- **Passwords in cloud-init** are visible in logs. Change them after first login.
-- **SSH keys** should be different for each server.
-- **Root password** is only intended for emergency access via Web Console.
-- **UFW rules** for HTTP/HTTPS on the worker node can be removed after setup:
-  ```bash
-  sudo ufw delete allow out to any port 80 proto tcp
-  sudo ufw delete allow out to any port 443 proto tcp
-  ```
 
 ## References
 
 - [Hetzner Cloud-Init Tutorial](https://community.hetzner.com/tutorials/basic-cloud-config/de)
 - [Cloudflare Tunnel Documentation](https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/)
 - [Cloudflare SSH Access](https://developers.cloudflare.com/cloudflare-one/applications/non-http/ssh/)
-- [Video Tutorial: Cloudflare Tunnel SSH Setup](https://www.youtube.com/watch?v=YVJYFpUSCH4) (from 22:20)

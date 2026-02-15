@@ -22,7 +22,7 @@ All configurable inputs for the OpenTofu infrastructure. Set these in `terraform
 | `network_ip_range` | `string` | `"10.0.0.0/8"` | IP range for the private network |
 | `subnet_ip_range` | `string` | `"10.0.0.0/24"` | IP range for the subnet |
 | `network_zone` | `string` | `"eu-central"` | Network zone (`eu-central`, `us-east`, `us-west`) |
-| `enable_public_ipv6` | `bool` | `true` | Enable public IPv6 for servers (needed for initial setup, can be disabled later) |
+| `enable_public_ipv6` | `bool` | `true` | Enable public IPv6 for replica control nodes and worker nodes. The master always has public IPv6 (required for cloudflared). Setting to `false` air-gaps replicas and workers. |
 
 ## Server Configuration
 
@@ -80,6 +80,7 @@ If left empty, new keys will be auto-generated and stored in the OpenTofu state.
 | Variable | Type | Default | Description |
 |----------|------|---------|-------------|
 | `cloudflare_tunnel_domain` | `string` | `""` | Domain for Cloudflare Tunnel SSH access (e.g., `console.example.org`) |
+| `cloudflare_tunnel_token` | `string` | `""` | Cloudflare Tunnel token for automatic setup on master node (sensitive). Leave empty for manual setup. |
 
 ## Admin Node
 

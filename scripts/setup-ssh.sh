@@ -49,6 +49,7 @@ fi
 CLUSTER_NAME=$($TF_CMD output -raw cluster_name 2>/dev/null || echo "k8s-cluster")
 SSH_KEY_PREFIX=$($TF_CMD output -raw ssh_key_prefix 2>/dev/null || echo "$CLUSTER_NAME")
 ADMIN_NODE_ENABLED=$($TF_CMD output -raw enable_admin_node 2>/dev/null || echo "false")
+TUNNEL_CONFIGURED=$($TF_CMD output -raw cloudflare_tunnel_configured 2>/dev/null || echo "false")
 
 echo -e "${YELLOW}Cluster Name:   $CLUSTER_NAME${NC}"
 echo -e "${YELLOW}SSH Key Prefix: $SSH_KEY_PREFIX${NC}"
@@ -143,10 +144,14 @@ fi
 echo -e "╠══════════════════════════════════════════════════════════════╣"
 echo -e "║ NEXT STEPS:                                                   ║"
 echo -e "║ 1. SSH to control node using the command above              ║"
+if [[ "$TUNNEL_CONFIGURED" == "true" ]]; then
+echo -e "║ 2. Cloudflare Tunnel: auto-configured via tunnel token      ║"
+else
 echo -e "║ 2. Install Cloudflare Tunnel:                                ║"
 echo -e "║    sudo cloudflared service install <YOUR_TOKEN>             ║"
+echo -e "║    Hint: set cloudflare_tunnel_token in terraform.tfvars    ║"
+fi
 echo -e "║ 3. Set enable_admin_node = false in terraform.tfvars        ║"
-echo -e "║    Set enable_public_ipv6 = false in terraform.tfvars       ║"
 echo -e "║ 4. Run: $TF_CMD apply                                        ║"
 echo -e "╚══════════════════════════════════════════════════════════════╝"
 echo ""

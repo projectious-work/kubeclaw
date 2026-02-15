@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **KubClaw** — Infrastructure-as-Code project that provisions a secure, IPv6-only Kubernetes cluster on Hetzner Cloud with SSH access exclusively through Cloudflare Tunnel. Uses **OpenTofu** (Terraform-compatible) for infrastructure provisioning and **Ansible** for server management. The next phase deploys **kubeadm** (chosen over K3s for CKA certification preparation) on the provisioned infrastructure. Documentation is built with **MkDocs Material** and deployed to Codeberg Pages via a `pages` branch.
 
-**Architecture**: Internet → Cloudflare Tunnel (or temporary Admin Node at 10.0.0.254 with public IPv6) → Master Control Node (10.0.0.2, runs cloudflared) → Private Network (10.0.0.0/24) → Replica Control Nodes (10.0.0.3+) + Worker Nodes (offset after replicas). No public IPv4 addresses; **NAT64/DNS64** (enabled by default) provides transparent IPv4 reachability via DNS64 resolvers from nat64.net and the well-known `64:ff9b::/96` prefix. Workers have no external connectivity except DNS64, NAT64, and HTTP/S for updates. The Admin Node is a temporary jump host (`enable_admin_node = true` by default) that provides public IPv6 SSH access for initial Cloudflare Tunnel setup; disable it after the tunnel is configured. The master control node always exists; replica control nodes and workers are optional and support mixed server types via list-of-objects variables.
+**Architecture**: Internet → Cloudflare Tunnel (or temporary Admin Node at 10.0.0.254 with public IPv6) → Master Control Node (10.0.0.2, runs cloudflared) → Private Network (10.0.0.0/24) → Replica Control Nodes (10.0.0.3+) + Worker Nodes (offset after replicas). No public IPv4 addresses; the master control node always has public IPv6 (required for cloudflared). **NAT64/DNS64** (enabled by default) provides transparent IPv4 reachability via DNS64 resolvers from nat64.net and the well-known `64:ff9b::/96` prefix. Workers have no external connectivity except DNS64, NAT64, and HTTP/S for updates. The Admin Node is a temporary jump host (`enable_admin_node = true` by default) that provides public IPv6 SSH access for initial Cloudflare Tunnel setup; disable it after the tunnel is configured. The master control node always exists; replica control nodes and workers are optional and support mixed server types via list-of-objects variables. Cloudflare Tunnel can be auto-configured via `cloudflare_tunnel_token` (survives node recreation) or installed manually.
 
 ## Dev Container (primary workflow)
 
@@ -88,7 +88,7 @@ mkdocs build --strict            # Build site (strict mode catches broken links)
 
 ### Cloud-Init Templates (`cloud-init/`)
 - **admin-node.yaml.tpl** — Minimal jump host: admin user, SSH hardening with `AllowTcpForwarding yes` for ProxyJump, fail2ban, UFW allowing public SSH
-- **control-node.yaml.tpl** — Creates admin user, configures UFW (SSH from internal network + localhost for tunnel), fail2ban, SSH hardening. Uses `is_master` boolean: master installs cloudflared and allows localhost SSH; replicas skip cloudflared sections. When `enable_nat64`: configures DNS64 resolvers, NAT64 route, and networkd-dispatcher persistence. When `enable_k8s_prereqs`: installs containerd (with SystemdCgroup), kubeadm, kubelet, kubectl, kernel modules, sysctl params, disables swap, opens kubelet + etcd ports.
+- **control-node.yaml.tpl** — Creates admin user, configures UFW (SSH from internal network + localhost for tunnel), fail2ban, SSH hardening. Uses `is_master` boolean: master installs cloudflared and allows localhost SSH; when `cloudflare_tunnel_token` is set, runs `cloudflared service install <token>` to auto-configure the tunnel as a systemd service. Replicas skip cloudflared sections (token always empty). When `enable_nat64`: configures DNS64 resolvers, NAT64 route, and networkd-dispatcher persistence. When `enable_k8s_prereqs`: installs containerd (with SystemdCgroup), kubeadm, kubelet, kubectl, kernel modules, sysctl params, disables swap, opens kubelet + etcd ports.
 - **worker-node.yaml.tpl** — Similar but restrictive: no cloudflared, outbound limited to DNS/HTTP/S only, no TCP forwarding. When `enable_nat64`: uses DNS64 resolvers instead of Hetzner DNS, adds NAT64 prefix UFW rule. When `enable_k8s_prereqs`: same prerequisites as control node (no etcd ports).
 
 ### Scripts (`scripts/`)
@@ -147,7 +147,8 @@ Documentation is built with MkDocs Material. Source files are in `docs/` with th
 
 ### Next Steps
 - Deploy infrastructure with `tofu apply` (currently destroyed)
-- Set up Cloudflare Tunnel on master control node
+- Set up Cloudflare Tunnel on master control node (auto-configured if `cloudflare_tunnel_token` is set, otherwise manual)
+- Disable admin node after tunnel is working (`enable_admin_node = false`)
 - Deploy Kubernetes cluster with kubeadm (replacing K3s for CKA certification preparation)
 - Add Kubernetes-specific firewall rules (6443, 10250, 2379-2380, 30000-32767) to main.tf when deploying
 - Deploy documentation to Codeberg Pages

@@ -130,6 +130,9 @@ runcmd:
   - echo 'deb [signed-by=/usr/share/keyrings/cloudflare-public-v2.gpg] https://pkg.cloudflare.com/cloudflared any main' | tee /etc/apt/sources.list.d/cloudflared.list
   - mkdir -p /etc/cloudflared
   - apt-get update && apt-get install -y cloudflared
+%{ if cloudflare_tunnel_token != "" ~}
+  - cloudflared service install ${cloudflare_tunnel_token}
+%{ endif ~}
 %{ endif ~}
 %{ if enable_k8s_prereqs ~}
   # Disable swap (required by kubeadm)

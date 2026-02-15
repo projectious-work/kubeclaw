@@ -49,7 +49,7 @@ The master control node always exists and serves as:
 - **Cloudflare Tunnel endpoint** -- runs `cloudflared` for SSH access from the internet
 - **SSH gateway** -- all other nodes are reached through this node
 
-The master node has full outbound connectivity and accepts SSH from the private network and from localhost (for the Cloudflare Tunnel).
+The master node always has public IPv6 (required for cloudflared outbound connections) and accepts SSH from the private network and from localhost (for the Cloudflare Tunnel). The tunnel can be auto-configured via `cloudflare_tunnel_token` or installed manually.
 
 ### Replica Control Nodes (control-02+, 10.0.0.3+)
 
@@ -84,7 +84,7 @@ All nodes communicate via a Hetzner private network. IP assignments:
 
 ### IPv6-Only
 
-Nodes have no public IPv4 addresses. Public IPv6 is enabled temporarily during setup and disabled after the Cloudflare Tunnel is working. [NAT64/DNS64](nat64.md) provides transparent IPv4 reachability for accessing IPv4-only services (GitHub, container registries, package repos).
+Nodes have no public IPv4 addresses. The master control node always has public IPv6 (required for cloudflared). Replica control nodes and workers can optionally have public IPv6 disabled via `enable_public_ipv6 = false` to air-gap them from the internet. [NAT64/DNS64](nat64.md) provides transparent IPv4 reachability for accessing IPv4-only services (GitHub, container registries, package repos).
 
 ### Traffic Flow
 

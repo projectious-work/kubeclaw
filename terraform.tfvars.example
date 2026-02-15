@@ -39,8 +39,10 @@ network_ip_range = "10.0.0.0/8"
 subnet_ip_range  = "10.0.0.0/24"
 network_zone     = "eu-central"
 
-# IPv6 enabled for initial setup
-# Set to 'false' after successful Cloudflare Tunnel installation
+# Public IPv6 for replica control nodes and worker nodes.
+# The master control node always has public IPv6 (required for cloudflared).
+# Setting to false air-gaps replicas and workers from the internet.
+# To secure the cluster after tunnel setup, disable the admin node instead.
 enable_public_ipv6 = true
 
 # -----------------------------------------------------------------------------
@@ -101,3 +103,9 @@ enable_k8s_prereqs = true
 # Domain for SSH access via Cloudflare Tunnel
 # e.g. "console.example.org"
 cloudflare_tunnel_domain = "console.bernhard-gerlach.org"
+
+# Tunnel token for automatic cloudflared configuration on the master node.
+# When set, cloudflared auto-starts on boot and survives node recreation.
+# Get it from: Cloudflare Zero Trust > Networks > Tunnels > Create/Configure
+# Leave commented out for manual setup: sudo cloudflared service install <TOKEN>
+# cloudflare_tunnel_token = "eyJ..."

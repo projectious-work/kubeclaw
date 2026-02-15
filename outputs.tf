@@ -280,6 +280,15 @@ output "enable_admin_node" {
 }
 
 # -----------------------------------------------------------------------------
+# Cloudflare Tunnel Configuration (used by scripts)
+# -----------------------------------------------------------------------------
+
+output "cloudflare_tunnel_configured" {
+  description = "Whether cloudflared is auto-configured via tunnel token"
+  value       = nonsensitive(local.cloudflare_tunnel_configured)
+}
+
+# -----------------------------------------------------------------------------
 # Next Steps
 # -----------------------------------------------------------------------------
 
@@ -317,13 +326,18 @@ output "next_steps" {
     ║     ssh ${var.cloudflare_tunnel_domain != "" ? var.cloudflare_tunnel_domain : "control-node"}
     %{endif}
     ║                                                                               ║
+    %{if nonsensitive(local.cloudflare_tunnel_configured)}
+    ║  4. Cloudflare Tunnel: Auto-configured via tunnel token                       ║
+    %{else}
     ║  4. Install Cloudflare Tunnel on Master Control Node:                         ║
     ║     sudo cloudflared service install <YOUR_TUNNEL_TOKEN>                      ║
+    ║     Hint: Set cloudflare_tunnel_token in terraform.tfvars to automate this    ║
+    %{endif}
     ║                                                                               ║
-    ║  5. Disable Admin Node and Public IPs (after Tunnel works):                   ║
+    ║  5. Disable Admin Node (after Tunnel works):                                  ║
     ║     Set enable_admin_node = false in terraform.tfvars                         ║
-    ║     Set enable_public_ipv6 = false in terraform.tfvars                        ║
     ║     Run: tofu apply                                                           ║
+    ║     Note: Master control node always keeps public IPv6 for cloudflared        ║
     ║                                                                               ║
     ╚══════════════════════════════════════════════════════════════════════════════╝
 

@@ -43,6 +43,7 @@ Cloud-init templates are located in `cloud-init/` and rendered by OpenTofu via `
 | `dns64_resolvers` | `var.dns64_resolvers` |
 | `enable_k8s_prereqs` | `var.enable_k8s_prereqs` |
 | `kubernetes_version` | `var.kubernetes_version` |
+| `cloudflare_tunnel_token` | `var.cloudflare_tunnel_token` (master), `""` (replicas) |
 
 **What it configures**:
 
@@ -53,8 +54,8 @@ Cloud-init templates are located in `cloud-init/` and rendered by OpenTofu via `
 
 **Conditional sections**:
 
-- **`is_master = true`**: Installs `cloudflared`, allows SSH from localhost, creates `/etc/cloudflared/config.yml` with `edge-ip-version: "6"`
-- **`is_master = false`**: Skips cloudflared installation
+- **`is_master = true`**: Installs `cloudflared`, allows SSH from localhost, creates `/etc/cloudflared/config.yml` with `edge-ip-version: "6"`. When `cloudflare_tunnel_token` is set, runs `cloudflared service install <token>` to auto-configure the tunnel as a systemd service.
+- **`is_master = false`**: Skips cloudflared installation (token always empty for replicas)
 - **`enable_nat64 = true`**: Configures DNS64 resolvers in systemd-resolved, adds NAT64 route (`64:ff9b::/96`), creates networkd-dispatcher persistence script
 - **`enable_k8s_prereqs = true`**: Installs containerd (with SystemdCgroup), kubeadm, kubelet, kubectl, loads kernel modules (`overlay`, `br_netfilter`), sets sysctl params, disables swap, opens kubelet (10250) + etcd (2379-2380) ports
 
@@ -95,15 +96,16 @@ Templates are rendered in `main.tf` via `templatefile()`:
 
 ```hcl
 user_data = templatefile("${path.module}/cloud-init/control-node.yaml.tpl", {
-  ssh_public_key     = local.control_node_public_key
-  root_password      = var.root_password
-  admin_user         = var.admin_user
-  keyboard_layout    = var.keyboard_layout
-  is_master          = true
-  enable_nat64       = var.enable_nat64
-  dns64_resolvers    = var.dns64_resolvers
-  enable_k8s_prereqs = var.enable_k8s_prereqs
-  kubernetes_version = var.kubernetes_version
+  ssh_public_key         = local.control_node_public_key
+  root_password          = var.root_password
+  admin_user             = var.admin_user
+  keyboard_layout        = var.keyboard_layout
+  is_master              = true
+  enable_nat64           = var.enable_nat64
+  dns64_resolvers        = var.dns64_resolvers
+  enable_k8s_prereqs     = var.enable_k8s_prereqs
+  kubernetes_version     = var.kubernetes_version
+  cloudflare_tunnel_token = var.cloudflare_tunnel_token
 })
 ```
 

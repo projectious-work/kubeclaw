@@ -51,7 +51,7 @@ variable "network_zone" {
 }
 
 variable "enable_public_ipv6" {
-  description = "Enable public IPv6 for servers (needed for initial setup, can be disabled later)"
+  description = "Enable public IPv6 for replica control nodes and worker nodes. The master control node always has public IPv6 (required for cloudflared). Setting to false air-gaps replicas and workers from the internet."
   type        = bool
   default     = true
 }
@@ -138,6 +138,13 @@ variable "worker_node_public_key" {
 variable "cloudflare_tunnel_domain" {
   description = "Domain for Cloudflare Tunnel SSH access (e.g., console.example.org)"
   type        = string
+  default     = ""
+}
+
+variable "cloudflare_tunnel_token" {
+  description = "Cloudflare Tunnel token for automatic setup on master node. Leave empty for manual setup."
+  type        = string
+  sensitive   = true
   default     = ""
 }
 

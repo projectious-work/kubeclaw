@@ -69,6 +69,9 @@ locals {
 
   # SSH key file prefix (defaults to cluster_name)
   ssh_key_prefix = var.ssh_key_prefix != "" ? var.ssh_key_prefix : var.cluster_name
+
+  # Whether cloudflared tunnel is auto-configured (nonsensitive boolean derived from sensitive token)
+  cloudflare_tunnel_configured = var.cloudflare_tunnel_token != ""
 }
 
 # =============================================================================
@@ -220,19 +223,20 @@ resource "hcloud_server" "master_control_node" {
 
   public_net {
     ipv4_enabled = false
-    ipv6_enabled = var.enable_public_ipv6
+    ipv6_enabled = true  # Always enabled - master needs internet for cloudflared
   }
 
   user_data = templatefile("${path.module}/cloud-init/control-node.yaml.tpl", {
-    ssh_public_key     = local.control_node_public_key
-    root_password      = var.root_password
-    admin_user         = var.admin_user
-    keyboard_layout    = var.keyboard_layout
-    is_master          = true
-    enable_nat64       = var.enable_nat64
-    dns64_resolvers    = var.dns64_resolvers
-    enable_k8s_prereqs = var.enable_k8s_prereqs
-    kubernetes_version = var.kubernetes_version
+    ssh_public_key         = local.control_node_public_key
+    root_password          = var.root_password
+    admin_user             = var.admin_user
+    keyboard_layout        = var.keyboard_layout
+    is_master              = true
+    enable_nat64           = var.enable_nat64
+    dns64_resolvers        = var.dns64_resolvers
+    enable_k8s_prereqs     = var.enable_k8s_prereqs
+    kubernetes_version     = var.kubernetes_version
+    cloudflare_tunnel_token = var.cloudflare_tunnel_token
   })
 
   labels = {
@@ -276,15 +280,16 @@ resource "hcloud_server" "control_node_replica" {
   }
 
   user_data = templatefile("${path.module}/cloud-init/control-node.yaml.tpl", {
-    ssh_public_key     = local.control_node_public_key
-    root_password      = var.root_password
-    admin_user         = var.admin_user
-    keyboard_layout    = var.keyboard_layout
-    is_master          = false
-    enable_nat64       = var.enable_nat64
-    dns64_resolvers    = var.dns64_resolvers
-    enable_k8s_prereqs = var.enable_k8s_prereqs
-    kubernetes_version = var.kubernetes_version
+    ssh_public_key         = local.control_node_public_key
+    root_password          = var.root_password
+    admin_user             = var.admin_user
+    keyboard_layout        = var.keyboard_layout
+    is_master              = false
+    enable_nat64           = var.enable_nat64
+    dns64_resolvers        = var.dns64_resolvers
+    enable_k8s_prereqs     = var.enable_k8s_prereqs
+    kubernetes_version     = var.kubernetes_version
+    cloudflare_tunnel_token = ""
   })
 
   labels = {

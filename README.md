@@ -62,10 +62,11 @@ mkdir -p .root/.ssh && chmod 700 .root/.ssh
 
 # Inside the Dev Container:
 cp terraform.tfvars.example terraform.tfvars  # edit with your token
+# Optional: set cloudflare_tunnel_token in terraform.tfvars for auto-setup
 tofu init && tofu apply
 ./scripts/setup-ssh.sh
 ssh control-node
-sudo cloudflared service install <TOKEN>
+sudo cloudflared service install <TOKEN>  # skip if token is in tfvars
 ```
 
 See the [full Quick Start guide](docs/getting-started/quick-start.md) for detailed steps.

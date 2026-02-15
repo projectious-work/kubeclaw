@@ -51,27 +51,34 @@ ssh control-node   # Routes via admin node automatically
 
 ## 7. Install Cloudflare Tunnel
 
-On the control node:
+**Option A: Automatic (recommended)** -- Set the tunnel token in `terraform.tfvars` before `tofu apply`:
+
+```hcl
+cloudflare_tunnel_token = "eyJ..."
+```
+
+Get the token from the [Cloudflare Zero Trust Dashboard](https://one.dash.cloudflare.com) under **Networks** > **Tunnels** > **Create/Configure**. The tunnel auto-starts on boot and survives node recreation.
+
+**Option B: Manual** -- SSH to the control node and install manually:
 
 ```bash
 sudo cloudflared service install <YOUR_TUNNEL_TOKEN>
 ```
 
-Get the tunnel token from the [Cloudflare Zero Trust Dashboard](https://one.dash.cloudflare.com) under **Networks** > **Tunnels**.
-
 ## 8. Disable admin node
 
-After the tunnel is working, disable the temporary admin node and public IPv6:
+After the tunnel is working, disable the temporary admin node:
 
 ```hcl
 # terraform.tfvars
-enable_admin_node  = false
-enable_public_ipv6 = false
+enable_admin_node = false
 ```
 
 ```bash
 tofu apply
 ```
+
+The master control node always keeps public IPv6 (required for cloudflared).
 
 ## Next steps
 

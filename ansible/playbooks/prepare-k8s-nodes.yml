@@ -103,6 +103,13 @@
         replace: 'SystemdCgroup = true'
       notify: Restart containerd
 
+    - name: Set sandbox image to pause:3.10 (matches kubeadm expectation)
+      ansible.builtin.replace:
+        path: /etc/containerd/config.toml
+        regexp: 'registry\.k8s\.io/pause:3\.8'
+        replace: 'registry.k8s.io/pause:3.10'
+      notify: Restart containerd
+
     - name: Enable and start containerd
       ansible.builtin.service:
         name: containerd

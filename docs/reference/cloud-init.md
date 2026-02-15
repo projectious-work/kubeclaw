@@ -57,7 +57,7 @@ Cloud-init templates are located in `cloud-init/` and rendered by OpenTofu via `
 - **`is_master = true`**: Installs `cloudflared`, allows SSH from localhost, creates `/etc/cloudflared/config.yml` with `edge-ip-version: "6"`. When `cloudflare_tunnel_token` is set, runs `cloudflared service install <token>` to auto-configure the tunnel as a systemd service.
 - **`is_master = false`**: Skips cloudflared installation (token always empty for replicas)
 - **`enable_nat64 = true`**: Configures DNS64 resolvers in systemd-resolved, adds NAT64 route (`64:ff9b::/96`), creates networkd-dispatcher persistence script
-- **`enable_k8s_prereqs = true`**: Installs containerd (with SystemdCgroup), kubeadm, kubelet, kubectl, loads kernel modules (`overlay`, `br_netfilter`), sets sysctl params, disables swap, opens kubelet (10250) + etcd (2379-2380) ports
+- **`enable_k8s_prereqs = true`**: Installs containerd (with SystemdCgroup, sandbox image updated to `pause:3.10`), kubeadm, kubelet, kubectl, loads kernel modules (`overlay`, `br_netfilter`), sets sysctl params, disables swap, opens kubelet (10250) + etcd (2379-2380) ports
 
 ## worker-node.yaml.tpl
 

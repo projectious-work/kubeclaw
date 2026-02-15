@@ -89,13 +89,13 @@ journalctl -xeu kubelet
 
 ```bash
 # Check Cilium status
-cilium status
+kubectl -n kube-system exec ds/cilium -c cilium-agent -- cilium-dbg status
 
 # Check Cilium pod logs
 kubectl logs -n kube-system -l k8s-app=cilium
 
-# Check Cilium endpoint status
-cilium endpoint list
+# Check Cilium pods
+kubectl get pods -n kube-system -l k8s-app=cilium
 ```
 
 ### Network policy blocking traffic unexpectedly
@@ -107,7 +107,7 @@ kubectl get ciliumnetworkpolicies -n apps-restricted
 # Check if FQDN rules are resolving
 kubectl exec -n kube-system -it \
   $(kubectl get pods -n kube-system -l k8s-app=cilium -o name | head -1) \
-  -- cilium fqdn cache list
+  -c cilium-agent -- cilium-dbg fqdn cache list
 ```
 
 ### CSI volume not attaching

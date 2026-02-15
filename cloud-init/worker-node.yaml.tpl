@@ -138,6 +138,7 @@ runcmd:
   - mkdir -p /etc/containerd
   - containerd config default > /etc/containerd/config.toml
   - sed -i 's/SystemdCgroup = false/SystemdCgroup = true/' /etc/containerd/config.toml
+  - sed -i 's|registry.k8s.io/pause:3\.8|registry.k8s.io/pause:3.10|' /etc/containerd/config.toml
   - systemctl restart containerd
   - systemctl enable containerd
   # Add Kubernetes apt repository

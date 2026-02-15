@@ -9,7 +9,23 @@ After provisioning the infrastructure with OpenTofu and configuring SSH access, 
 
 ## Step 1: Initialize the Control Plane
 
-SSH into the master control node (`10.0.0.2`). Prerequisites (containerd, kubeadm, kubelet, kubectl) are already installed via cloud-init when `enable_k8s_prereqs = true` (default).
+SSH into the master control node. Prerequisites (containerd, kubeadm, kubelet, kubectl) are already installed via cloud-init when `enable_k8s_prereqs = true` (default).
+
+First, determine the master's private IP (default: `10.0.0.2`, depends on `subnet_ip_range`):
+
+```bash
+# From the Dev Container:
+tofu output -raw master_control_node_private_ip
+
+# Or on the master node itself:
+MASTER_IP=$(hostname -I | awk '{print $1}')
+```
+
+The commands below use `$MASTER_IP`. Set it before proceeding:
+
+```bash
+MASTER_IP=$(hostname -I | awk '{print $1}')
+```
 
 ### 1.1 Verify prerequisites
 
@@ -67,19 +83,79 @@ clientVersion:
 
 ```bash
 sudo kubeadm init \
-  --apiserver-advertise-address=10.0.0.2 \
+  --apiserver-advertise-address=$MASTER_IP \
   --pod-network-cidr=10.244.0.0/16 \
   --skip-phases=addon/kube-proxy
 ```
 
 Flags explained:
 
-- `--apiserver-advertise-address=10.0.0.2` -- Bind the API server to the private network IP
+- `--apiserver-advertise-address=$MASTER_IP` -- Bind the API server to the private network IP
 - `--pod-network-cidr=10.244.0.0/16` -- Pod CIDR for Cilium
 - `--skip-phases=addon/kube-proxy` -- Cilium replaces kube-proxy with eBPF datapath
 
 !!! note "CKA note"
     The CKA exam typically uses kube-proxy. This cluster skips it because Cilium provides a more efficient replacement. On the exam, omit `--skip-phases=addon/kube-proxy`.
+
+Expected output (abbreviated, IPs and hashes will differ):
+
+```
+[init] Using Kubernetes version: v1.32.x
+[preflight] Running pre-flight checks
+[preflight] Pulling images required for setting up a Kubernetes cluster
+[certs] Using certificateDir folder "/etc/kubernetes/pki"
+[certs] Generating "ca" certificate and key
+[certs] Generating "apiserver" certificate and key
+[certs] apiserver serving cert is signed for DNS names [...] and IPs [...]
+[certs] Generating "apiserver-kubelet-client" certificate and key
+[certs] Generating "front-proxy-ca" certificate and key
+[certs] Generating "front-proxy-client" certificate and key
+[certs] Generating "etcd/ca" certificate and key
+[certs] Generating "etcd/server" certificate and key
+[certs] Generating "etcd/peer" certificate and key
+[certs] Generating "etcd/healthcheck-client" certificate and key
+[certs] Generating "apiserver-etcd-client" certificate and key
+[certs] Generating "sa" key and public key
+[kubeconfig] Writing "admin.conf" kubeconfig file
+[kubeconfig] Writing "super-admin.conf" kubeconfig file
+[kubeconfig] Writing "kubelet.conf" kubeconfig file
+[kubeconfig] Writing "controller-manager.conf" kubeconfig file
+[kubeconfig] Writing "scheduler.conf" kubeconfig file
+[etcd] Creating static Pod manifest for local etcd in "/etc/kubernetes/manifests"
+[control-plane] Creating static Pod manifest for "kube-apiserver"
+[control-plane] Creating static Pod manifest for "kube-controller-manager"
+[control-plane] Creating static Pod manifest for "kube-scheduler"
+[kubelet-start] Writing kubelet environment file with flags to file "/var/lib/kubelet/kubeadm-flags.env"
+[kubelet-start] Writing kubelet configuration to file "/var/lib/kubelet/config.yaml"
+[kubelet-start] Starting the kubelet
+[wait-control-plane] Waiting for the kubelet to boot up the control plane as static Pods from directory "/etc/kubernetes/manifests"
+[kubelet-check] The kubelet is healthy after 1.xxxs
+[api-check] The API server is healthy after x.xxxs
+[upload-config] Storing the configuration used in ConfigMap "kubeadm-config" in the "kube-system" Namespace
+[kubelet] Creating a ConfigMap "kubelet-config" in namespace kube-system
+[mark-control-plane] Marking the node as control-plane by adding labels and taints
+[bootstrap-token] Configuring bootstrap tokens, cluster-info ConfigMap, RBAC Roles
+[kubelet-finalize] Updating "/etc/kubernetes/kubelet.conf" to point to a rotatable kubelet client certificate and key
+[addons] Applied essential addon: CoreDNS
+
+Your Kubernetes control-plane has initialized successfully!
+
+To start using your cluster, you need to run the following as a regular user:
+
+  mkdir -p $HOME/.kube
+  sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+  sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+Then you can join any number of worker nodes by running the following on each as root:
+
+kubeadm join <MASTER_IP>:6443 --token <TOKEN> \
+        --discovery-token-ca-cert-hash sha256:<HASH>
+```
+
+!!! info "Expected warnings"
+    **"remote version is much newer"** -- This is normal when pinning `kubernetes_version` (e.g., `1.32`). kubeadm detects a newer stable release exists but correctly falls back to the pinned version. No action needed.
+
+    **"sandbox image is inconsistent"** -- The containerd default config ships `pause:3.8` but kubeadm 1.32 expects `pause:3.10`. The cloud-init and Ansible prerequisites already fix this. If you see this warning, update the sandbox image manually: `sudo sed -i 's|registry.k8s.io/pause:3.8|registry.k8s.io/pause:3.10|' /etc/containerd/config.toml && sudo systemctl restart containerd`
 
 **What `kubeadm init` does behind the scenes:**
 
@@ -108,20 +184,45 @@ Save this output -- you'll need it for worker nodes.
 
 ### 1.5 Verify
 
-```bash
-# Node will be NotReady until CNI (Cilium) is installed
-kubectl get nodes
+**Node status**
 
-# Core system pods should be Running (except coredns — needs CNI)
+```bash
+kubectl get nodes
+```
+
+The node shows `NotReady` until the CNI (Cilium) is installed in Step 3:
+
+```
+NAME                      STATUS     ROLES           AGE   VERSION
+<cluster>-control-01      NotReady   control-plane   XXm   v1.32.x
+```
+
+**System pods**
+
+```bash
 kubectl get pods -n kube-system
 ```
 
-## Step 2: Join Worker Nodes
+Core control plane pods should be `Running`. CoreDNS pods remain `Pending` until the CNI is installed:
 
-SSH into each worker node and run the join command from Step 1.4:
+```
+NAME                                          READY   STATUS    RESTARTS   AGE
+coredns-xxxxxxxxxx-xxxxx                      0/1     Pending   0          XXm
+coredns-xxxxxxxxxx-xxxxx                      0/1     Pending   0          XXm
+etcd-<cluster>-control-01                     1/1     Running   0          XXm
+kube-apiserver-<cluster>-control-01           1/1     Running   0          XXm
+kube-controller-manager-<cluster>-control-01  1/1     Running   0          XXm
+kube-scheduler-<cluster>-control-01           1/1     Running   0          XXm
+```
+
+## Step 2: Join Worker Nodes and Further Control Nodes
+
+**Worker Nodes**
+
+SSH into each worker node and run the join command from Step 1.4. The join command already contains the master's IP and port:
 
 ```bash
-sudo kubeadm join 10.0.0.2:6443 --token <TOKEN> \
+sudo kubeadm join <MASTER_IP>:6443 --token <TOKEN> \
   --discovery-token-ca-cert-hash sha256:<HASH>
 ```
 
@@ -131,7 +232,7 @@ sudo kubeadm join 10.0.0.2:6443 --token <TOKEN> \
 **For HA control plane (replica control nodes):**
 
 ```bash
-sudo kubeadm join 10.0.0.2:6443 --token <TOKEN> \
+sudo kubeadm join <MASTER_IP>:6443 --token <TOKEN> \
   --discovery-token-ca-cert-hash sha256:<HASH> \
   --control-plane --certificate-key <CERT_KEY>
 ```
@@ -140,26 +241,44 @@ Generate the certificate key on the master: `sudo kubeadm init phase upload-cert
 
 ## Step 3: Install Cilium CNI
 
-On the master control node:
+### 3.1 Install Helm
+
+On the control node, install Helm via the official install script:
 
 ```bash
-# Install Cilium CLI
-CILIUM_CLI_VERSION=$(curl -s https://raw.githubusercontent.com/cilium/cilium-cli/main/stable.txt)
-CLI_ARCH=amd64
-curl -L --fail --remote-name-all \
-  https://github.com/cilium/cilium-cli/releases/download/${CILIUM_CLI_VERSION}/cilium-linux-${CLI_ARCH}.tar.gz
-tar xzvf cilium-linux-${CLI_ARCH}.tar.gz
-sudo mv cilium /usr/local/bin/
-rm cilium-linux-${CLI_ARCH}.tar.gz
+curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+```
 
-# Install Cilium (with kube-proxy replacement since we skipped it)
-cilium install --version 1.16.5 --set kubeProxyReplacement=true
+!!! note "NAT64 and GitHub"
+    The install script downloads from GitHub via NAT64. This generally works but connections can be flaky. If the download times out, simply retry the command.
 
-# Wait for Cilium to be ready
-cilium status --wait
+### 3.2 Install Cilium via Helm
 
-# Verify
-kubectl get pods -n kube-system | grep cilium
+Install Cilium using the OCI chart from quay.io, which has native IPv6 support (no NAT64 needed):
+
+```bash
+helm install cilium oci://quay.io/cilium-charts/cilium \
+  --version 1.16.5 \
+  --namespace kube-system \
+  --set kubeProxyReplacement=true \
+  --set k8sServiceHost=$MASTER_IP \
+  --set k8sServicePort=6443
+```
+
+Flags explained:
+
+- `--version 1.16.5` -- Pin the Cilium version for reproducibility
+- `--set kubeProxyReplacement=true` -- Replace kube-proxy with Cilium's eBPF datapath (matches `--skip-phases=addon/kube-proxy` from Step 1)
+- `--set k8sServiceHost` / `k8sServicePort` -- Required when kube-proxy is skipped, so Cilium knows how to reach the API server
+
+### 3.3 Wait and verify
+
+```bash
+# Wait for the Cilium DaemonSet to roll out
+kubectl -n kube-system rollout status daemonset/cilium --timeout=120s
+
+# Verify Cilium pods are running
+kubectl get pods -n kube-system -l k8s-app=cilium
 ```
 
 After Cilium is ready, all nodes should show `Ready`:
@@ -486,7 +605,7 @@ kubectl get pv
 kubectl get pods -n kube-system | grep hcloud
 
 # Check Cilium status
-cilium status
+kubectl -n kube-system exec ds/cilium -c cilium-agent -- cilium-dbg status
 
 # Check network policies
 kubectl get ciliumnetworkpolicies -A

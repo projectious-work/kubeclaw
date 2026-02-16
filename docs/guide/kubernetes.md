@@ -16,16 +16,16 @@ First, determine the master's private IP (default: `10.0.0.2`, depends on `subne
 ```bash
 # From the Dev Container:
 tofu output -raw master_control_node_private_ip
-
-# Or on the master node itself:
-MASTER_IP=$(hostname -I | awk '{print $1}')
 ```
 
-The commands below use `$MASTER_IP`. Set it before proceeding:
+The commands below use `$MASTER_IP`. Set it on the master node before proceeding:
 
 ```bash
-MASTER_IP=$(hostname -I | awk '{print $1}')
+MASTER_IP=10.0.0.2
 ```
+
+!!! warning "Do not use `hostname -I`"
+    `hostname -I` may return Hetzner's CGNAT address (`100.64.x.x`) as the first IP instead of the private network IP. Always set `MASTER_IP` explicitly to the private network address from your `subnet_ip_range` (default: `10.0.0.2`).
 
 ### 1.1 Verify prerequisites
 
@@ -80,6 +80,9 @@ clientVersion:
 ```
 
 ### 1.2 Initialize with kubeadm
+
+!!! danger "Verify MASTER_IP before proceeding"
+    Run `echo $MASTER_IP` -- it **must** print `10.0.0.2` (or your custom subnet IP). If it's empty, go back and set it. Running `kubeadm init` with an empty or wrong `--apiserver-advertise-address` will bind the API server to the wrong interface and generate TLS certificates with incorrect SANs. Fixing this requires a full `kubeadm reset` and re-init.
 
 ```bash
 sudo kubeadm init \
@@ -254,15 +257,20 @@ curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 
 ### 3.2 Install Cilium via Helm
 
-Install Cilium using the OCI chart from quay.io, which has native IPv6 support (no NAT64 needed):
+Add the Cilium Helm repository and install. Make sure `$MASTER_IP` is still set (`echo $MASTER_IP`) -- if not, re-export it (see Step 1):
 
 ```bash
-helm install cilium oci://quay.io/cilium-charts/cilium \
+helm repo add cilium https://helm.cilium.io/
+helm repo update
+
+helm install cilium cilium/cilium \
   --version 1.16.5 \
   --namespace kube-system \
   --set kubeProxyReplacement=true \
   --set k8sServiceHost=$MASTER_IP \
-  --set k8sServicePort=6443
+  --set k8sServicePort=6443 \
+  --set operator.replicas=1 \
+  --set cni.binPath=/usr/lib/cni
 ```
 
 Flags explained:
@@ -270,6 +278,17 @@ Flags explained:
 - `--version 1.16.5` -- Pin the Cilium version for reproducibility
 - `--set kubeProxyReplacement=true` -- Replace kube-proxy with Cilium's eBPF datapath (matches `--skip-phases=addon/kube-proxy` from Step 1)
 - `--set k8sServiceHost` / `k8sServicePort` -- Required when kube-proxy is skipped, so Cilium knows how to reach the API server
+- `--set operator.replicas=1` -- Cilium defaults to 2 operator replicas, but since the operator uses a host port, only one can run per node. Set to 1 for single-node clusters; increase when adding worker nodes
+- `--set cni.binPath=/usr/lib/cni` -- Debian's containerd package looks for CNI binaries in `/usr/lib/cni` instead of the default `/opt/cni/bin/`. Without this, kubelet reports `cni plugin not initialized`
+
+!!! important "Restart containerd after Cilium install"
+    After Cilium deploys the CNI plugin, containerd may have cached the "not initialized" state. Restart it to pick up the new CNI:
+
+    ```bash
+    sudo systemctl restart containerd
+    ```
+
+    Wait a few seconds, then verify the node becomes `Ready` with `kubectl get nodes`.
 
 ### 3.3 Wait and verify
 
@@ -281,11 +300,26 @@ kubectl -n kube-system rollout status daemonset/cilium --timeout=120s
 kubectl get pods -n kube-system -l k8s-app=cilium
 ```
 
-After Cilium is ready, all nodes should show `Ready`:
+After containerd restarts and Cilium is ready, all nodes should show `Ready`:
 
 ```bash
 kubectl get nodes
 ```
+
+!!! note "Single-node cluster: removing the control-plane taint"
+    By default, kubeadm applies a `NoSchedule` taint to control-plane nodes. This prevents regular workloads from running on nodes dedicated to the Kubernetes control plane (API server, etcd, scheduler), reserving their resources for cluster management. On a multi-node cluster this is the correct behavior.
+
+    On a single control-plane node without workers, this taint prevents **all** pod scheduling (including CoreDNS), so it must be removed:
+
+    ```bash
+    kubectl taint nodes --all node-role.kubernetes.io/control-plane:NoSchedule-
+    ```
+
+    If you later add worker nodes and want to restore the taint to keep workloads off the control plane:
+
+    ```bash
+    kubectl taint nodes <control-node-name> node-role.kubernetes.io/control-plane:NoSchedule
+    ```
 
 ## Step 4: Install Hetzner CSI Driver
 

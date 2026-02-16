@@ -10,7 +10,7 @@
 ```bash
 # Clone the repository
 git clone <repo-url>
-cd hetzner-k8s-cluster
+cd kubeclaw
 
 # Create persistent directories
 mkdir -p .root/.ssh

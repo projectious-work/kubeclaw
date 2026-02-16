@@ -1,6 +1,6 @@
 # Infrastructure (OpenTofu)
 
-KubClaw uses OpenTofu (Terraform-compatible) to provision all infrastructure on Hetzner Cloud. This page covers SSH key management, node scaling, and post-apply workflow.
+KubeClaw uses OpenTofu (Terraform-compatible) to provision all infrastructure on Hetzner Cloud. This page covers SSH key management, node scaling, and post-apply workflow.
 
 ## Post-apply workflow
 

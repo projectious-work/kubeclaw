@@ -1,6 +1,6 @@
 # OpenClaw Deployment
 
-A step-by-step guide to deploying OpenClaw as an isolated AI problem-solving assistant on the KubClaw cluster with Cloudflare Tunnel access.
+A step-by-step guide to deploying OpenClaw as an isolated AI problem-solving assistant on the KubeClaw cluster with Cloudflare Tunnel access.
 
 ## Architecture Overview
 
@@ -48,7 +48,7 @@ A step-by-step guide to deploying OpenClaw as an isolated AI problem-solving ass
 
 ## Prerequisites
 
-- A running KubClaw cluster (see [Kubernetes guide](kubernetes.md))
+- A running KubeClaw cluster (see [Kubernetes guide](kubernetes.md))
 - Anthropic API key
 - Telegram Bot Token (create via @BotFather)
 - Your Telegram User ID

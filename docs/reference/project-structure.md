@@ -1,7 +1,7 @@
 # Project Structure
 
 ```
-hetzner-k8s-cluster/
+kubeclaw/
 ├── main.tf                          # Infrastructure (providers, network, firewalls, servers)
 ├── variables.tf                     # All configurable inputs
 ├── outputs.tf                       # IPs, SSH keys, ssh_config_snippet, next-steps banner

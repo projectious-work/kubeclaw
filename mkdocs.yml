@@ -1,4 +1,4 @@
-site_name: KubClaw
+site_name: KubeClaw
 site_description: Secure IPv6-only Kubernetes cluster on Hetzner Cloud with Cloudflare Tunnel
 theme:
   name: material

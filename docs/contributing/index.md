@@ -1,6 +1,6 @@
 # How to Contribute
 
-Contributions to KubClaw are welcome! This page outlines how to get involved.
+Contributions to KubeClaw are welcome! This page outlines how to get involved.
 
 ## Getting Started
 

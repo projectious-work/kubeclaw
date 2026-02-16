@@ -1,8 +1,8 @@
-# KubClaw
+# KubeClaw
 
 **Secure IPv6-only Kubernetes cluster on Hetzner Cloud with Cloudflare Tunnel**
 
-KubClaw automates the creation of a production-ready Kubernetes cluster using OpenTofu for infrastructure provisioning, Ansible for server management, and kubeadm for cluster bootstrapping. The cluster is designed with security-first principles: no public IPv4 addresses, SSH access exclusively through Cloudflare Tunnel, and Cilium-based network policies for fine-grained egress control.
+KubeClaw automates the creation of a production-ready Kubernetes cluster using OpenTofu for infrastructure provisioning, Ansible for server management, and kubeadm for cluster bootstrapping. The cluster is designed with security-first principles: no public IPv4 addresses, SSH access exclusively through Cloudflare Tunnel, and Cilium-based network policies for fine-grained egress control.
 
 ## Architecture
 

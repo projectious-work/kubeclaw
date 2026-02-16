@@ -1,4 +1,4 @@
-# KubClaw
+# KubeClaw
 
 Secure IPv6-only Kubernetes cluster on Hetzner Cloud with Cloudflare Tunnel.
 
@@ -56,7 +56,7 @@ Secure IPv6-only Kubernetes cluster on Hetzner Cloud with Cloudflare Tunnel.
 ## Quick Start
 
 ```bash
-git clone <repo-url> && cd hetzner-k8s-cluster
+git clone <repo-url> && cd kubeclaw
 mkdir -p .root/.ssh && chmod 700 .root/.ssh
 # Open in Dev Container (VS Code: "Reopen in Container")
 

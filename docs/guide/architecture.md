@@ -2,7 +2,7 @@
 
 ## Overview
 
-KubClaw creates a secure, IPv6-only Kubernetes cluster on Hetzner Cloud. The design prioritizes security through network isolation: no public IPv4 addresses, SSH access exclusively via Cloudflare Tunnel, and per-namespace egress control with Cilium network policies.
+KubeClaw creates a secure, IPv6-only Kubernetes cluster on Hetzner Cloud. The design prioritizes security through network isolation: no public IPv4 addresses, SSH access exclusively via Cloudflare Tunnel, and per-namespace egress control with Cilium network policies.
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐

@@ -71,9 +71,13 @@ if [[ "$ADMIN_NODE_ENABLED" == "true" ]]; then
     ADMIN_KEY_FILE="$SSH_DIR/${SSH_KEY_PREFIX}_admin-node_key"
     ADMIN_KEY_CONTENT=$($TF_CMD output -raw admin_node_ssh_private_key 2>/dev/null || echo "")
     if [[ -n "$ADMIN_KEY_CONTENT" && "$ADMIN_KEY_CONTENT" != "Using custom key - manage privately" && "$ADMIN_KEY_CONTENT" != "Admin node disabled" ]]; then
-        echo "$ADMIN_KEY_CONTENT" > "$ADMIN_KEY_FILE"
-        chmod 600 "$ADMIN_KEY_FILE"
-        echo -e "      Saved to: $ADMIN_KEY_FILE"
+        if [[ -f "$ADMIN_KEY_FILE" ]] && head -1 "$ADMIN_KEY_FILE" 2>/dev/null | grep -q "PRIVATE KEY"; then
+            echo -e "${YELLOW}      Valid key already exists - skipping (delete manually to re-export)${NC}"
+        else
+            echo "$ADMIN_KEY_CONTENT" > "$ADMIN_KEY_FILE"
+            chmod 600 "$ADMIN_KEY_FILE"
+            echo -e "      Saved to: $ADMIN_KEY_FILE"
+        fi
     else
         echo -e "${YELLOW}      Using custom key - skipping export${NC}"
     fi
@@ -83,17 +87,39 @@ fi
 # Export Control Node SSH Key
 echo -e "${GREEN}[$STEP/$TOTAL] Exporting Control Node SSH Key...${NC}"
 CONTROL_KEY_FILE="$SSH_DIR/${SSH_KEY_PREFIX}_control-node_key"
-$TF_CMD output -raw control_node_ssh_private_key > "$CONTROL_KEY_FILE"
-chmod 600 "$CONTROL_KEY_FILE"
-echo -e "      Saved to: $CONTROL_KEY_FILE"
+CONTROL_KEY_CONTENT=$($TF_CMD output -raw control_node_ssh_private_key 2>/dev/null || echo "")
+if [[ -n "$CONTROL_KEY_CONTENT" && "$CONTROL_KEY_CONTENT" != "Using custom key - manage privately" ]]; then
+    if [[ -f "$CONTROL_KEY_FILE" ]] && head -1 "$CONTROL_KEY_FILE" 2>/dev/null | grep -q "PRIVATE KEY"; then
+        echo -e "${YELLOW}      Valid key already exists - skipping (delete manually to re-export)${NC}"
+    else
+        echo "$CONTROL_KEY_CONTENT" > "$CONTROL_KEY_FILE"
+        chmod 600 "$CONTROL_KEY_FILE"
+        echo -e "      Saved to: $CONTROL_KEY_FILE"
+    fi
+else
+    echo -e "${YELLOW}      Using custom key - skipping export${NC}"
+fi
 ((STEP++))
 
 # Export Worker Node SSH Key
 echo -e "${GREEN}[$STEP/$TOTAL] Exporting Worker Node SSH Key...${NC}"
 WORKER_KEY_FILE="$SSH_DIR/${SSH_KEY_PREFIX}_worker-node_key"
-$TF_CMD output -raw worker_node_ssh_private_key > "$WORKER_KEY_FILE"
-chmod 600 "$WORKER_KEY_FILE"
-echo -e "      Saved to: $WORKER_KEY_FILE"
+WORKER_KEY_CONTENT=$($TF_CMD output -raw worker_node_ssh_private_key 2>/dev/null || echo "")
+if [[ -n "$WORKER_KEY_CONTENT" && "$WORKER_KEY_CONTENT" != "Using custom key - manage privately" && "$WORKER_KEY_CONTENT" != "No workers configured" ]]; then
+    if [[ -f "$WORKER_KEY_FILE" ]] && head -1 "$WORKER_KEY_FILE" 2>/dev/null | grep -q "PRIVATE KEY"; then
+        echo -e "${YELLOW}      Valid key already exists - skipping (delete manually to re-export)${NC}"
+    else
+        echo "$WORKER_KEY_CONTENT" > "$WORKER_KEY_FILE"
+        chmod 600 "$WORKER_KEY_FILE"
+        echo -e "      Saved to: $WORKER_KEY_FILE"
+    fi
+else
+    if [[ "$WORKER_KEY_CONTENT" == "No workers configured" ]]; then
+        echo -e "${YELLOW}      No workers configured - skipping${NC}"
+    else
+        echo -e "${YELLOW}      Using custom key - skipping export${NC}"
+    fi
+fi
 ((STEP++))
 
 # Backup existing SSH config

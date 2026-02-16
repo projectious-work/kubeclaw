@@ -321,15 +321,84 @@ kubectl get nodes
     kubectl taint nodes <control-node-name> node-role.kubernetes.io/control-plane:NoSchedule
     ```
 
-## Step 4: Install Hetzner CSI Driver
+## Step 4: Fix CoreDNS for IPv6-only Network
+
+On an IPv6-only cluster, CoreDNS pods cannot reach external DNS servers because the pod network uses IPv4 (10.244.0.0/16) while external DNS resolvers are IPv6-only. Three changes are needed:
+
+### 4.1 Set kubelet node IP
+
+By default, kubelet picks the node's public IPv6 as its internal IP. This causes issues with endpoint registration for hostNetwork pods. Set it to the private network IP:
+
+```bash
+sudo sed -i 's/KUBELET_KUBEADM_ARGS="/KUBELET_KUBEADM_ARGS="--node-ip=10.0.0.2 /' /var/lib/kubelet/kubeadm-flags.env
+sudo systemctl restart kubelet
+```
+
+Verify:
+
+```bash
+kubectl get nodes -o wide
+# INTERNAL-IP should show 10.0.0.2
+```
+
+### 4.2 Configure CoreDNS with hostNetwork
+
+CoreDNS needs to run on the host network so it can reach the DNS64 resolvers via the node's IPv6 connectivity. Edit the CoreDNS deployment:
+
+```bash
+kubectl -n kube-system edit deployment coredns
+```
+
+Under `spec.template.spec`, add `hostNetwork: true` and set `dnsPolicy: Default`:
+
+```yaml
+spec:
+  template:
+    spec:
+      hostNetwork: true
+      dnsPolicy: Default
+      containers:
+      ...
+```
+
+!!! warning "Do NOT use `dnsPolicy: ClusterFirstWithHostNet`"
+    `ClusterFirstWithHostNet` sets the pod's `/etc/resolv.conf` to the cluster DNS IP (`10.96.0.10`) -- which is CoreDNS itself. This creates a forwarding loop and CoreDNS refuses all queries. Use `dnsPolicy: Default` so CoreDNS gets the node's real `/etc/resolv.conf` with the DNS64 resolvers.
+
+!!! note "Single-node: scale CoreDNS to 1 replica"
+    With `hostNetwork: true`, CoreDNS binds to host port 53. Only one instance can run per node. On a single-node cluster:
+
+    ```bash
+    kubectl -n kube-system scale deployment coredns --replicas=1
+    ```
+
+### 4.3 Allow DNS through UFW
+
+The node's firewall blocks incoming traffic to port 53 by default. Allow it from the pod and service networks:
+
+```bash
+sudo ufw allow from 10.0.0.0/8 to any port 53 comment "CoreDNS from pods and services"
+```
+
+### 4.4 Verify DNS
+
+```bash
+kubectl -n kube-system rollout status deployment coredns --timeout=60s
+kubectl get endpoints kube-dns -n kube-system
+# Should show 10.0.0.2:53 endpoints
+
+kubectl run test --rm -it --image=alpine -- nslookup google.com
+# Should resolve successfully
+```
+
+## Step 5: Install Hetzner CSI Driver
 
 The Hetzner CSI driver enables persistent storage via Hetzner Block Volumes.
 
-### 4.1 Create a dedicated API token
+### 5.1 Create a dedicated API token
 
 In the Hetzner Cloud Console: **Security** > **API Tokens** > **Generate API Token** (Read & Write). Name it `k8s-csi`.
 
-### 4.2 Deploy the CSI driver
+### 5.2 Deploy the CSI driver
 
 ```bash
 # Create secret with API token
@@ -349,11 +418,11 @@ kubectl get storageclass
 kubectl get pods -n kube-system | grep hcloud
 ```
 
-## Step 5: Namespace Isolation and Network Policies
+## Step 6: Namespace Isolation and Network Policies
 
 Use namespaces with Cilium network policies to isolate workloads and control egress traffic.
 
-### 5.1 Create namespaces
+### 6.1 Create namespaces
 
 ```yaml
 # namespaces.yaml
@@ -379,7 +448,7 @@ kubectl apply -f namespaces.yaml
 - **system-unrestricted**: For infrastructure services (cloudflared, monitoring) that need full network access.
 - **apps-restricted**: For application workloads with egress locked down to specific destinations.
 
-### 5.2 Default deny egress for restricted namespace
+### 6.2 Default deny egress for restricted namespace
 
 ```yaml
 # default-deny-egress.yaml
@@ -399,7 +468,7 @@ spec:
 kubectl apply -f default-deny-egress.yaml
 ```
 
-### 5.3 Whitelist specific egress with Cilium
+### 6.3 Whitelist specific egress with Cilium
 
 Cilium supports FQDN-based egress rules, allowing fine-grained control over which external services an application can reach:
 
@@ -440,7 +509,7 @@ spec:
               protocol: TCP
 ```
 
-### 5.4 Unrestricted egress for system namespace
+### 6.4 Unrestricted egress for system namespace
 
 ```yaml
 # system-unrestricted-egress.yaml
@@ -460,7 +529,7 @@ spec:
 kubectl apply -f system-unrestricted-egress.yaml
 ```
 
-### 5.5 Verify network policies
+### 6.5 Verify network policies
 
 Use `wget` (included in Alpine by default) to verify that the default-deny policy blocks all egress, including DNS resolution:
 
@@ -491,7 +560,7 @@ wget -qO- https://google.com
 exit
 ```
 
-## Step 6: Cloudflare Tunnel as Kubernetes Workload
+## Step 7: Cloudflare Tunnel as Kubernetes Workload
 
 The infrastructure provisioning installs `cloudflared` on the master control node as a system service via cloud-init. Alternatively, you can run cloudflared as a Kubernetes deployment for better integration with the cluster:
 
@@ -562,7 +631,7 @@ ssh control-node sudo systemctl stop cloudflared
 ssh control-node sudo systemctl disable cloudflared
 ```
 
-## Step 7: Configure Cloudflare Access
+## Step 8: Configure Cloudflare Access
 
 1. Go to **Cloudflare Zero Trust** > **Networks** > **Tunnels** > your tunnel > **Public Hostnames**
 2. Map hostnames to internal Kubernetes services:

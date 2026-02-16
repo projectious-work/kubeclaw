@@ -1,6 +1,17 @@
 # KubeClaw
 
-Secure IPv6-only Kubernetes cluster on Hetzner Cloud with Cloudflare Tunnel.
+A complete, security-first environment for running [OpenClaw](https://github.com/anthropics/openclaw) safely on remote infrastructure -- because agentic AI workloads should never run uncontained.
+
+## Why KubeClaw?
+
+OpenClaw and similar agentic environments execute arbitrary code with tool access. Running them on a local machine or an unsandboxed server exposes your system to serious risks:
+
+- **Unrestricted filesystem access** -- an agent can read, modify, or delete any file the process can reach, including SSH keys, credentials, and personal data
+- **Uncontrolled network egress** -- without enforcement, an agent can exfiltrate data to arbitrary endpoints or download malicious payloads
+- **Host-level escape** -- agentic processes that spawn shells or subprocesses inherit host privileges; a single misconfigured permission can compromise the entire machine
+- **No blast radius containment** -- on a local machine, there is no isolation boundary; a misbehaving agent affects everything
+
+KubeClaw solves this by providing a fully automated, remote Kubernetes cluster on Hetzner Cloud where OpenClaw runs inside containers with **Cilium network policies** that enforce strict egress rules (e.g., only Anthropic API and Telegram). Infrastructure is provisioned with **OpenTofu**, configured with **Ansible**, and accessed exclusively through a **Cloudflare Tunnel** -- no open ports, no public SSH.
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -17,7 +28,7 @@ Secure IPv6-only Kubernetes cluster on Hetzner Cloud with Cloudflare Tunnel.
                      ▼                  ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │                    Hetzner Cloud                                 │
-│  ┌─────────────────────────────────────────────────────────┐    │
+│  ┌─────────────────────────────────────────────────────────────┐│
 │  │              Private Network (10.0.0.0/24)              │    │
 │  │                                                         │    │
 │  │   ┌─────────────────┐  ┌─────────────────┐             │    │
@@ -39,11 +50,12 @@ Secure IPv6-only Kubernetes cluster on Hetzner Cloud with Cloudflare Tunnel.
 
 ## Features
 
+- **Container isolation** -- agentic workloads run in Kubernetes pods, never on bare metal or your local machine
+- **Cilium network policies** -- eBPF-based FQDN egress filtering limits what an agent can reach on the network
+- **Cloudflare Tunnel** -- secure SSH and service access without open ports; outbound-only connectivity
 - **IPv6-only** -- no public IPv4, NAT64/DNS64 for transparent IPv4 reachability
-- **Cloudflare Tunnel** -- secure SSH access without open ports
 - **Scalable** -- master + replica control nodes, 0-n worker nodes, mixed server types
 - **kubeadm** -- standard Kubernetes bootstrapper (CKA-ready)
-- **Cilium CNI** -- eBPF-based networking with FQDN egress filtering
 - **Ansible-ready** -- playbooks for updates, hardening, NAT64, K8s prerequisites
 - **Dev Container** -- all tools pre-installed, nothing needed on the host
 

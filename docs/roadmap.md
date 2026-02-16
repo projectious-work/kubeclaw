@@ -20,4 +20,5 @@
 - Add Kubernetes-specific firewall rules (6443, 10250, 2379-2380, 30000-32767) to `main.tf` when deploying
 - CI/CD pipeline for documentation deployment
 - Automated testing for OpenTofu configurations
+- Cloudflare Access controls (Zero Trust policies for tunnel authentication and authorization)
 - Monitoring and alerting setup (Prometheus/Grafana)

@@ -462,15 +462,30 @@ kubectl apply -f system-unrestricted-egress.yaml
 
 ### 5.5 Verify network policies
 
+Use `wget` (included in Alpine by default) to verify that the default-deny policy blocks all egress, including DNS resolution:
+
 ```bash
 # Start a test pod in the restricted namespace
 kubectl run test --namespace apps-restricted --rm -it --image=alpine -- sh
 
-# Inside the pod:
-apk add curl
+# Inside the pod -- both should FAIL with DNS or connection errors:
+wget -qO- https://google.com
+ping -c1 8.8.8.8
 
-# Should FAIL (no egress policy for this pod)
-curl -v https://google.com
+# Exit test pod
+exit
+```
+
+!!! info "Why not `curl`?"
+    You might think to `apk add curl` first, but that itself requires DNS resolution and network access to reach the Alpine package mirror -- which is exactly what the default-deny egress policy blocks. The fact that `apk` fails is already proof that the policy works. Alpine ships with `wget`, so no package installation is needed.
+
+Then verify that the **unrestricted** namespace allows full egress:
+
+```bash
+kubectl run test --namespace system-unrestricted --rm -it --image=alpine -- sh
+
+# Inside the pod -- should succeed:
+wget -qO- https://google.com
 
 # Exit test pod
 exit

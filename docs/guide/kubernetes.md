@@ -412,10 +412,26 @@ kubectl apply -f https://raw.githubusercontent.com/hetznercloud/csi-driver/main/
 # Set hcloud-volumes as default storage class
 kubectl patch storageclass hcloud-volumes \
   -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+```
 
-# Verify
+### 5.3 Fix CSI controller for IPv6-only network
+
+The CSI controller needs to reach `api.hetzner.cloud`, but pods have IPv4-only networking and cannot route to external services (see [IPv6-only limitations](#ipv6-only-network-pod-external-access)). Patch the controller to use the host network:
+
+```bash
+kubectl -n kube-system patch deployment hcloud-csi-controller --type=json -p='[
+  {"op": "add", "path": "/spec/template/spec/hostNetwork", "value": true},
+  {"op": "replace", "path": "/spec/template/spec/dnsPolicy", "value": "Default"}
+]'
+```
+
+### 5.4 Verify
+
+```bash
 kubectl get storageclass
 kubectl get pods -n kube-system | grep hcloud
+# hcloud-csi-controller should show 5/5 Running
+# hcloud-csi-node should show 3/3 Running
 ```
 
 ## Step 6: Namespace Isolation and Network Policies
@@ -845,6 +861,24 @@ kubectl uncordon <worker-name>
 # Create snapshot via Hetzner Console or API
 # Hetzner Console → Volumes → Select volume → Create Snapshot
 ```
+
+## IPv6-only Network: Pod External Access
+
+On this cluster, the pod network uses IPv4 (CIDR `10.244.0.0/16`) while the external network is IPv6-only with DNS64/NAT64. This creates a fundamental limitation: **regular pods cannot reach external services** because they have no IPv6 connectivity and no IPv4 internet path.
+
+This is by design for workloads in `apps-restricted` -- egress is blocked by Cilium network policies anyway. But infrastructure pods that need external API access (CoreDNS, CSI controller) require `hostNetwork: true` to use the node's IPv6 stack and DNS64/NAT64.
+
+**Pods using `hostNetwork: true` on this cluster:**
+
+| Pod | Reason |
+|-----|--------|
+| CoreDNS | Needs to reach DNS64 resolvers (IPv6) to forward external queries |
+| hcloud-csi-controller | Needs to reach `api.hetzner.cloud` for volume management |
+
+**For application pods that need external access** (e.g., OpenClaw reaching the Anthropic API), two approaches are possible:
+
+1. **`hostNetwork: true`** -- Simple, gives the pod full node network access. Use with Cilium network policies to restrict egress to specific FQDNs. Suitable for trusted workloads.
+2. **Enable IPv6 in Cilium** -- The proper long-term fix. Gives pods dual-stack connectivity so they can reach external IPv6 destinations natively. Requires Cilium configuration changes (`ipv6.enabled=true`) and possibly kubeadm re-initialization with dual-stack CIDRs.
 
 ## Useful kubectl commands
 

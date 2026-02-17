@@ -161,9 +161,9 @@ When a node needs to reach an IPv4-only service, the DNS64 resolver synthesizes 
 
 **Key detail**: DNS64 only synthesizes AAAA records for domains that have **no native AAAA record**. If a domain already has an IPv6 address (like `google.com`), the DNS64 resolver returns the real AAAA record and no synthesis happens.
 
-### DNS Inside the Kubernetes Cluster
+### DNS Inside the Kubernetes Cluster (Dual-Stack)
 
-Inside the cluster, DNS is more complex because there are two networks and three types of consumers:
+With dual-stack networking, every pod gets both an IPv4 address (for internal cluster communication) and an IPv6 address (for external access via DNS64/NAT64). This eliminates the need for `hostNetwork` workarounds:
 
 ```
 ┌──────────────────────────────────────────────────────────────────┐
@@ -172,37 +172,33 @@ Inside the cluster, DNS is more complex because there are two networks and three
 │  ┌─────────────────────────────────────────────────────────────┐  │
 │  │  Host processes (cloudflared, apt, curl)                     │  │
 │  │  /etc/resolv.conf:                                           │  │
-│  │    nameserver 10.0.0.2  ◄── CoreDNS (for cluster names)     │  │
-│  │    nameserver 2a01:4ff:ff00::add:2  ◄── Hetzner DNS         │  │
-│  │                                         (for external names) │  │
+│  │    nameserver 10.96.0.10 ◄── CoreDNS ClusterIP              │  │
+│  │    nameserver 2a01:4ff:ff00::add:2 ◄── Hetzner DNS          │  │
 │  └─────────────────────────────────────────────────────────────┘  │
 │                                                                    │
 │  ┌─────────────────────────────────────────────────────────────┐  │
-│  │  Regular pods (nginx, OpenClaw)                              │  │
+│  │  All pods (CoreDNS, CSI, OpenClaw, nginx, ...)              │  │
 │  │  /etc/resolv.conf:                                           │  │
 │  │    nameserver 10.96.0.10  ◄── CoreDNS ClusterIP             │  │
 │  │    search apps-restricted.svc.cluster.local                  │  │
 │  │           svc.cluster.local cluster.local                    │  │
-│  └─────────────────────────────────────────────────────────────┘  │
-│                                                                    │
-│  ┌─────────────────────────────────────────────────────────────┐  │
-│  │  hostNetwork pods (CoreDNS, CSI controller)                  │  │
-│  │  dnsPolicy: Default → uses the host's /etc/resolv.conf      │  │
-│  │  These pods have direct IPv6 connectivity to the internet.   │  │
+│  │                                                               │  │
+│  │  Pod IPs: 10.244.x.x (IPv4) + fd00:10:244::x (IPv6)        │  │
+│  │  External access: via IPv6 → DNS64/NAT64 → IPv4 internet    │  │
 │  └─────────────────────────────────────────────────────────────┘  │
 └──────────────────────────────────────────────────────────────────┘
 ```
 
 ### CoreDNS: The Bridge Between Cluster and External DNS
 
-CoreDNS runs with `hostNetwork: true` on the master control node, listening on `10.0.0.2:53`. It handles two types of queries differently:
+CoreDNS runs as a regular pod with dual-stack addresses. It forwards external queries to **DNS64 resolvers**, which synthesize AAAA records for IPv4-only domains. This allows all pods to reach external services via NAT64:
 
 ```
 ┌──────────────────────────────────────────────────────────────────┐
 │  CoreDNS Query Flow                                               │
 │                                                                    │
-│                        CoreDNS (10.0.0.2:53)                      │
-│                        hostNetwork: true                           │
+│                        CoreDNS (10.96.0.10)                       │
+│                        dual-stack pod                              │
 │                        ┌────────────────────┐                     │
 │                        │                    │                     │
 │  Pod queries           │  1. kubernetes     │                     │
@@ -219,43 +215,40 @@ CoreDNS runs with `hostNetwork: true` on the master control node, listening on `
 │                        │  Matches           │                     │
 │                        │  cluster.local?    │                     │
 │                        │  NO → forward to   │                     │
-│                        │  /etc/resolv.conf  │──► Hetzner DNS      │
-│                        │  (Hetzner DNS)     │    2a01:4ff:        │
-│                        │                    │    ff00::add:2      │
+│                        │  DNS64 resolvers   │──► DNS64 resolver   │
+│                        │  2001:67c:2b0::4   │    2001:67c:2b0::4 │
 │                        └────────────────────┘    ↓                │
-│                                                  Returns A record │
-│                                                  (IPv4 address)   │
+│                                                  Synthesizes AAAA │
+│                                                  64:ff9b::8c52:..│
 └──────────────────────────────────────────────────────────────────┘
 ```
 
-!!! info "Why Hetzner DNS instead of DNS64?"
-    CoreDNS forwards to Hetzner's regular DNS servers (from `/etc/resolv.conf`), **not** to DNS64 resolvers. This is because CoreDNS runs on the host network where it can resolve any address, and the node itself uses DNS64 for its own outbound connections. Switching CoreDNS to DNS64 resolvers was tested but caused issues with cluster DNS resolution from the host (see [Cilium IPv6 roadmap](../roadmap/cilium-ipv6.md) for the long-term fix).
+### How Pods Reach External Services (Dual-Stack + NAT64)
 
-### The IPv4 Pod Network Gap
-
-Pods get IPv4 addresses from the Cilium VXLAN overlay (`10.0.0.0/8` range). They can reach other pods, services (via ClusterIP), and the node's private IP. But they **cannot** reach external services directly:
+With dual-stack, pods have IPv6 addresses and can route to the NAT64 prefix. Cilium's IPv6 masquerading translates pod source addresses to the node's public IPv6:
 
 ```
 ┌──────────────────────────────────────────────────────────────────┐
-│  Pod Network Connectivity                                         │
+│  Pod Network Connectivity (Dual-Stack)                            │
 │                                                                    │
-│  Pod (10.0.0.185)                                                 │
+│  Pod (10.244.0.5 + fd00:10:244::5)                               │
 │  ├── ✅ → 10.96.0.10 (CoreDNS ClusterIP) ── DNS works            │
 │  ├── ✅ → 10.111.194.145 (nginx ClusterIP) ── service routing    │
 │  ├── ✅ → 10.0.0.2 (node private IP) ── host reachable           │
-│  ├── ❌ → 140.82.121.3 (github.com IPv4) ── no IPv4 route        │
-│  └── ❌ → 2a00:1450:... (google.com IPv6) ── no IPv6 in overlay  │
+│  ├── ✅ → 64:ff9b::8c52:7903 (github.com via NAT64) ── works!   │
+│  └── ✅ → 2a00:1450:... (google.com native IPv6) ── works!       │
 │                                                                    │
-│  hostNetwork pod (CoreDNS, CSI controller)                        │
-│  ├── ✅ → all of the above                                        │
-│  ├── ✅ → IPv6 internet (via node's IPv6)                         │
-│  └── ✅ → IPv4 via NAT64 (via node's DNS64 + NAT64)              │
+│  Flow for IPv4-only destinations (e.g., api.anthropic.com):      │
+│  1. Pod queries CoreDNS → forwards to DNS64 resolver              │
+│  2. DNS64 synthesizes: api.anthropic.com → 64:ff9b::6812:0000   │
+│  3. Cilium DNS proxy records the FQDN→IP mapping                 │
+│  4. Pod sends IPv6 to 64:ff9b::6812:0000                        │
+│  5. Cilium masquerades src to node's public IPv6                  │
+│  6. NAT64 gateway translates to IPv4 → reaches api.anthropic.com │
 │                                                                    │
-│  This is why CoreDNS and the CSI controller need hostNetwork.     │
-│  Regular pods in apps-restricted don't need external access       │
-│  (egress is blocked by Cilium anyway). For pods that DO need      │
-│  external access, see the hostNetwork pattern or the              │
-│  Cilium IPv6 roadmap item.                                        │
+│  Cilium FQDN policies enforce egress at every step:              │
+│  toFQDNs: "api.anthropic.com" → allows 64:ff9b::6812:0000       │
+│  All other external traffic is DENIED.                            │
 └──────────────────────────────────────────────────────────────────┘
 ```
 
@@ -265,37 +258,38 @@ Here's the complete flow when a pod in `apps-restricted` queries `api.anthropic.
 
 ```
 ┌──────────────────────────────────────────────────────────────────┐
-│  Complete DNS Flow: Pod → CoreDNS → Hetzner DNS                   │
+│  Complete DNS Flow: Pod → CoreDNS → DNS64 → NAT64                │
 │                                                                    │
 │  1. Pod sends DNS query                                           │
-│     src: 10.0.0.185 → dst: 10.96.0.10:53                        │
+│     src: 10.244.0.5 → dst: 10.96.0.10:53                        │
 │     "What is api.anthropic.com?"                                  │
 │          │                                                        │
 │          ▼                                                        │
-│  2. Cilium routes ClusterIP to CoreDNS endpoint                   │
-│     10.96.0.10 → 10.0.0.2:53 (DNAT)                             │
+│  2. Cilium DNS proxy intercepts the query                        │
+│     Records the FQDN for policy matching                         │
+│     Forwards to CoreDNS                                           │
 │          │                                                        │
 │          ▼                                                        │
-│  3. CoreDNS receives query (hostNetwork, on node)                 │
+│  3. CoreDNS receives query                                        │
 │     kubernetes plugin: "api.anthropic.com" ≠ cluster.local        │
-│     forward plugin: forward to Hetzner DNS                        │
+│     forward plugin: forward to DNS64 resolver (2001:67c:2b0::4)  │
 │          │                                                        │
 │          ▼                                                        │
-│  4. Hetzner DNS resolves                                          │
-│     Returns: A 104.18.0.0 (IPv4)                                 │
+│  4. DNS64 resolver synthesizes AAAA record                        │
+│     api.anthropic.com has only A records (104.18.x.x)            │
+│     Synthesizes: AAAA 64:ff9b::6812:0000                         │
 │          │                                                        │
 │          ▼                                                        │
-│  5. CoreDNS returns A record to pod                               │
-│     Pod receives: api.anthropic.com → 104.18.0.0                 │
+│  5. Cilium DNS proxy records the mapping                          │
+│     api.anthropic.com → 64:ff9b::6812:0000                       │
+│     toFQDNs rule "api.anthropic.com" now allows this IP          │
 │          │                                                        │
 │          ▼                                                        │
-│  6. Pod tries to connect to 104.18.0.0:443                       │
-│     ❌ FAILS -- pod has no IPv4 internet route                    │
-│                                                                    │
-│  This is why pods needing external access currently require       │
-│  hostNetwork: true (which gives them the node's IPv6 + NAT64).   │
-│  The Cilium IPv6 roadmap item would fix this by giving pods      │
-│  IPv6 addresses so they can use NAT64 natively.                  │
+│  6. Pod connects to 64:ff9b::6812:0000:443                       │
+│     Cilium checks egress policy → ALLOWED (FQDN match)           │
+│     IPv6 masquerade: src becomes node's public IPv6              │
+│     NAT64 gateway translates to IPv4 104.18.x.x                  │
+│     ✅ SUCCESS -- pod reaches api.anthropic.com                   │
 └──────────────────────────────────────────────────────────────────┘
 ```
 
@@ -308,11 +302,11 @@ Here's the flow when `cloudflared` (system service on the host) needs to reach a
 │  Complete DNS Flow: cloudflared → CoreDNS → Kubernetes API        │
 │                                                                    │
 │  1. cloudflared queries the host's DNS                            │
-│     /etc/resolv.conf: nameserver 10.0.0.2 (first entry)          │
+│     /etc/resolv.conf: nameserver 10.96.0.10 (CoreDNS ClusterIP)  │
 │     "What is nginx.apps-restricted.svc.cluster.local?"            │
 │          │                                                        │
 │          ▼                                                        │
-│  2. CoreDNS receives query (listening on 10.0.0.2:53)            │
+│  2. CoreDNS receives query                                        │
 │     kubernetes plugin: matches *.svc.cluster.local                │
 │     Queries Kubernetes API for Service "nginx" in                 │
 │     namespace "apps-restricted"                                   │
@@ -332,9 +326,8 @@ Here's the flow when `cloudflared` (system service on the host) needs to reach a
 
 | Consumer | Resolver | Cluster names | External names | External connectivity |
 |----------|----------|--------------|----------------|----------------------|
-| **Host processes** (cloudflared, apt) | CoreDNS (10.0.0.2) + Hetzner DNS | Yes (via CoreDNS) | Yes (via Hetzner DNS) | Full (IPv6 + NAT64) |
-| **Regular pods** | CoreDNS (10.96.0.10 ClusterIP) | Yes | Yes (A records returned) | No (IPv4-only pod network) |
-| **hostNetwork pods** (CoreDNS, CSI) | Host's /etc/resolv.conf | Yes (via CoreDNS) | Yes (via Hetzner DNS) | Full (IPv6 + NAT64) |
+| **Host processes** (cloudflared, apt) | CoreDNS (ClusterIP) + Hetzner DNS | Yes (via CoreDNS) | Yes (via Hetzner DNS) | Full (IPv6 + NAT64) |
+| **All pods** (CoreDNS, CSI, OpenClaw, etc.) | CoreDNS (10.96.0.10 ClusterIP) | Yes | Yes (AAAA synthesized via DNS64) | Full (IPv6 + NAT64 via masquerade) |
 | **Node itself** (DNS64 configured) | DNS64 resolvers (2001:67c:2b0::4) | No | Yes (AAAA synthesized) | Full (IPv6 + NAT64) |
 
 ## Security Model

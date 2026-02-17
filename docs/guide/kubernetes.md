@@ -7,7 +7,7 @@ After provisioning the infrastructure with OpenTofu and configuring SSH access, 
 - **kubeadm**: The official Kubernetes bootstrapper. Produces a standard, upstream cluster -- exactly what the CKA exam expects. Full control over every component (etcd, kube-apiserver, kube-scheduler, kube-controller-manager).
 - **Cilium**: eBPF-based CNI providing advanced network policies with FQDN-based egress filtering -- critical for restricting outbound traffic per namespace.
 
-## Step 1: Initialize the Control Plane
+## Step 1: Initialize the Control Plane (Dual-Stack)
 
 SSH into the master control node. Prerequisites (containerd, kubeadm, kubelet, kubectl) are already installed via cloud-init when `enable_k8s_prereqs = true` (default).
 
@@ -28,6 +28,21 @@ MASTER_IP=10.0.0.2
     `hostname -I` may return Hetzner's CGNAT address (`100.64.x.x`) as the first IP instead of the private network IP. Always set `MASTER_IP` explicitly to the private network address from your `subnet_ip_range` (default: `10.0.0.2`).
 
 ### 1.1 Verify prerequisites
+
+**IPv6 forwarding**
+
+```bash
+sudo sysctl net.ipv6.conf.all.forwarding
+```
+
+Expected output: `net.ipv6.conf.all.forwarding = 1`
+
+If not set, enable it:
+
+```bash
+echo "net.ipv6.conf.all.forwarding = 1" | sudo tee -a /etc/sysctl.d/k8s.conf
+sudo sysctl --system
+```
 
 **Kernel modules**
 
@@ -79,7 +94,18 @@ clientVersion:
   ...
 ```
 
-### 1.2 Initialize with kubeadm
+### 1.2 Determine the node's IPv6 address
+
+Each node needs both an IPv4 and IPv6 address for dual-stack. The IPv4 is the private network IP (`10.0.0.2`). For IPv6, use the node's public IPv6 address:
+
+```bash
+NODE_IPV6=$(ip -6 addr show scope global | grep -oP '(?<=inet6\s)[\da-f:]+' | head -1)
+echo $NODE_IPV6
+```
+
+This should print a public IPv6 address like `2a01:4f8:xxxx:xxxx::1`. Save this -- you'll need it for kubelet configuration.
+
+### 1.3 Initialize with kubeadm (dual-stack)
 
 !!! danger "Verify MASTER_IP before proceeding"
     Run `echo $MASTER_IP` -- it **must** print `10.0.0.2` (or your custom subnet IP). If it's empty, go back and set it. Running `kubeadm init` with an empty or wrong `--apiserver-advertise-address` will bind the API server to the wrong interface and generate TLS certificates with incorrect SANs. Fixing this requires a full `kubeadm reset` and re-init.
@@ -87,58 +113,33 @@ clientVersion:
 ```bash
 sudo kubeadm init \
   --apiserver-advertise-address=$MASTER_IP \
-  --pod-network-cidr=10.244.0.0/16 \
+  --pod-network-cidr=10.244.0.0/16,fd00:10:244::/48 \
+  --service-cidr=10.96.0.0/12,fd00:10:96::/108 \
   --skip-phases=addon/kube-proxy
 ```
 
 Flags explained:
 
-- `--apiserver-advertise-address=$MASTER_IP` -- Bind the API server to the private network IP
-- `--pod-network-cidr=10.244.0.0/16` -- Pod CIDR for Cilium
+- `--apiserver-advertise-address=$MASTER_IP` -- Bind the API server to the private network IP (single address, not dual-stack)
+- `--pod-network-cidr=10.244.0.0/16,fd00:10:244::/48` -- **Dual-stack pod CIDRs**: IPv4 for internal cluster communication + IPv6 for external connectivity via DNS64/NAT64
+- `--service-cidr=10.96.0.0/12,fd00:10:96::/108` -- **Dual-stack service CIDRs**: existing IPv4 services continue to work; new services can opt into dual-stack
 - `--skip-phases=addon/kube-proxy` -- Cilium replaces kube-proxy with eBPF datapath
 
 !!! note "CKA note"
     The CKA exam typically uses kube-proxy. This cluster skips it because Cilium provides a more efficient replacement. On the exam, omit `--skip-phases=addon/kube-proxy`.
+
+!!! info "Why dual-stack?"
+    The nodes are IPv6-only with NAT64/DNS64 for IPv4 reachability. By giving pods IPv6 addresses alongside IPv4, they can reach external services via DNS64/NAT64 natively -- no `hostNetwork` workarounds needed. This means Cilium's FQDN-based egress policies apply to **all** pods, including CoreDNS, the CSI controller, and application workloads like OpenClaw.
+
+!!! warning "CIDRs cannot be changed after init"
+    kubeadm does not support modifying pod or service CIDRs after initialization. If you need different ranges, you must `kubeadm reset` and re-init.
 
 Expected output (abbreviated, IPs and hashes will differ):
 
 ```
 [init] Using Kubernetes version: v1.32.x
 [preflight] Running pre-flight checks
-[preflight] Pulling images required for setting up a Kubernetes cluster
-[certs] Using certificateDir folder "/etc/kubernetes/pki"
-[certs] Generating "ca" certificate and key
-[certs] Generating "apiserver" certificate and key
-[certs] apiserver serving cert is signed for DNS names [...] and IPs [...]
-[certs] Generating "apiserver-kubelet-client" certificate and key
-[certs] Generating "front-proxy-ca" certificate and key
-[certs] Generating "front-proxy-client" certificate and key
-[certs] Generating "etcd/ca" certificate and key
-[certs] Generating "etcd/server" certificate and key
-[certs] Generating "etcd/peer" certificate and key
-[certs] Generating "etcd/healthcheck-client" certificate and key
-[certs] Generating "apiserver-etcd-client" certificate and key
-[certs] Generating "sa" key and public key
-[kubeconfig] Writing "admin.conf" kubeconfig file
-[kubeconfig] Writing "super-admin.conf" kubeconfig file
-[kubeconfig] Writing "kubelet.conf" kubeconfig file
-[kubeconfig] Writing "controller-manager.conf" kubeconfig file
-[kubeconfig] Writing "scheduler.conf" kubeconfig file
-[etcd] Creating static Pod manifest for local etcd in "/etc/kubernetes/manifests"
-[control-plane] Creating static Pod manifest for "kube-apiserver"
-[control-plane] Creating static Pod manifest for "kube-controller-manager"
-[control-plane] Creating static Pod manifest for "kube-scheduler"
-[kubelet-start] Writing kubelet environment file with flags to file "/var/lib/kubelet/kubeadm-flags.env"
-[kubelet-start] Writing kubelet configuration to file "/var/lib/kubelet/config.yaml"
-[kubelet-start] Starting the kubelet
-[wait-control-plane] Waiting for the kubelet to boot up the control plane as static Pods from directory "/etc/kubernetes/manifests"
-[kubelet-check] The kubelet is healthy after 1.xxxs
-[api-check] The API server is healthy after x.xxxs
-[upload-config] Storing the configuration used in ConfigMap "kubeadm-config" in the "kube-system" Namespace
-[kubelet] Creating a ConfigMap "kubelet-config" in namespace kube-system
-[mark-control-plane] Marking the node as control-plane by adding labels and taints
-[bootstrap-token] Configuring bootstrap tokens, cluster-info ConfigMap, RBAC Roles
-[kubelet-finalize] Updating "/etc/kubernetes/kubelet.conf" to point to a rotatable kubelet client certificate and key
+...
 [addons] Applied essential addon: CoreDNS
 
 Your Kubernetes control-plane has initialized successfully!
@@ -168,7 +169,7 @@ kubeadm join <MASTER_IP>:6443 --token <TOKEN> \
 4. Configures RBAC and creates bootstrap tokens
 5. Generates `admin.conf` kubeconfig for cluster administration
 
-### 1.3 Set up kubeconfig
+### 1.4 Set up kubeconfig
 
 ```bash
 mkdir -p $HOME/.kube
@@ -176,7 +177,30 @@ sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
 ```
 
-### 1.4 Save join command
+### 1.5 Configure kubelet for dual-stack
+
+Set the kubelet's `--node-ip` to both the IPv4 private network address and the node's IPv6 address. This ensures endpoints are registered with both addresses:
+
+```bash
+sudo sed -i "s/KUBELET_KUBEADM_ARGS=\"/KUBELET_KUBEADM_ARGS=\"--node-ip=$MASTER_IP,$NODE_IPV6 /" /var/lib/kubelet/kubeadm-flags.env
+sudo systemctl restart kubelet
+```
+
+Verify:
+
+```bash
+kubectl get nodes -o wide
+```
+
+The `INTERNAL-IP` column should show the IPv4 address. Check that both addresses are registered:
+
+```bash
+kubectl get nodes -o jsonpath='{.items[0].status.addresses}' | python3 -m json.tool
+```
+
+You should see both `InternalIP` entries (IPv4 and IPv6).
+
+### 1.6 Save join command
 
 ```bash
 # Print the join command (token valid for 24h)
@@ -185,7 +209,7 @@ kubeadm token create --print-join-command
 
 Save this output -- you'll need it for worker nodes.
 
-### 1.5 Verify
+### 1.7 Verify
 
 **Node status**
 
@@ -222,11 +246,26 @@ kube-scheduler-<cluster>-control-01           1/1     Running   0          XXm
 
 **Worker Nodes**
 
-SSH into each worker node and run the join command from Step 1.4. The join command already contains the master's IP and port:
+SSH into each worker node and run the join command from Step 1.6. Before joining, configure the kubelet for dual-stack on the worker:
+
+```bash
+# On the worker node, determine its IPs
+WORKER_IPV4=10.0.0.X   # Replace with the worker's private IP
+WORKER_IPV6=$(ip -6 addr show scope global | grep -oP '(?<=inet6\s)[\da-f:]+' | head -1)
+```
+
+Then join:
 
 ```bash
 sudo kubeadm join <MASTER_IP>:6443 --token <TOKEN> \
   --discovery-token-ca-cert-hash sha256:<HASH>
+```
+
+After joining, set the worker's dual-stack node IP:
+
+```bash
+sudo sed -i "s/KUBELET_KUBEADM_ARGS=\"/KUBELET_KUBEADM_ARGS=\"--node-ip=$WORKER_IPV4,$WORKER_IPV6 /" /var/lib/kubelet/kubeadm-flags.env
+sudo systemctl restart kubelet
 ```
 
 !!! info "CKA explainer -- TLS bootstrap"
@@ -242,7 +281,9 @@ sudo kubeadm join <MASTER_IP>:6443 --token <TOKEN> \
 
 Generate the certificate key on the master: `sudo kubeadm init phase upload-certs --upload-certs`
 
-## Step 3: Install Cilium CNI
+Then configure `--node-ip` the same way as for workers.
+
+## Step 3: Install Cilium CNI (Dual-Stack)
 
 ### 3.1 Install Helm
 
@@ -269,6 +310,9 @@ helm install cilium cilium/cilium \
   --set kubeProxyReplacement=true \
   --set k8sServiceHost=$MASTER_IP \
   --set k8sServicePort=6443 \
+  --set ipv4.enabled=true \
+  --set ipv6.enabled=true \
+  --set enableIPv6Masquerade=true \
   --set operator.replicas=1 \
   --set cni.binPath=/usr/lib/cni
 ```
@@ -278,6 +322,9 @@ Flags explained:
 - `--version 1.16.5` -- Pin the Cilium version for reproducibility
 - `--set kubeProxyReplacement=true` -- Replace kube-proxy with Cilium's eBPF datapath (matches `--skip-phases=addon/kube-proxy` from Step 1)
 - `--set k8sServiceHost` / `k8sServicePort` -- Required when kube-proxy is skipped, so Cilium knows how to reach the API server
+- `--set ipv4.enabled=true` -- Enable IPv4 pod networking (cluster-internal communication)
+- `--set ipv6.enabled=true` -- Enable IPv6 pod networking (external access via DNS64/NAT64)
+- `--set enableIPv6Masquerade=true` -- Masquerade pod IPv6 traffic to the node's public IPv6 when leaving the cluster. This is what allows pods to reach external services via NAT64
 - `--set operator.replicas=1` -- Cilium defaults to 2 operator replicas, but since the operator uses a host port, only one can run per node. Set to 1 for single-node clusters; increase when adding worker nodes
 - `--set cni.binPath=/usr/lib/cni` -- Debian's containerd package looks for CNI binaries in `/usr/lib/cni` instead of the default `/opt/cni/bin/`. Without this, kubelet reports `cni plugin not initialized`
 
@@ -321,78 +368,85 @@ kubectl get nodes
     kubectl taint nodes <control-node-name> node-role.kubernetes.io/control-plane:NoSchedule
     ```
 
-## Step 4: Fix CoreDNS for IPv6-only Network
+### 3.4 Verify dual-stack pod connectivity
 
-On an IPv6-only cluster, CoreDNS pods cannot reach external DNS servers because the pod network uses IPv4 (10.244.0.0/16) while external DNS resolvers are IPv6-only. Three changes are needed:
-
-### 4.1 Set kubelet node IP
-
-By default, kubelet picks the node's public IPv6 as its internal IP. This causes issues with endpoint registration for hostNetwork pods. Set it to the private network IP:
+Once CoreDNS is running, verify that pods have both IPv4 and IPv6 addresses:
 
 ```bash
-sudo sed -i 's/KUBELET_KUBEADM_ARGS="/KUBELET_KUBEADM_ARGS="--node-ip=10.0.0.2 /' /var/lib/kubelet/kubeadm-flags.env
-sudo systemctl restart kubelet
+kubectl get pods -n kube-system -l k8s-app=kube-dns -o wide
 ```
 
-Verify:
+Check the pod's IP addresses:
 
 ```bash
-kubectl get nodes -o wide
-# INTERNAL-IP should show 10.0.0.2
+kubectl get pods -n kube-system -l k8s-app=kube-dns -o jsonpath='{range .items[*]}{.metadata.name}: {.status.podIPs}{"\n"}{end}'
 ```
 
-### 4.2 Configure CoreDNS with hostNetwork
+Each pod should have two IPs -- one from `10.244.0.0/16` (IPv4) and one from `fd00:10:244::/48` (IPv6).
 
-CoreDNS needs to run on the host network so it can reach the DNS64 resolvers via the node's IPv6 connectivity. Edit the CoreDNS deployment:
+## Step 4: Configure CoreDNS for DNS64
+
+With dual-stack pods, CoreDNS has IPv6 connectivity and can reach external DNS servers directly -- no `hostNetwork` needed. However, CoreDNS must forward to **DNS64 resolvers** (not regular DNS) so that IPv4-only domains get synthesized AAAA records that pods can route to via NAT64.
+
+### 4.1 Update CoreDNS ConfigMap
 
 ```bash
-kubectl -n kube-system edit deployment coredns
+kubectl -n kube-system edit configmap coredns
 ```
 
-Under `spec.template.spec`, add `hostNetwork: true` and set `dnsPolicy: Default`:
+Replace the `forward` line. Change:
 
-```yaml
-spec:
-  template:
-    spec:
-      hostNetwork: true
-      dnsPolicy: Default
-      containers:
-      ...
+```
+forward . /etc/resolv.conf
 ```
 
-!!! warning "Do NOT use `dnsPolicy: ClusterFirstWithHostNet`"
-    `ClusterFirstWithHostNet` sets the pod's `/etc/resolv.conf` to the cluster DNS IP (`10.96.0.10`) -- which is CoreDNS itself. This creates a forwarding loop and CoreDNS refuses all queries. Use `dnsPolicy: Default` so CoreDNS gets the node's real `/etc/resolv.conf` with the DNS64 resolvers.
+To:
 
-!!! note "Single-node: scale CoreDNS to 1 replica"
-    With `hostNetwork: true`, CoreDNS binds to host port 53. Only one instance can run per node. On a single-node cluster:
+```
+forward . 2001:67c:2b0::4 2001:67c:2b0::6
+```
+
+These are public DNS64 resolvers from [nat64.net](https://nat64.net/public-providers) (Nuremberg and Helsinki -- close to Hetzner's datacenters). They synthesize AAAA records with the `64:ff9b::/96` prefix for IPv4-only domains.
+
+!!! info "Why DNS64 resolvers?"
+    When a pod queries `api.anthropic.com`, CoreDNS forwards to the DNS64 resolver. If `api.anthropic.com` only has an A record (IPv4), the DNS64 resolver synthesizes an AAAA record like `64:ff9b::6812:0000`. The pod then sends IPv6 traffic to this address, Cilium masquerades it to the node's public IPv6, and the NAT64 gateway translates it to IPv4. This is how pods reach IPv4-only services without `hostNetwork`.
+
+### 4.2 Restart CoreDNS
+
+```bash
+kubectl -n kube-system rollout restart deployment coredns
+kubectl -n kube-system rollout status deployment coredns --timeout=60s
+```
+
+### 4.3 Verify DNS resolution
+
+```bash
+# Test internal DNS (cluster service name)
+kubectl run test --rm -it --image=alpine -- nslookup kubernetes.default.svc.cluster.local
+
+# Test external DNS (should return a synthesized AAAA with 64:ff9b:: prefix for IPv4-only domains)
+kubectl run test --rm -it --image=alpine -- nslookup github.com
+
+# Test end-to-end connectivity via NAT64
+kubectl run test --rm -it --image=alpine -- wget -qO- --timeout=10 https://github.com
+```
+
+!!! tip "Debugging DNS"
+    If DNS resolution fails, check the CoreDNS logs:
 
     ```bash
-    kubectl -n kube-system scale deployment coredns --replicas=1
+    kubectl logs -n kube-system -l k8s-app=kube-dns -f
     ```
 
-### 4.3 Allow DNS through UFW
+    Verify that CoreDNS pods have IPv6 addresses and can reach the DNS64 resolvers:
 
-The node's firewall blocks incoming traffic to port 53 by default. Allow it from the pod and service networks:
-
-```bash
-sudo ufw allow from 10.0.0.0/8 to any port 53 comment "CoreDNS from pods and services"
-```
-
-### 4.4 Verify DNS
-
-```bash
-kubectl -n kube-system rollout status deployment coredns --timeout=60s
-kubectl get endpoints kube-dns -n kube-system
-# Should show 10.0.0.2:53 endpoints
-
-kubectl run test --rm -it --image=alpine -- nslookup google.com
-# Should resolve successfully
-```
+    ```bash
+    kubectl exec -n kube-system $(kubectl get pods -n kube-system -l k8s-app=kube-dns -o name | head -1) -- nslookup github.com 2001:67c:2b0::4
+    ```
 
 ## Step 5: Install Hetzner CSI Driver
 
-The Hetzner CSI driver enables persistent storage via Hetzner Block Volumes.
+The Hetzner CSI driver enables persistent storage via Hetzner Block Volumes. With dual-stack networking, the CSI controller can reach `api.hetzner.cloud` through its pod IPv6 address and NAT64 -- no `hostNetwork` patch needed.
 
 ### 5.1 Create a dedicated API token
 
@@ -414,18 +468,7 @@ kubectl patch storageclass hcloud-volumes \
   -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
 ```
 
-### 5.3 Fix CSI controller for IPv6-only network
-
-The CSI controller needs to reach `api.hetzner.cloud`, but pods have IPv4-only networking and cannot route to external services (see [IPv6-only limitations](#ipv6-only-network-pod-external-access)). Patch the controller to use the host network:
-
-```bash
-kubectl -n kube-system patch deployment hcloud-csi-controller --type=json -p='[
-  {"op": "add", "path": "/spec/template/spec/hostNetwork", "value": true},
-  {"op": "replace", "path": "/spec/template/spec/dnsPolicy", "value": "Default"}
-]'
-```
-
-### 5.4 Verify
+### 5.3 Verify
 
 ```bash
 kubectl get storageclass
@@ -434,9 +477,15 @@ kubectl get pods -n kube-system | grep hcloud
 # hcloud-csi-node should show 3/3 Running
 ```
 
+If the CSI controller fails to start with connection errors to `api.hetzner.cloud`, verify that:
+
+1. CoreDNS is forwarding to DNS64 resolvers (Step 4)
+2. The pod has an IPv6 address (`kubectl get pods -n kube-system -o wide | grep hcloud-csi-controller`)
+3. The NAT64 route exists on the node (`ip -6 route | grep 64:ff9b`)
+
 ## Step 6: Namespace Isolation and Network Policies
 
-Use namespaces with Cilium network policies to isolate workloads and control egress traffic.
+Use namespaces with Cilium network policies to isolate workloads and control egress traffic. With dual-stack networking, Cilium's FQDN-based egress rules work for all pods -- the DNS proxy intercepts DNS64-synthesized AAAA responses and allows traffic to those addresses.
 
 ### 6.1 Create namespaces
 
@@ -486,7 +535,7 @@ kubectl apply -f default-deny-egress.yaml
 
 ### 6.3 Whitelist specific egress with Cilium
 
-Cilium supports FQDN-based egress rules, allowing fine-grained control over which external services an application can reach:
+Cilium supports FQDN-based egress rules, allowing fine-grained control over which external services an application can reach. With dual-stack, the DNS proxy intercepts DNS64-synthesized AAAA records and maps them to the FQDN, so `toFQDNs` rules work transparently with NAT64:
 
 ```yaml
 # example-app-egress.yaml
@@ -524,6 +573,9 @@ spec:
             - port: "443"
               protocol: TCP
 ```
+
+!!! info "How FQDN rules work with DNS64/NAT64"
+    When a pod queries `api.example.com`, Cilium's DNS proxy intercepts the response. If the DNS64 resolver returns a synthesized AAAA record (`64:ff9b::xxxx`), the proxy records the mapping `api.example.com → 64:ff9b::xxxx`. The `toFQDNs` rule then allows traffic to that synthesized address. From Cilium's perspective, a DNS64-synthesized AAAA record is just a regular AAAA record.
 
 ### 6.4 Unrestricted egress for system namespace
 
@@ -664,17 +716,21 @@ kubectl get svc nginx-test -n apps-restricted
 
 The `cloudflared` system service runs on the host, not inside the cluster. By default, it cannot resolve Kubernetes service names like `nginx-test.apps-restricted.svc.cluster.local` because the host uses Hetzner's DNS servers, not CoreDNS.
 
-Since CoreDNS runs with `hostNetwork: true` (Step 4), it listens on `10.0.0.2:53` and can be added as a nameserver on the host:
+Add CoreDNS as a nameserver on the host. CoreDNS listens on its pod IP (a ClusterIP or node-local address routable via Cilium):
 
 ```bash
-sudo sed -i '1s/^/nameserver 10.0.0.2\n/' /etc/resolv.conf
+# Find the CoreDNS ClusterIP
+COREDNS_IP=$(kubectl get svc kube-dns -n kube-system -o jsonpath='{.spec.clusterIP}')
+echo "CoreDNS ClusterIP: $COREDNS_IP"
+
+sudo sed -i "1s/^/nameserver $COREDNS_IP\n/" /etc/resolv.conf
 ```
 
 !!! warning "resolv.conf is managed by resolvconf"
-    The `/etc/resolv.conf` file is auto-generated and may be overwritten on reboot or network changes. To make this permanent, add `nameserver 10.0.0.2` to `/etc/resolvconf/resolv.conf.d/head`:
+    The `/etc/resolv.conf` file is auto-generated and may be overwritten on reboot or network changes. To make this permanent, add the nameserver to `/etc/resolvconf/resolv.conf.d/head`:
 
     ```bash
-    echo "nameserver 10.0.0.2" | sudo tee /etc/resolvconf/resolv.conf.d/head
+    echo "nameserver $COREDNS_IP" | sudo tee /etc/resolvconf/resolv.conf.d/head
     sudo resolvconf -u
     ```
 
@@ -731,7 +787,7 @@ kubectl delete -f nginx-test.yaml
 Then in the Cloudflare dashboard: **Zero Trust** > **Networks** > **Tunnels** > your tunnel > **Public Hostnames** > delete the `test.yourdomain.com` entry.
 
 !!! note "Authentication"
-    At this point, the tunnel exposes services without authentication. Adding Cloudflare Access policies (Zero Trust > Access > Applications) to control who can reach your services is on the [roadmap](../roadmap/index.md).
+    At this point, the tunnel exposes services without authentication. Adding Cloudflare Access policies (Zero Trust > Access > Applications) to control who can reach your services is covered in the [OpenClaw deployment guide](openclaw.md).
 
 ### 7.6 Optional: Run cloudflared as a Kubernetes workload
 
@@ -862,32 +918,17 @@ kubectl uncordon <worker-name>
 # Hetzner Console → Volumes → Select volume → Create Snapshot
 ```
 
-## IPv6-only Network: Pod External Access
-
-On this cluster, the pod network uses IPv4 (CIDR `10.244.0.0/16`) while the external network is IPv6-only with DNS64/NAT64. This creates a fundamental limitation: **regular pods cannot reach external services** because they have no IPv6 connectivity and no IPv4 internet path.
-
-This is by design for workloads in `apps-restricted` -- egress is blocked by Cilium network policies anyway. But infrastructure pods that need external API access (CoreDNS, CSI controller) require `hostNetwork: true` to use the node's IPv6 stack and DNS64/NAT64.
-
-**Pods using `hostNetwork: true` on this cluster:**
-
-| Pod | Reason |
-|-----|--------|
-| CoreDNS | Needs to reach DNS64 resolvers (IPv6) to forward external queries |
-| hcloud-csi-controller | Needs to reach `api.hetzner.cloud` for volume management |
-
-**For application pods that need external access** (e.g., OpenClaw reaching the Anthropic API), two approaches are possible:
-
-1. **`hostNetwork: true`** -- Simple, gives the pod full node network access. Use with Cilium network policies to restrict egress to specific FQDNs. Suitable for trusted workloads.
-2. **Enable IPv6 in Cilium** -- The proper long-term fix. Gives pods dual-stack connectivity so they can reach external IPv6 destinations natively. Requires Cilium configuration changes (`ipv6.enabled=true`) and possibly kubeadm re-initialization with dual-stack CIDRs.
-
 ## Useful kubectl commands
 
 ```bash
-# Check nodes
+# Check nodes (dual-stack IPs visible)
 kubectl get nodes -o wide
 
 # Check all pods across namespaces
 kubectl get pods -A
+
+# Check pod IPs (should show both IPv4 and IPv6)
+kubectl get pods -A -o jsonpath='{range .items[*]}{.metadata.name}: {.status.podIPs}{"\n"}{end}'
 
 # Check storage
 kubectl get pvc -A
@@ -901,6 +942,11 @@ kubectl -n kube-system exec ds/cilium -c cilium-agent -- cilium-dbg status
 
 # Check network policies
 kubectl get ciliumnetworkpolicies -A
+
+# Check FQDN DNS cache (verify DNS64 synthesized addresses are cached)
+kubectl exec -n kube-system -it \
+  $(kubectl get pods -n kube-system -l k8s-app=cilium -o name | head -1) \
+  -- cilium fqdn cache list
 
 # Logs for cloudflared (if running as K8s workload)
 kubectl logs -n system-unrestricted -l app=cloudflared

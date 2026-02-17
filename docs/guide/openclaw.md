@@ -27,7 +27,7 @@ A step-by-step guide to deploying OpenClaw as an isolated AI assistant on the Ku
 │  │     └─ cloudflared (egress: ANY)                           │    │
 │  │                                                             │    │
 │  │   apps-restricted namespace:                                │    │
-│  │     └─ OpenClaw (hostNetwork, egress via node UFW)         │    │
+│  │     └─ OpenClaw (Cilium FQDN egress whitelist)             │    │
 │  │          ├─ Telegram / WhatsApp / Signal                   │    │
 │  │          └─ Control UI (:18789)                            │    │
 │  │                                                             │    │
@@ -77,7 +77,7 @@ This guide assumes you have:
 - A running Kubernetes cluster with Cilium CNI
 - Hetzner CSI driver installed
 - Namespaces created (`system-unrestricted`, `apps-restricted`)
-- CoreDNS running with `hostNetwork: true` (see [Kubernetes guide, Step 4](kubernetes.md))
+- CoreDNS forwarding to DNS64 resolvers (see [Kubernetes guide, Step 4](kubernetes.md))
 - Cloudflare Tunnel configured on the master control node
 
 ## Step 2: Deploy OpenClaw
@@ -275,111 +275,434 @@ Generate a gateway authentication token and create the Kubernetes secret:
 
 Create file `openclaw.yaml`:
 
-```yaml
-apiVersion: apps/v1
-kind: StatefulSet
-metadata:
-  name: openclaw
-  namespace: apps-restricted
-spec:
-  serviceName: openclaw
-  replicas: 1
-  selector:
-    matchLabels:
-      app: openclaw
-  template:
+=== "Telegram"
+
+    ```yaml
+    apiVersion: apps/v1
+    kind: StatefulSet
     metadata:
-      labels:
-        app: openclaw
+      name: openclaw
+      namespace: apps-restricted
     spec:
-      # Required: hostNetwork for external API access on IPv6-only cluster
-      # See "IPv6-only Network: Pod External Access" in the Kubernetes guide
-      hostNetwork: true
-      dnsPolicy: Default
-      securityContext:
-        runAsNonRoot: true
-        runAsUser: 1000
-        fsGroup: 1000
-      containers:
-        - name: openclaw
-          image: node:22-slim
-          workingDir: /app
-          command:
-            - /bin/sh
-            - -c
-            - |
-              npm install -g openclaw@latest &&
-              openclaw gateway --port 18789
-          env:
-            - name: ANTHROPIC_API_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: openclaw-secrets
-                  key: ANTHROPIC_API_KEY
-            - name: OPENCLAW_GATEWAY_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: openclaw-secrets
-                  key: OPENCLAW_GATEWAY_TOKEN
-            - name: OPENCLAW_CONFIG_PATH
-              value: /etc/openclaw/openclaw.json
-            - name: OPENCLAW_STATE_DIR
-              value: /home/node/.openclaw
-          ports:
-            - containerPort: 18789
-              name: gateway
+      serviceName: openclaw
+      replicas: 1
+      selector:
+        matchLabels:
+          app: openclaw
+      template:
+        metadata:
+          labels:
+            app: openclaw
+        spec:
           securityContext:
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop: ["ALL"]
-          resources:
-            requests:
-              memory: "512Mi"
-              cpu: "250m"
-            limits:
-              memory: "2Gi"
-              cpu: "2000m"
-          volumeMounts:
+            runAsNonRoot: true
+            runAsUser: 1000
+            fsGroup: 1000
+          containers:
+            - name: openclaw
+              image: node:22-slim
+              workingDir: /app
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  npm install -g openclaw@latest &&
+                  openclaw gateway --port 18789
+              env:
+                - name: ANTHROPIC_API_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: openclaw-secrets
+                      key: ANTHROPIC_API_KEY
+                - name: TELEGRAM_BOT_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: openclaw-secrets
+                      key: TELEGRAM_BOT_TOKEN
+                - name: OPENCLAW_GATEWAY_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: openclaw-secrets
+                      key: OPENCLAW_GATEWAY_TOKEN
+                - name: OPENCLAW_CONFIG_PATH
+                  value: /etc/openclaw/openclaw.json
+                - name: OPENCLAW_STATE_DIR
+                  value: /home/node/.openclaw
+              ports:
+                - containerPort: 18789
+                  name: gateway
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop: ["ALL"]
+              resources:
+                requests:
+                  memory: "512Mi"
+                  cpu: "250m"
+                limits:
+                  memory: "2Gi"
+                  cpu: "2000m"
+              volumeMounts:
+                - name: config
+                  mountPath: /etc/openclaw/openclaw.json
+                  subPath: openclaw.json
+                  readOnly: true
+                - name: data
+                  mountPath: /home/node/.openclaw
+          volumes:
             - name: config
-              mountPath: /etc/openclaw/openclaw.json
-              subPath: openclaw.json
-              readOnly: true
-            - name: data
-              mountPath: /home/node/.openclaw
-      volumes:
-        - name: config
-          configMap:
-            name: openclaw-config
-  volumeClaimTemplates:
-    - metadata:
-        name: data
-      spec:
-        accessModes:
-          - ReadWriteOnce
-        storageClassName: hcloud-volumes
-        resources:
-          requests:
-            storage: 10Gi
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: openclaw
-  namespace: apps-restricted
-spec:
-  selector:
-    app: openclaw
-  ports:
-    - port: 18789
-      targetPort: 18789
-      name: gateway
-```
+              configMap:
+                name: openclaw-config
+      volumeClaimTemplates:
+        - metadata:
+            name: data
+          spec:
+            accessModes:
+              - ReadWriteOnce
+            storageClassName: hcloud-volumes
+            resources:
+              requests:
+                storage: 10Gi
+    ---
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: openclaw
+      namespace: apps-restricted
+    spec:
+      selector:
+        app: openclaw
+      ports:
+        - port: 18789
+          targetPort: 18789
+          name: gateway
+    ---
+    apiVersion: cilium.io/v2
+    kind: CiliumNetworkPolicy
+    metadata:
+      name: openclaw-egress
+      namespace: apps-restricted
+    spec:
+      endpointSelector:
+        matchLabels:
+          app: openclaw
+      egress:
+        # DNS resolution (required for FQDN rules)
+        - toEndpoints:
+            - matchLabels:
+                io.kubernetes.pod.namespace: kube-system
+                k8s-app: kube-dns
+          toPorts:
+            - ports:
+                - port: "53"
+                  protocol: UDP
+                - port: "53"
+                  protocol: TCP
 
-!!! warning "hostNetwork and port conflicts"
-    With `hostNetwork: true`, port 18789 is bound directly on the node. Only one OpenClaw pod can run per node. If you have multiple applications using port 18789, change the port in both the configuration and the StatefulSet.
+        # Allow internal cluster communication
+        - toEntities:
+            - cluster
 
-!!! info "Why `hostNetwork: true`?"
-    The Kubernetes pod network is IPv4-only (`10.244.0.0/16`) and cannot reach external IPv6 destinations or use DNS64/NAT64. OpenClaw needs outbound access to `api.anthropic.com` and messaging provider APIs. Using `hostNetwork` lets the pod use the node's IPv6 stack with DNS64/NAT64 for transparent IPv4 reachability. See [IPv6-only Network: Pod External Access](kubernetes.md) and the [Cilium IPv6 roadmap](../roadmap/cilium-ipv6.md) for the long-term fix.
+        # Anthropic API
+        - toFQDNs:
+            - matchName: "api.anthropic.com"
+          toPorts:
+            - ports:
+                - port: "443"
+                  protocol: TCP
+
+        # Telegram API
+        - toFQDNs:
+            - matchName: "api.telegram.org"
+          toPorts:
+            - ports:
+                - port: "443"
+                  protocol: TCP
+    ```
+
+=== "WhatsApp"
+
+    ```yaml
+    apiVersion: apps/v1
+    kind: StatefulSet
+    metadata:
+      name: openclaw
+      namespace: apps-restricted
+    spec:
+      serviceName: openclaw
+      replicas: 1
+      selector:
+        matchLabels:
+          app: openclaw
+      template:
+        metadata:
+          labels:
+            app: openclaw
+        spec:
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            fsGroup: 1000
+          containers:
+            - name: openclaw
+              image: node:22-slim
+              workingDir: /app
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  npm install -g openclaw@latest &&
+                  openclaw gateway --port 18789
+              env:
+                - name: ANTHROPIC_API_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: openclaw-secrets
+                      key: ANTHROPIC_API_KEY
+                - name: OPENCLAW_GATEWAY_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: openclaw-secrets
+                      key: OPENCLAW_GATEWAY_TOKEN
+                - name: OPENCLAW_CONFIG_PATH
+                  value: /etc/openclaw/openclaw.json
+                - name: OPENCLAW_STATE_DIR
+                  value: /home/node/.openclaw
+              ports:
+                - containerPort: 18789
+                  name: gateway
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop: ["ALL"]
+              resources:
+                requests:
+                  memory: "512Mi"
+                  cpu: "250m"
+                limits:
+                  memory: "2Gi"
+                  cpu: "2000m"
+              volumeMounts:
+                - name: config
+                  mountPath: /etc/openclaw/openclaw.json
+                  subPath: openclaw.json
+                  readOnly: true
+                - name: data
+                  mountPath: /home/node/.openclaw
+          volumes:
+            - name: config
+              configMap:
+                name: openclaw-config
+      volumeClaimTemplates:
+        - metadata:
+            name: data
+          spec:
+            accessModes:
+              - ReadWriteOnce
+            storageClassName: hcloud-volumes
+            resources:
+              requests:
+                storage: 10Gi
+    ---
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: openclaw
+      namespace: apps-restricted
+    spec:
+      selector:
+        app: openclaw
+      ports:
+        - port: 18789
+          targetPort: 18789
+          name: gateway
+    ---
+    apiVersion: cilium.io/v2
+    kind: CiliumNetworkPolicy
+    metadata:
+      name: openclaw-egress
+      namespace: apps-restricted
+    spec:
+      endpointSelector:
+        matchLabels:
+          app: openclaw
+      egress:
+        # DNS resolution (required for FQDN rules)
+        - toEndpoints:
+            - matchLabels:
+                io.kubernetes.pod.namespace: kube-system
+                k8s-app: kube-dns
+          toPorts:
+            - ports:
+                - port: "53"
+                  protocol: UDP
+                - port: "53"
+                  protocol: TCP
+
+        # Allow internal cluster communication
+        - toEntities:
+            - cluster
+
+        # Anthropic API
+        - toFQDNs:
+            - matchName: "api.anthropic.com"
+          toPorts:
+            - ports:
+                - port: "443"
+                  protocol: TCP
+
+        # WhatsApp servers
+        - toFQDNs:
+            - matchName: "web.whatsapp.com"
+            - matchPattern: "*.whatsapp.net"
+            - matchPattern: "*.whatsapp.com"
+          toPorts:
+            - ports:
+                - port: "443"
+                  protocol: TCP
+                - port: "5222"
+                  protocol: TCP
+    ```
+
+=== "Signal"
+
+    ```yaml
+    apiVersion: apps/v1
+    kind: StatefulSet
+    metadata:
+      name: openclaw
+      namespace: apps-restricted
+    spec:
+      serviceName: openclaw
+      replicas: 1
+      selector:
+        matchLabels:
+          app: openclaw
+      template:
+        metadata:
+          labels:
+            app: openclaw
+        spec:
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            fsGroup: 1000
+          containers:
+            - name: openclaw
+              image: your-registry/openclaw-signal:latest  # Custom image with signal-cli
+              env:
+                - name: ANTHROPIC_API_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: openclaw-secrets
+                      key: ANTHROPIC_API_KEY
+                - name: OPENCLAW_GATEWAY_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: openclaw-secrets
+                      key: OPENCLAW_GATEWAY_TOKEN
+                - name: OPENCLAW_CONFIG_PATH
+                  value: /etc/openclaw/openclaw.json
+                - name: OPENCLAW_STATE_DIR
+                  value: /home/node/.openclaw
+              ports:
+                - containerPort: 18789
+                  name: gateway
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop: ["ALL"]
+              resources:
+                requests:
+                  memory: "512Mi"
+                  cpu: "250m"
+                limits:
+                  memory: "2Gi"
+                  cpu: "2000m"
+              volumeMounts:
+                - name: config
+                  mountPath: /etc/openclaw/openclaw.json
+                  subPath: openclaw.json
+                  readOnly: true
+                - name: data
+                  mountPath: /home/node/.openclaw
+          volumes:
+            - name: config
+              configMap:
+                name: openclaw-config
+      volumeClaimTemplates:
+        - metadata:
+            name: data
+          spec:
+            accessModes:
+              - ReadWriteOnce
+            storageClassName: hcloud-volumes
+            resources:
+              requests:
+                storage: 10Gi
+    ---
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: openclaw
+      namespace: apps-restricted
+    spec:
+      selector:
+        app: openclaw
+      ports:
+        - port: 18789
+          targetPort: 18789
+          name: gateway
+    ---
+    apiVersion: cilium.io/v2
+    kind: CiliumNetworkPolicy
+    metadata:
+      name: openclaw-egress
+      namespace: apps-restricted
+    spec:
+      endpointSelector:
+        matchLabels:
+          app: openclaw
+      egress:
+        # DNS resolution (required for FQDN rules)
+        - toEndpoints:
+            - matchLabels:
+                io.kubernetes.pod.namespace: kube-system
+                k8s-app: kube-dns
+          toPorts:
+            - ports:
+                - port: "53"
+                  protocol: UDP
+                - port: "53"
+                  protocol: TCP
+
+        # Allow internal cluster communication
+        - toEntities:
+            - cluster
+
+        # Anthropic API
+        - toFQDNs:
+            - matchName: "api.anthropic.com"
+          toPorts:
+            - ports:
+                - port: "443"
+                  protocol: TCP
+
+        # Signal servers
+        - toFQDNs:
+            - matchName: "chat.signal.org"
+            - matchName: "storage.signal.org"
+            - matchName: "cdn.signal.org"
+            - matchName: "cdn2.signal.org"
+            - matchName: "contentproxy.signal.org"
+          toPorts:
+            - ports:
+                - port: "443"
+                  protocol: TCP
+    ```
+
+!!! info "Cilium FQDN egress whitelist"
+    Each manifest includes a `CiliumNetworkPolicy` that restricts OpenClaw's outbound traffic to only the Anthropic API and the messaging provider's servers. Combined with the namespace-level default-deny policy from the [Kubernetes guide](kubernetes.md), this means OpenClaw **cannot** reach any other external service. Cilium's DNS proxy intercepts DNS64-synthesized AAAA responses and maps them to the FQDN, so these rules work transparently with NAT64.
 
 !!! note "Startup time"
     The pod installs OpenClaw via `npm install -g` on every restart, which takes 1–2 minutes. For faster restarts, build a custom Docker image with OpenClaw baked in (see [Maintenance](#build-a-custom-image-optional)).
@@ -589,10 +912,7 @@ In **Cloudflare Zero Trust** > **Networks** > **Tunnels** > **your tunnel** > **
 
 | Hostname | Service |
 |----------|---------|
-| `openclaw.yourdomain.com` | `http://10.0.0.2:18789` |
-
-!!! note "Direct node IP"
-    Because OpenClaw uses `hostNetwork: true`, the gateway listens on the node's IP directly. Use the node IP where the pod is scheduled (typically `10.0.0.2` for a single-node cluster). You can also use the Kubernetes service: `http://openclaw.apps-restricted.svc.cluster.local:18789`.
+| `openclaw.yourdomain.com` | `http://openclaw.apps-restricted.svc.cluster.local:18789` |
 
 !!! tip "SSL/TLS settings"
     In Cloudflare dashboard under your domain > **SSL/TLS** > **Overview**, set the mode to **Full** (not "Full (strict)") since the origin (OpenClaw gateway) serves HTTP, not HTTPS. Cloudflare terminates TLS at the edge.

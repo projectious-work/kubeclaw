@@ -9,7 +9,7 @@ Agentic AI environments like OpenClaw execute arbitrary code with tool access --
 - A misbehaving agent on a local machine has no isolation boundary; the blast radius is everything on the host
 - Containers without network controls only solve half the problem -- an agent with unrestricted egress can still leak data
 
-KubeClaw provides a fully automated Kubernetes cluster on Hetzner Cloud VPS servers where OpenClaw runs inside containers with strict network controls. Infrastructure is managed through **OpenTofu** and **Ansible**, the cluster uses **Cilium CNI** for eBPF-based network policies that enforce per-namespace egress rules (e.g., allowing only Anthropic API and Telegram endpoints), and all access is routed through a **Cloudflare Tunnel** -- no open ports, no public SSH, outbound-only connectivity.
+KubeClaw provides a fully automated Kubernetes cluster on Hetzner Cloud VPS servers where OpenClaw runs inside containers with strict network controls. Infrastructure is managed through **OpenTofu** and **Ansible**, the cluster uses **Cilium CNI** for eBPF-based network policies that enforce per-namespace egress rules (e.g., allowing only Anthropic API and messaging provider endpoints), and all access is routed through a **Cloudflare Tunnel** -- no open ports, no public SSH, outbound-only connectivity.
 
 ## Architecture
 

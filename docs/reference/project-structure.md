@@ -33,7 +33,9 @@ kubeclaw/
 │       └── prepare-k8s-nodes.yml   # Kubernetes prerequisites (containerd, kubeadm) on running nodes
 └── docs/                           # MkDocs documentation source
     ├── index.md                    # Home page
-    ├── roadmap.md                  # Project roadmap
+    ├── roadmap/                    # Project roadmap
+    │   ├── index.md                # Roadmap overview
+    │   └── cilium-ipv6.md          # Cilium IPv6 pod network plan
     ├── getting-started/
     │   ├── requirements.md
     │   ├── quick-start.md

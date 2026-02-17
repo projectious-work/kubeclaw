@@ -731,7 +731,7 @@ kubectl delete -f nginx-test.yaml
 Then in the Cloudflare dashboard: **Zero Trust** > **Networks** > **Tunnels** > your tunnel > **Public Hostnames** > delete the `test.yourdomain.com` entry.
 
 !!! note "Authentication"
-    At this point, the tunnel exposes services without authentication. Adding Cloudflare Access policies (Zero Trust > Access > Applications) to control who can reach your services is on the [roadmap](../roadmap.md).
+    At this point, the tunnel exposes services without authentication. Adding Cloudflare Access policies (Zero Trust > Access > Applications) to control who can reach your services is on the [roadmap](../roadmap/index.md).
 
 ### 7.6 Optional: Run cloudflared as a Kubernetes workload
 

@@ -69,4 +69,6 @@ nav:
     - How to Contribute: contributing/index.md
     - Code of Conduct: contributing/code-of-conduct.md
     - Development Setup: contributing/development.md
-  - Roadmap: roadmap.md
+  - Roadmap:
+    - Overview: roadmap/index.md
+    - Cilium IPv6 Pod Network: roadmap/cilium-ipv6.md

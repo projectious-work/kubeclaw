@@ -58,6 +58,29 @@ ehthumbs.db
 Thumbs.db
 
 # =============================================================================
+# Ansible
+# =============================================================================
+
+# Auto-generated inventory (regenerated from tofu state)
+ansible/inventory.ini
+
+# Retry files
+ansible/*.retry
+ansible/playbooks/*.retry
+
+# Fact cache
+ansible/.facts/
+ansible/fact_cache/
+
+# Vault password files
+ansible/.vault_pass
+ansible/vault_password
+
+# Custom variables (may contain secrets)
+ansible/group_vars/all/vault.yml
+ansible/host_vars/*/vault.yml
+
+# =============================================================================
 # MkDocs
 # =============================================================================
 site/

@@ -560,9 +560,166 @@ wget -qO- https://google.com
 exit
 ```
 
-## Step 7: Cloudflare Tunnel as Kubernetes Workload
+## Step 7: Expose Services via Cloudflare Tunnel
 
-The infrastructure provisioning installs `cloudflared` on the master control node as a system service via cloud-init. Alternatively, you can run cloudflared as a Kubernetes deployment for better integration with the cluster:
+The Cloudflare Tunnel (installed as a system service on the master control node via cloud-init) can route external traffic to Kubernetes services. This step deploys a test service in the **restricted** namespace to verify the full chain: Internet → Cloudflare → Tunnel → Kubernetes Service → Pod -- with network policies enforced.
+
+### 7.1 Deploy a test service
+
+Apply the following manifest. It creates an Nginx deployment, a ClusterIP service, and a CiliumNetworkPolicy in the `apps-restricted` namespace. The network policy only allows DNS egress (which Nginx doesn't strictly need, but demonstrates the pattern every real application requires):
+
+```yaml
+# nginx-test.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-test
+  namespace: apps-restricted
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx-test
+  template:
+    metadata:
+      labels:
+        app: nginx-test
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:alpine
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              memory: "32Mi"
+              cpu: "10m"
+            limits:
+              memory: "64Mi"
+              cpu: "100m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-test
+  namespace: apps-restricted
+spec:
+  selector:
+    app: nginx-test
+  ports:
+    - port: 80
+      targetPort: 80
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: nginx-test-egress
+  namespace: apps-restricted
+spec:
+  endpointSelector:
+    matchLabels:
+      app: nginx-test
+  egress:
+    # DNS resolution (required for most real applications)
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+```
+
+```bash
+kubectl apply -f nginx-test.yaml
+```
+
+Verify it's running:
+
+```bash
+kubectl get pods -n apps-restricted -l app=nginx-test
+kubectl get svc nginx-test -n apps-restricted
+```
+
+### 7.2 Enable cluster DNS on the host
+
+The `cloudflared` system service runs on the host, not inside the cluster. By default, it cannot resolve Kubernetes service names like `nginx-test.apps-restricted.svc.cluster.local` because the host uses Hetzner's DNS servers, not CoreDNS.
+
+Since CoreDNS runs with `hostNetwork: true` (Step 4), it listens on `10.0.0.2:53` and can be added as a nameserver on the host:
+
+```bash
+sudo sed -i '1s/^/nameserver 10.0.0.2\n/' /etc/resolv.conf
+```
+
+!!! warning "resolv.conf is managed by resolvconf"
+    The `/etc/resolv.conf` file is auto-generated and may be overwritten on reboot or network changes. To make this permanent, add `nameserver 10.0.0.2` to `/etc/resolvconf/resolv.conf.d/head`:
+
+    ```bash
+    echo "nameserver 10.0.0.2" | sudo tee /etc/resolvconf/resolv.conf.d/head
+    sudo resolvconf -u
+    ```
+
+Verify the host can resolve cluster service names:
+
+```bash
+curl http://nginx-test.apps-restricted.svc.cluster.local
+```
+
+You should see the Nginx welcome page.
+
+### 7.3 Configure the tunnel hostname
+
+In the Cloudflare dashboard:
+
+1. Go to **Zero Trust** > **Networks** > **Tunnels** > your tunnel > **Public Hostnames**
+2. Add a new public hostname:
+
+| Hostname | Service |
+|----------|---------|
+| `test.yourdomain.com` | `http://nginx-test.apps-restricted.svc.cluster.local:80` |
+
+!!! tip "SSL/TLS mode"
+    In the Cloudflare dashboard under **yourdomain.com** > **SSL/TLS** > **Overview**, set the encryption mode to **Full** (not **Full (strict)**). The tunnel terminates TLS at Cloudflare and connects to the origin (Nginx) over plain HTTP.
+
+### 7.4 Test access
+
+From your local machine (or anywhere on the internet):
+
+```bash
+curl https://test.yourdomain.com
+```
+
+You should see the Nginx welcome page. This confirms the full chain works:
+
+```
+Internet → Cloudflare (TLS termination)
+  → Tunnel → cloudflared (system service on host)
+    → CoreDNS resolves service name → ClusterIP
+      → Nginx pod (apps-restricted namespace, egress restricted by Cilium)
+```
+
+!!! info "Ingress is allowed by default"
+    The default-deny policy from Step 6.2 only restricts **egress**. Ingress to pods in `apps-restricted` is allowed, so cloudflared can reach Nginx without an additional ingress rule. For production workloads, consider adding explicit ingress policies as well.
+
+### 7.5 Clean up
+
+Remove the test resources and the Cloudflare public hostname:
+
+```bash
+kubectl delete -f nginx-test.yaml
+```
+
+Then in the Cloudflare dashboard: **Zero Trust** > **Networks** > **Tunnels** > your tunnel > **Public Hostnames** > delete the `test.yourdomain.com` entry.
+
+!!! note "Authentication"
+    At this point, the tunnel exposes services without authentication. Adding Cloudflare Access policies (Zero Trust > Access > Applications) to control who can reach your services is on the [roadmap](../roadmap.md).
+
+### 7.6 Optional: Run cloudflared as a Kubernetes workload
+
+The system-level `cloudflared` installed via cloud-init is sufficient for most setups. If you prefer to manage the tunnel as a Kubernetes deployment (for HA with multiple replicas, resource limits, and Kubernetes-native lifecycle management), you can migrate it:
 
 ```yaml
 # cloudflared.yaml
@@ -618,29 +775,12 @@ spec:
 kubectl apply -f cloudflared.yaml
 ```
 
-Advantages over system-level cloudflared:
-
-- Multiple replicas for high availability
-- Managed by Kubernetes (auto-restart, resource limits)
-- Network policies control its egress
-
-If using this approach, disable the system-level cloudflared installed via cloud-init:
+Then disable the system-level service:
 
 ```bash
 ssh control-node sudo systemctl stop cloudflared
 ssh control-node sudo systemctl disable cloudflared
 ```
-
-## Step 8: Configure Cloudflare Access
-
-1. Go to **Cloudflare Zero Trust** > **Networks** > **Tunnels** > your tunnel > **Public Hostnames**
-2. Map hostnames to internal Kubernetes services:
-
-| Hostname | Service |
-|----------|---------|
-| `app.yourdomain.com` | `http://my-app.apps-restricted.svc.cluster.local:8080` |
-
-3. Add authentication policies under **Access** > **Applications** to restrict who can reach the services
 
 ## Maintenance: Upgrade Kubernetes
 

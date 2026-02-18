@@ -101,8 +101,27 @@ OpenClaw uses [JSON5](https://json5.org/) configuration (supports comments and t
           "agents": {
             "defaults": {
               "model": {
-                "primary": "anthropic/claude-sonnet-4-5-20250929"
+                // Primary model for conversations
+                "primary": "anthropic/claude-sonnet-4-5-20250929",
+                // Fallback chain: tried in order if the primary fails
+                // (rate limit, auth error, timeout, outage)
+                "fallbacks": [
+                  "anthropic/claude-haiku-4-5-20251001"
+                ]
+              },
+              // Aliases appear in the Control UI model selector
+              "models": {
+                "anthropic/claude-sonnet-4-5-20250929": { "alias": "Sonnet" },
+                "anthropic/claude-haiku-4-5-20251001": { "alias": "Haiku" },
+                "anthropic/claude-opus-4-6": { "alias": "Opus" }
               }
+            }
+          },
+
+          // Provider credentials
+          "models": {
+            "providers": {
+              "anthropic": { "apiKey": "$ANTHROPIC_API_KEY" }
             }
           },
 
@@ -143,8 +162,22 @@ OpenClaw uses [JSON5](https://json5.org/) configuration (supports comments and t
           "agents": {
             "defaults": {
               "model": {
-                "primary": "anthropic/claude-sonnet-4-5-20250929"
+                "primary": "anthropic/claude-sonnet-4-5-20250929",
+                "fallbacks": [
+                  "anthropic/claude-haiku-4-5-20251001"
+                ]
+              },
+              "models": {
+                "anthropic/claude-sonnet-4-5-20250929": { "alias": "Sonnet" },
+                "anthropic/claude-haiku-4-5-20251001": { "alias": "Haiku" },
+                "anthropic/claude-opus-4-6": { "alias": "Opus" }
               }
+            }
+          },
+
+          "models": {
+            "providers": {
+              "anthropic": { "apiKey": "$ANTHROPIC_API_KEY" }
             }
           },
 
@@ -186,8 +219,22 @@ OpenClaw uses [JSON5](https://json5.org/) configuration (supports comments and t
           "agents": {
             "defaults": {
               "model": {
-                "primary": "anthropic/claude-sonnet-4-5-20250929"
+                "primary": "anthropic/claude-sonnet-4-5-20250929",
+                "fallbacks": [
+                  "anthropic/claude-haiku-4-5-20251001"
+                ]
+              },
+              "models": {
+                "anthropic/claude-sonnet-4-5-20250929": { "alias": "Sonnet" },
+                "anthropic/claude-haiku-4-5-20251001": { "alias": "Haiku" },
+                "anthropic/claude-opus-4-6": { "alias": "Opus" }
               }
+            }
+          },
+
+          "models": {
+            "providers": {
+              "anthropic": { "apiKey": "$ANTHROPIC_API_KEY" }
             }
           },
 
@@ -222,6 +269,27 @@ Replace placeholders:
 - `<YOUR_TELEGRAM_USER_ID>` — your numeric Telegram user ID (see [Step 3: Telegram Setup](#telegram-setup))
 - `<YOUR_PHONE_E164>` — your phone number in E.164 format (e.g. `+15551234567`)
 - `<BOT_PHONE_E164>` — dedicated phone number for the Signal bot
+
+!!! info "Model configuration"
+    The config above uses Sonnet as the primary model with Haiku as a fallback. OpenClaw automatically fails over when the primary model hits rate limits, auth errors, or timeouts.
+
+    **Customizing models:**
+
+    - **`model.primary`** — the default model for all conversations
+    - **`model.fallbacks`** — ordered list of backup models, tried in sequence on failure
+    - **`models`** — allowlist with aliases that appear in the Control UI model selector. You can switch models from the UI during a conversation
+    - **`models.providers`** — provider credentials. Supports Anthropic, OpenAI, Google Gemini, OpenRouter, and local models (Ollama). Add multiple providers to mix models:
+
+    ```json5
+    "models": {
+      "providers": {
+        "anthropic": { "apiKey": "$ANTHROPIC_API_KEY" },
+        "openai": { "apiKey": "$OPENAI_API_KEY" }
+      }
+    }
+    ```
+
+    - **Per-agent overrides** — individual agents in `agents.list[]` can override the default model. See the [OpenClaw model docs](https://docs.openclaw.ai/concepts/models) for details.
 
 ### 2.2 Create Secrets
 

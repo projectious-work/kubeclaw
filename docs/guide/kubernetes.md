@@ -310,6 +310,7 @@ helm install cilium cilium/cilium \
   --set kubeProxyReplacement=true \
   --set k8sServiceHost=$MASTER_IP \
   --set k8sServicePort=6443 \
+  --set ipam.mode=kubernetes \
   --set ipv4.enabled=true \
   --set ipv6.enabled=true \
   --set enableIPv6Masquerade=true \
@@ -322,6 +323,7 @@ Flags explained:
 - `--version 1.16.5` -- Pin the Cilium version for reproducibility
 - `--set kubeProxyReplacement=true` -- Replace kube-proxy with Cilium's eBPF datapath (matches `--skip-phases=addon/kube-proxy` from Step 1)
 - `--set k8sServiceHost` / `k8sServicePort` -- Required when kube-proxy is skipped, so Cilium knows how to reach the API server
+- `--set ipam.mode=kubernetes` -- Use the Kubernetes host-scope IPAM. Without this, Cilium defaults to its own `cluster-pool` allocator with CIDRs `10.0.0.0/8` and `fd00::/104`, ignoring kubeadm's `--pod-network-cidr`. This causes pod IPs to overlap with the Hetzner private network (`10.0.0.0/24`)
 - `--set ipv4.enabled=true` -- Enable IPv4 pod networking (cluster-internal communication)
 - `--set ipv6.enabled=true` -- Enable IPv6 pod networking (external access via DNS64/NAT64)
 - `--set enableIPv6Masquerade=true` -- Masquerade pod IPv6 traffic to the node's public IPv6 when leaving the cluster. This is what allows pods to reach external services via NAT64
@@ -420,15 +422,35 @@ kubectl -n kube-system rollout status deployment coredns --timeout=60s
 
 ### 4.3 Verify DNS resolution
 
+Create a long-running test pod (the `--rm -it` pattern tends to hang on IPv6-only clusters):
+
+```bash
+kubectl run test --image=alpine --restart=Never -- sleep 3600
+```
+
+Test DNS and connectivity:
+
 ```bash
 # Test internal DNS (cluster service name)
-kubectl run test --rm -it --image=alpine -- nslookup kubernetes.default.svc.cluster.local
+kubectl exec test -- nslookup kubernetes.default.svc.cluster.local
 
-# Test external DNS (should return a synthesized AAAA with 64:ff9b:: prefix for IPv4-only domains)
-kubectl run test --rm -it --image=alpine -- nslookup github.com
+# Test external DNS (should return a synthesized AAAA from the DNS64 resolver)
+kubectl exec test -- nslookup github.com
 
-# Test end-to-end connectivity via NAT64
-kubectl run test --rm -it --image=alpine -- wget -qO- --timeout=10 https://github.com
+# Install curl and test end-to-end NAT64 connectivity
+kubectl exec test -- apk add --no-cache curl
+kubectl exec test -- curl -6 -s --max-time 10 -o /dev/null -w "%{http_code}\n" https://github.com
+```
+
+Expected results: `nslookup github.com` returns both a synthesized AAAA (e.g. `2001:67c:2b0:db32:...`) and a real A record. The `curl -6` command forces IPv6 and should return `200` (or `301` for domains that redirect, like `google.com`).
+
+!!! warning "BusyBox wget prefers IPv4"
+    Alpine's BusyBox wget tries IPv4 first and has no `-6` flag. Since pods have no IPv4 internet route, `wget https://github.com` will fail with "Network unreachable". Use `curl -6` for testing, or note that glibc-based images (like `node:lts`) prefer IPv6 by default per RFC 6724.
+
+Clean up:
+
+```bash
+kubectl delete pod test
 ```
 
 !!! tip "Debugging DNS"
@@ -438,10 +460,12 @@ kubectl run test --rm -it --image=alpine -- wget -qO- --timeout=10 https://githu
     kubectl logs -n kube-system -l k8s-app=kube-dns -f
     ```
 
-    Verify that CoreDNS pods have IPv6 addresses and can reach the DNS64 resolvers:
+    Verify that CoreDNS pods have IPv6 connectivity to the DNS64 resolvers:
 
     ```bash
-    kubectl exec -n kube-system $(kubectl get pods -n kube-system -l k8s-app=kube-dns -o name | head -1) -- nslookup github.com 2001:67c:2b0::4
+    kubectl run test --image=alpine --restart=Never -- sleep 300
+    kubectl exec test -- ping6 -c 3 -W 3 2001:67c:2b0::4
+    kubectl delete pod test
     ```
 
 ## Step 5: Install Hetzner CSI Driver
@@ -533,7 +557,9 @@ spec:
 kubectl apply -f default-deny-egress.yaml
 ```
 
-### 6.3 Whitelist specific egress with Cilium
+### 6.3 Whitelist specific egress with Cilium (optional)
+
+This step is a reference example — apply it when deploying applications that need specific egress rules (see the [OpenClaw guide](openclaw.md) for a real-world example).
 
 Cilium supports FQDN-based egress rules, allowing fine-grained control over which external services an application can reach. With dual-stack, the DNS proxy intercepts DNS64-synthesized AAAA records and maps them to the FQDN, so `toFQDNs` rules work transparently with NAT64:
 
@@ -619,14 +645,17 @@ exit
 Then verify that the **unrestricted** namespace allows full egress:
 
 ```bash
-kubectl run test --namespace system-unrestricted --rm -it --image=alpine -- sh
+kubectl run test --namespace system-unrestricted --image=alpine --restart=Never -- sleep 3600
 
-# Inside the pod -- should succeed:
-wget -qO- https://google.com
+# Install curl and test (BusyBox wget lacks -6 and prefers IPv4 which is unreachable)
+kubectl exec --namespace system-unrestricted test -- apk add --no-cache curl
+kubectl exec --namespace system-unrestricted test -- curl -6 -s --max-time 10 -o /dev/null -w "%{http_code}\n" https://google.com
 
-# Exit test pod
-exit
+# Clean up
+kubectl delete pod --namespace system-unrestricted test
 ```
+
+The `curl -6` command should return `301` (Google redirects to `www.google.com`), confirming full IPv6 egress works.
 
 ## Step 7: Expose Services via Cloudflare Tunnel
 

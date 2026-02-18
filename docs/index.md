@@ -63,7 +63,7 @@ KubeClaw provides a fully automated Kubernetes cluster on Hetzner Cloud VPS serv
 
 ## Getting Started
 
-Ready to deploy? Start with the [Requirements](getting-started/requirements.md) page, then follow the [Quick Start](getting-started/quick-start.md) guide.
+Ready to deploy? Follow the [Quick Start](quick-start.md) guide to get up and running.
 
 ## How It Works
 

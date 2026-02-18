@@ -1,25 +1,8 @@
 # Development Setup
 
-## Prerequisites
-
-- Docker and an IDE with Dev Container support (e.g. VS Code + Dev Containers extension)
-- Git
-
 ## Getting started
 
-```bash
-# Clone the repository
-git clone <repo-url>
-cd kubeclaw
-
-# Create persistent directories
-mkdir -p .root/.ssh
-chmod 700 .root/.ssh
-
-# Open in Dev Container (VS Code: "Reopen in Container")
-```
-
-The Dev Container includes all tools: OpenTofu, Ansible, cloudflared, MkDocs Material, and AI assistants.
+Follow the [Dev Container guide](../guide/dev-container.md) to set up your development environment. The Dev Container includes all tools: OpenTofu, Ansible, cloudflared, MkDocs Material, and AI assistants.
 
 ## Documentation development
 

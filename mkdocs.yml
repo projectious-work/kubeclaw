@@ -16,8 +16,8 @@ theme:
         icon: material/brightness-4
         name: Switch to light mode
   features:
-    - navigation.sections
-    - navigation.expand
+    - navigation.tabs
+    - navigation.tabs.sticky
     - navigation.top
     - navigation.footer
     - content.code.copy
@@ -42,33 +42,40 @@ markdown_extensions:
       permalink: true
 nav:
   - Home: index.md
-  - Getting Started:
-    - Requirements: getting-started/requirements.md
-    - Quick Start: getting-started/quick-start.md
-    - Dev Container: getting-started/dev-container.md
+  - Quick Start: quick-start.md
+  - Introduction:
+    - Architecture: introduction/architecture.md
+    - DNS and NAT64: introduction/dns-and-nat64.md
+    - Security Model: introduction/security-model.md
+    - Manual Setup: introduction/manual-setup.md
   - Guide:
-    - Architecture: guide/architecture.md
+    - Dev Container: guide/dev-container.md
     - Infrastructure (OpenTofu): guide/infrastructure.md
-    - Manual Setup (Alternative): guide/manual-setup.md
-    - NAT64/DNS64: guide/nat64.md
     - Server Management (Ansible): guide/ansible.md
     - Kubernetes (kubeadm): guide/kubernetes.md
     - OpenClaw Deployment: guide/openclaw.md
+  - How-to:
+    - SSH Keys with Passphrase: how-to/ssh-keys-with-passphrase.md
+    - Store SSH Keys in Password Manager: how-to/store-ssh-keys-in-password-manager.md
   - Reference:
     - Variables: reference/variables.md
     - Outputs: reference/outputs.md
     - Cloud-Init Templates: reference/cloud-init.md
     - Ansible Playbooks: reference/playbooks.md
+    - OS Images: reference/os-images.md
     - Project Structure: reference/project-structure.md
     - Cost Estimate: reference/cost-estimate.md
   - Operations:
+    - Scale Up/Down: operations/scale-up-down.md
+    - SSH Key Rotation: operations/ssh-key-rotation.md
+    - Kubernetes Maintenance: operations/kubernetes-maintenance.md
     - Troubleshooting: operations/troubleshooting.md
     - Security: operations/security.md
     - Password Management: operations/password-management.md
+  - Roadmap:
+    - Overview: roadmap/index.md
+    - Cilium IPv6 Pod Network: roadmap/cilium-ipv6.md
   - Contributing:
     - How to Contribute: contributing/index.md
     - Code of Conduct: contributing/code-of-conduct.md
     - Development Setup: contributing/development.md
-  - Roadmap:
-    - Overview: roadmap/index.md
-    - Cilium IPv6 Pod Network: roadmap/cilium-ipv6.md

@@ -70,7 +70,7 @@ A step-by-step guide to deploying OpenClaw as an isolated AI assistant on the Ku
 
 ## Step 1: Infrastructure Setup
 
-If you haven't already set up the Hetzner Cloud infrastructure, follow the [Quick Start](../getting-started/quick-start.md) and [Kubernetes guide](kubernetes.md).
+If you haven't already set up the Hetzner Cloud infrastructure, follow the [Quick Start](../quick-start.md) and [Kubernetes guide](kubernetes.md).
 
 This guide assumes you have:
 

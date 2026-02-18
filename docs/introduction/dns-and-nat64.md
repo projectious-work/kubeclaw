@@ -1,102 +1,8 @@
-# Architecture
+# DNS and NAT64
 
-## Overview
+The cluster is IPv6-only -- but many services (GitHub CDN, container registries, package repos) are IPv4-only. **NAT64/DNS64** provides transparent IPv4 reachability at the network layer, no application changes needed. This page covers how DNS64/NAT64 works, how it integrates with Kubernetes CoreDNS, and how to configure it.
 
-KubeClaw creates a secure, IPv6-only Kubernetes cluster on Hetzner Cloud. The design prioritizes security through network isolation: no public IPv4 addresses, SSH access exclusively via Cloudflare Tunnel, and per-namespace egress control with Cilium network policies.
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                         Internet                                 │
-└─────────────────────────────────────────────────────────────────┘
-                         │              │
-                         ▼              ▼
-              ┌──────────────┐  ┌───────────────┐
-              │  Cloudflare  │  │  Admin Node   │
-              │   Tunnel     │  │  10.0.0.254   │
-              │  (permanent) │  │  (temporary,  │
-              └──────┬───────┘  │  public IPv6) │
-                     │          └───────┬───────┘
-                     ▼                  ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                    Hetzner Cloud                                 │
-│  ┌─────────────────────────────────────────────────────────────┐ │
-│  │              Private Network (10.0.0.0/24)                  │ │
-│  │                                                             │ │
-│  │   ┌─────────────────┐  ┌─────────────────┐                 │ │
-│  │   │  control-01     │  │  control-02+    │                 │ │
-│  │   │    10.0.0.2     │  │   10.0.0.3+     │                 │ │
-│  │   │  (master,       │◄►│  (replicas,     │                 │ │
-│  │   │   cloudflared)  │  │   0-n instances) │                 │ │
-│  │   └────────┬────────┘  └─────────────────┘                 │ │
-│  │            │                                                │ │
-│  │            ▼                                                │ │
-│  │   ┌─────────────────┐                                       │ │
-│  │   │  worker-nodes   │                                       │ │
-│  │   │  (0-n instances) │                                       │ │
-│  │   └─────────────────┘                                       │ │
-│  │                                                             │ │
-│  └─────────────────────────────────────────────────────────────┘ │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-## Node Roles
-
-### Master Control Node (control-01, 10.0.0.2)
-
-The master control node always exists and serves as:
-
-- **Kubernetes control plane** -- runs etcd, kube-apiserver, kube-scheduler, kube-controller-manager
-- **Cloudflare Tunnel endpoint** -- runs `cloudflared` for SSH access from the internet
-- **SSH gateway** -- all other nodes are reached through this node
-
-The master node always has public IPv6 (required for cloudflared outbound connections) and accepts SSH from the private network and from localhost (for the Cloudflare Tunnel). The tunnel can be auto-configured via `cloudflare_tunnel_token` or installed manually.
-
-### Replica Control Nodes (control-02+, 10.0.0.3+)
-
-Optional nodes for high-availability control plane. Same configuration as the master, minus `cloudflared`. IPs start at `10.0.0.3` and increment.
-
-### Worker Nodes (10.0.0.x, offset after replicas)
-
-Optional compute nodes for running workloads. Workers have restricted connectivity:
-
-- **Inbound**: SSH from private network only
-- **Outbound**: DNS (port 53), HTTP (port 80), HTTPS (port 443), internal network only
-- **No TCP forwarding** -- prevents workers from being used as jump hosts
-
-Worker IPs start after the last replica control node.
-
-### Admin Node (10.0.0.254, temporary)
-
-A temporary jump host with public IPv6, used only during initial setup before the Cloudflare Tunnel is configured. Created by default (`enable_admin_node = true`) and should be disabled after tunnel setup.
-
-## Network Design
-
-### Private Network (10.0.0.0/24)
-
-All nodes communicate via a Hetzner private network. IP assignments:
-
-| Address | Node |
-|---------|------|
-| `10.0.0.2` | Master control node |
-| `10.0.0.3+` | Replica control nodes |
-| `10.0.0.x` | Worker nodes (offset after replicas) |
-| `10.0.0.254` | Admin node (temporary) |
-
-### IPv6-Only
-
-Nodes have no public IPv4 addresses. The master control node always has public IPv6 (required for cloudflared). Replica control nodes and workers can optionally have public IPv6 disabled via `enable_public_ipv6 = false` to air-gap them from the internet. [NAT64/DNS64](nat64.md) provides transparent IPv4 reachability for accessing IPv4-only services (GitHub, container registries, package repos).
-
-### Traffic Flow
-
-1. **SSH access**: Internet → Cloudflare Tunnel → Master control node (localhost:22) → Private network → Other nodes
-2. **Outbound (control nodes)**: Full outbound connectivity via IPv6 + NAT64
-3. **Outbound (workers)**: Restricted to DNS, HTTP/S only
-
-## DNS Architecture
-
-DNS on this cluster involves three layers that work together: **DNS64** for translating IPv4 destinations into IPv6-routable addresses, **CoreDNS** for in-cluster service discovery, and **NAT64** for the actual packet translation. Understanding how these interact is essential for debugging connectivity issues.
-
-### The Problem: IPv4 Internet from IPv6-Only Nodes
+## The Problem: IPv4 Internet from IPv6-Only Nodes
 
 The nodes have no public IPv4 addresses. Most internet services (GitHub, Docker Hub, package repos) have IPv4 addresses. How does an IPv6-only node reach them?
 
@@ -112,7 +18,7 @@ The nodes have no public IPv4 addresses. Most internet services (GitHub, Docker 
 
 The answer is **DNS64 + NAT64**, a standard mechanism (RFC 6146/6147) that gives IPv6-only clients transparent access to IPv4 servers.
 
-### How DNS64 + NAT64 Works (Node Level)
+## How DNS64 + NAT64 Works (Node Level)
 
 When a node needs to reach an IPv4-only service, the DNS64 resolver synthesizes a special IPv6 address that embeds the IPv4 address:
 
@@ -161,7 +67,7 @@ When a node needs to reach an IPv4-only service, the DNS64 resolver synthesizes 
 
 **Key detail**: DNS64 only synthesizes AAAA records for domains that have **no native AAAA record**. If a domain already has an IPv6 address (like `google.com`), the DNS64 resolver returns the real AAAA record and no synthesis happens.
 
-### DNS Inside the Kubernetes Cluster (Dual-Stack)
+## DNS Inside the Kubernetes Cluster (Dual-Stack)
 
 With dual-stack networking, every pod gets both an IPv4 address (for internal cluster communication) and an IPv6 address (for external access via DNS64/NAT64). This eliminates the need for `hostNetwork` workarounds:
 
@@ -330,24 +236,71 @@ Here's the flow when `cloudflared` (system service on the host) needs to reach a
 | **All pods** (CoreDNS, CSI, OpenClaw, etc.) | CoreDNS (10.96.0.10 ClusterIP) | Yes | Yes (AAAA synthesized via DNS64) | Full (IPv6 + NAT64 via masquerade) |
 | **Node itself** (DNS64 configured) | DNS64 resolvers (2001:67c:2b0::4) | No | Yes (AAAA synthesized) | Full (IPv6 + NAT64) |
 
-## Security Model
+## Configuration
 
-### Firewall Rules (Hetzner)
+NAT64/DNS64 is **enabled by default** (`enable_nat64 = true`). Cloud-init configures it on new nodes automatically. Default resolvers are from [nat64.net](https://nat64.net/public-providers) (Nuremberg, Helsinki, Amsterdam) -- close to Hetzner's `fsn1` datacenter.
 
-- **Control nodes**: SSH from private network + localhost (for tunnel), ICMP from private network
-- **Worker nodes**: SSH from private network, ICMP from private network
-- **Admin node**: SSH from anywhere (temporary), ICMP from private network
+### For existing nodes
 
-Kubernetes ports (6443, 10250, 2379-2380, 30000-32767) are intentionally excluded from the Hetzner firewall and added only when deploying Kubernetes.
+Run the Ansible playbook:
 
-### Host-Level Security
+```bash
+cd ansible
+ansible-playbook playbooks/configure-nat64.yml
+```
 
-- **SSH hardening**: key-only auth, no root login, limited retries, no TCP forwarding on workers
-- **fail2ban**: SSH brute-force protection on all nodes
-- **UFW**: host-level firewall enforcing the same rules as the Hetzner firewall
+Limit to specific node groups:
 
-### Kubernetes-Level Security
+```bash
+ansible-playbook playbooks/configure-nat64.yml --limit control_nodes
+```
 
-- **Cilium CNI**: eBPF-based network policies with FQDN egress filtering
-- **Namespace isolation**: `system-unrestricted` (full egress) and `apps-restricted` (whitelist-only egress)
-- **Container hardening**: non-root users, dropped capabilities, resource limits
+Override resolvers:
+
+```bash
+ansible-playbook playbooks/configure-nat64.yml \
+  -e '{"dns64_resolvers":["2a01:4f8:c2c:123f::1"]}'
+```
+
+### Disabling NAT64
+
+If you set up your own DNS infrastructure:
+
+```hcl
+# terraform.tfvars
+enable_nat64 = false
+```
+
+## Verification
+
+```bash
+# DNS64 synthesis (should show AAAA record with 64:ff9b:: prefix)
+resolvectl query github.com
+
+# End-to-end connectivity
+curl -6 https://github.com
+```
+
+## Technical Details
+
+### What cloud-init configures
+
+- DNS64 resolvers in `/etc/systemd/resolved.conf.d/dns64.conf`
+- NAT64 route: `64:ff9b::/96` via the default IPv6 gateway
+- `networkd-dispatcher` script to persist the route across reboots
+
+### What the Ansible playbook configures
+
+The same as cloud-init, plus:
+
+- Removes old Hetzner DNS UFW rules on worker nodes
+- Adds DNS64 resolver allow rules in UFW (workers only)
+- Adds NAT64 prefix UFW rule (workers only)
+- Verifies DNS64 resolution and NAT64 connectivity
+
+### Worker node specifics
+
+Worker nodes have restricted outbound access. The NAT64 configuration adds:
+
+- UFW rules allowing DNS to DNS64 resolvers (instead of Hetzner DNS)
+- UFW rule allowing traffic to the `64:ff9b::/96` prefix

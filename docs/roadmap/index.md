@@ -20,7 +20,7 @@
 
 ### Infrastructure & Cluster
 
-- Upgrade Kubernetes from 1.32 to current upstream (1.35) -- update `kubernetes_version` in `variables.tf`, cloud-init templates, and follow the [upgrade procedure](../guide/kubernetes.md#maintenance-upgrade-kubernetes)
+- Upgrade Kubernetes from 1.32 to current upstream (1.35) -- update `kubernetes_version` in `variables.tf`, cloud-init templates, and follow the [upgrade procedure](../operations/kubernetes-maintenance.md#upgrade-kubernetes)
 - Add Kubernetes-specific firewall rules (6443, 10250, 2379-2380, 30000-32767) to `main.tf`
 - CI/CD pipeline for documentation deployment
 - Automated testing for OpenTofu configurations

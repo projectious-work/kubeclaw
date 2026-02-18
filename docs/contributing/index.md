@@ -5,7 +5,7 @@ Contributions to KubeClaw are welcome! This page outlines how to get involved.
 ## Getting Started
 
 1. **Fork** the repository
-2. **Clone** your fork and set up the [Dev Container](../getting-started/dev-container.md)
+2. **Clone** your fork and set up the [Dev Container](../guide/dev-container.md)
 3. **Create a branch** for your changes (`git checkout -b feature/my-feature`)
 4. **Make your changes** following the conventions below
 5. **Test** your changes

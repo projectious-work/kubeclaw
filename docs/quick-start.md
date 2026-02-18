@@ -1,5 +1,23 @@
 # Quick Start
 
+## Prerequisites
+
+### Accounts
+
+- **Hetzner Cloud account** with an API token ([console.hetzner.cloud](https://console.hetzner.cloud))
+- **Cloudflare account** with a configured domain (free tier is sufficient)
+
+### Local Machine
+
+- **Docker** and an IDE with Dev Container support (e.g. VS Code + Dev Containers extension)
+
+That's it. All tools (OpenTofu, Ansible, SSH, cloudflared, AI assistants) are pre-installed in the Dev Container -- no local installation needed beyond Docker and your IDE.
+
+### Optional
+
+- **cloudflared** on your local machine for SSH via Cloudflare Tunnel (`brew install cloudflared` on macOS). This is included in the Dev Container but also useful on the host.
+- **Dashlane** or another password manager for storing SSH keys and API tokens securely.
+
 ## 1. Clone and prepare
 
 ```bash
@@ -24,7 +42,7 @@ cp terraform.tfvars.example terraform.tfvars
 # Edit terraform.tfvars with your Hetzner API token and other settings
 ```
 
-See [Variables Reference](../reference/variables.md) for all available configuration options.
+See [Variables Reference](reference/variables.md) for all available configuration options.
 
 ## 4. Create infrastructure
 
@@ -39,9 +57,10 @@ This creates the admin node (temporary jump host), control node, private network
 
 ```bash
 ./scripts/setup-ssh.sh
+source ./scripts/ssh-agent-setup.sh
 ```
 
-This exports SSH keys from the OpenTofu state and generates `~/.ssh/config` entries. Keys and config are persisted in `.root/.ssh/` across container rebuilds.
+This exports SSH keys from the OpenTofu state, generates `~/.ssh/config` entries, and starts the ssh-agent with the cluster keys loaded. Keys and config are persisted in `.root/.ssh/` across container rebuilds.
 
 ## 6. Connect to the control node
 
@@ -82,6 +101,6 @@ The master control node always keeps public IPv6 (required for cloudflared).
 
 ## Next steps
 
-- [Deploy Kubernetes with kubeadm](../guide/kubernetes.md)
-- [Configure NAT64/DNS64](../guide/nat64.md) for IPv4 reachability
-- [Server management with Ansible](../guide/ansible.md) for ongoing maintenance
+- [Deploy Kubernetes with kubeadm](guide/kubernetes.md)
+- [DNS and NAT64](introduction/dns-and-nat64.md) for IPv4 reachability
+- [Server management with Ansible](guide/ansible.md) for ongoing maintenance

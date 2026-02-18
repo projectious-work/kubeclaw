@@ -33,32 +33,39 @@ kubeclaw/
 │       └── prepare-k8s-nodes.yml   # Kubernetes prerequisites (containerd, kubeadm) on running nodes
 └── docs/                           # MkDocs documentation source
     ├── index.md                    # Home page
-    ├── roadmap/                    # Project roadmap
-    │   ├── index.md                # Roadmap overview
-    │   └── cilium-ipv6.md          # Cilium IPv6 pod network plan
-    ├── getting-started/
-    │   ├── requirements.md
-    │   ├── quick-start.md
-    │   └── dev-container.md
+    ├── quick-start.md              # Combined prerequisites + deployment steps
+    ├── introduction/
+    │   ├── architecture.md          # Node roles, network design, overview diagram
+    │   ├── dns-and-nat64.md         # DNS64/NAT64, CoreDNS, Kubernetes DNS architecture
+    │   ├── security-model.md        # Firewall rules, SSH hardening, K8s security
+    │   └── manual-setup.md
     ├── guide/
-    │   ├── architecture.md
-    │   ├── infrastructure.md
-    │   ├── manual-setup.md
-    │   ├── nat64.md
-    │   ├── ansible.md
-    │   ├── kubernetes.md
-    │   └── openclaw.md
+    │   ├── dev-container.md        # Step-by-step Dev Container setup
+    │   ├── infrastructure.md       # Step-by-step provisioning workflow
+    │   ├── ansible.md              # Step-by-step server management
+    │   ├── kubernetes.md           # Step-by-step kubeadm deployment
+    │   └── openclaw.md             # OpenClaw deployment guide
+    ├── how-to/
+    │   ├── ssh-keys-with-passphrase.md      # Passphrase protection for SSH keys
+    │   └── store-ssh-keys-in-password-manager.md  # Backup keys in password manager
     ├── reference/
     │   ├── variables.md
     │   ├── outputs.md
     │   ├── cloud-init.md
     │   ├── playbooks.md
+    │   ├── os-images.md            # Available Hetzner Cloud OS images
     │   ├── project-structure.md
     │   └── cost-estimate.md
     ├── operations/
+    │   ├── scale-up-down.md        # Add/remove nodes (infra + K8s)
+    │   ├── ssh-key-rotation.md     # Rotate SSH keys
+    │   ├── kubernetes-maintenance.md
     │   ├── troubleshooting.md
     │   ├── security.md
     │   └── password-management.md
+    ├── roadmap/
+    │   ├── index.md                # Roadmap overview
+    │   └── cilium-ipv6.md          # Cilium IPv6 pod network plan
     └── contributing/
         ├── index.md
         ├── code-of-conduct.md

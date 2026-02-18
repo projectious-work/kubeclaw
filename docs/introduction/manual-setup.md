@@ -1,7 +1,7 @@
 # Manual Setup (Alternative)
 
 !!! note "This guide is an alternative to OpenTofu"
-    This guide shows the manual steps that OpenTofu automates. Use this if you want to understand what happens behind the scenes, or if you prefer to set up infrastructure manually via the Hetzner Cloud Console. For the automated approach, see [Infrastructure (OpenTofu)](infrastructure.md).
+    This guide shows the manual steps that OpenTofu automates. Use this if you want to understand what happens behind the scenes, or if you prefer to set up infrastructure manually via the Hetzner Cloud Console. For the automated approach, see [Infrastructure (OpenTofu)](../guide/infrastructure.md).
 
 ## Overview
 
@@ -29,7 +29,7 @@ This setup creates a secure server infrastructure with the following properties:
 ┌─────────────────────────────────────────────────────────────────┐
 │                    Hetzner Cloud                                 │
 │  ┌─────────────────────────────────────────────────────────┐    │
-│  │              Private Network (10.0.0.0/8)               │    │
+│  │              Private Network (10.0.0.0/24)              │    │
 │  │                                                         │    │
 │  │   ┌─────────────────┐       ┌─────────────────┐        │    │
 │  │   │  control-node   │       │  worker-node    │        │    │
@@ -55,8 +55,9 @@ This setup creates a secure server infrastructure with the following properties:
 3. Go to **Networks** > **Create Network**
 4. Configure:
    - **Name**: `k8s-network` (or any name)
-   - **IP Range**: `10.0.0.0/8`
+   - **IP Range**: `10.0.0.0/8` (Hetzner requires `/8` for the network object)
 5. Click **Create Network**
+6. Add a **Subnet**: `10.0.0.0/24` in zone `eu-central` (this is the actual range used by nodes)
 
 ## Step 2: Generate SSH keys
 
@@ -227,7 +228,7 @@ write_files:
 runcmd:
   - systemctl enable fail2ban
   - systemctl start fail2ban
-  - ufw allow from 10.0.0.0/8 to any port 22 proto tcp comment 'SSH internal'
+  - ufw allow from 10.0.0.0/24 to any port 22 proto tcp comment 'SSH internal'
   - ufw allow from 127.0.0.1 to any port 22 proto tcp comment 'SSH via Tunnel'
   - ufw default deny incoming
   - ufw default allow outgoing
@@ -315,9 +316,9 @@ runcmd:
   - systemctl start fail2ban
   - ufw default deny incoming
   - ufw default deny outgoing
-  - ufw allow from 10.0.0.0/8 to any port 22 proto tcp comment 'SSH internal'
-  - ufw allow from 10.0.0.0/8 proto icmp comment 'ICMP internal'
-  - ufw allow out to 10.0.0.0/8 comment 'Outbound internal'
+  - ufw allow from 10.0.0.0/24 to any port 22 proto tcp comment 'SSH internal'
+  - ufw allow from 10.0.0.0/24 proto icmp comment 'ICMP internal'
+  - ufw allow out to 10.0.0.0/24 comment 'Outbound internal'
   - ufw allow out to 185.12.64.1 port 53 proto udp comment 'DNS Hetzner'
   - ufw allow out to 185.12.64.2 port 53 proto udp comment 'DNS Hetzner'
   - ufw allow out to any port 80 proto tcp comment 'HTTP Updates'

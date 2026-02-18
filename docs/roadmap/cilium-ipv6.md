@@ -42,4 +42,4 @@ The following questions were investigated before implementation:
 - [Kubernetes dual-stack docs](https://kubernetes.io/docs/concepts/services-networking/dual-stack/)
 - [kubeadm dual-stack support](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/dual-stack-support/)
 - [CoreDNS dns64 plugin](https://coredns.io/plugins/dns64/)
-- [NAT64/DNS64 on KubeClaw](../guide/nat64.md)
+- [DNS and NAT64 on KubeClaw](../introduction/dns-and-nat64.md)

@@ -50,6 +50,7 @@ nav:
     - Manual Setup: introduction/manual-setup.md
   - Guide:
     - Dev Container: guide/dev-container.md
+    - Cloudflare Tunnel: guide/cloudflare-tunnel.md
     - Infrastructure (OpenTofu): guide/infrastructure.md
     - Server Management (Ansible): guide/ansible.md
     - Kubernetes (kubeadm): guide/kubernetes.md

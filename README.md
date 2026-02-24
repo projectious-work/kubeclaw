@@ -81,7 +81,7 @@ ssh control-node
 sudo cloudflared service install <TOKEN>  # skip if token is in tfvars
 ```
 
-See the [full Quick Start guide](docs/getting-started/quick-start.md) for detailed steps.
+See the [full Quick Start guide](https://bnaard.codeberg.page/kubeclaw/quick-start/) for detailed steps.
 
 ## Documentation
 
@@ -93,12 +93,12 @@ mkdocs serve   # http://localhost:8000
 
 Key sections:
 
-- [Getting Started](docs/getting-started/quick-start.md) -- requirements, quick start, dev container
-- [Architecture](docs/guide/architecture.md) -- network design, node roles, security model
-- [Infrastructure](docs/guide/infrastructure.md) -- SSH keys, scaling, OpenTofu workflow
-- [Kubernetes](docs/guide/kubernetes.md) -- kubeadm deployment with Cilium and Hetzner CSI
-- [Reference](docs/reference/variables.md) -- all variables, outputs, templates, playbooks
-- [Operations](docs/operations/troubleshooting.md) -- troubleshooting, security, credentials
+- [Getting Started](https://bnaard.codeberg.page/kubeclaw/quick-start/) -- requirements, quick start, dev container
+- [Architecture](https://bnaard.codeberg.page/kubeclaw/introduction/architecture/) -- network design, node roles, security model
+- [Infrastructure](https://bnaard.codeberg.page/kubeclaw/guide/infrastructure/) -- SSH keys, scaling, OpenTofu workflow
+- [Kubernetes](https://bnaard.codeberg.page/kubeclaw/guide/kubernetes/) -- kubeadm deployment with Cilium and Hetzner CSI
+- [Reference](https://bnaard.codeberg.page/kubeclaw/reference/variables/) -- all variables, outputs, templates, playbooks
+- [Operations](https://bnaard.codeberg.page/kubeclaw/operations/troubleshooting/) -- troubleshooting, security, credentials
 
 ## Project Status
 
@@ -108,7 +108,7 @@ Key sections:
 
 ## Contributing
 
-Contributions are welcome. See the [contributing guide](docs/contributing/index.md) for details.
+Contributions are welcome. See the [contributing guide](https://bnaard.codeberg.page/kubeclaw/contributing/) for details.
 
 ## License
 

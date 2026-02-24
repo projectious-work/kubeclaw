@@ -87,7 +87,7 @@ ansible-playbook playbooks/configure-nat64.yml -e '{"dns64_resolvers":["2a01:4f8
 
 ## prepare-k8s-nodes.yml
 
-**Purpose**: Install containerd, kubeadm, kubelet, and kubectl on already-running nodes. Cloud-init only runs at first boot -- use this playbook for existing nodes.
+**Purpose**: Install container runtime (containerd or CRI-O), kubeadm, kubelet, and kubectl on already-running nodes. Cloud-init only runs at first boot -- use this playbook for existing nodes.
 
 **Usage**:
 
@@ -96,6 +96,7 @@ cd ansible
 ansible-playbook playbooks/prepare-k8s-nodes.yml
 ansible-playbook playbooks/prepare-k8s-nodes.yml --limit control_nodes
 ansible-playbook playbooks/prepare-k8s-nodes.yml -e "kubernetes_version=1.32"
+ansible-playbook playbooks/prepare-k8s-nodes.yml -e "container_runtime=cri-o"
 ```
 
 **Variables**:
@@ -103,17 +104,18 @@ ansible-playbook playbooks/prepare-k8s-nodes.yml -e "kubernetes_version=1.32"
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `kubernetes_version` | `"1.32"` | Kubernetes minor version for apt repo |
+| `container_runtime` | `"containerd"` | Container runtime: `"containerd"` or `"cri-o"` |
 
 **Tasks**:
 
 1. Load kernel modules (`overlay`, `br_netfilter`)
 2. Set sysctl parameters (`bridge-nf-call-iptables`, `ip_forward`)
 3. Disable swap
-4. Install and configure containerd (with SystemdCgroup)
+4. Install and configure container runtime (containerd with SystemdCgroup, or CRI-O from OBS repo)
 5. Add Kubernetes apt repository
 6. Install kubelet, kubeadm, kubectl (held at current version)
 7. Open UFW ports on control nodes (kubelet 10250, etcd 2379-2380)
-8. Verify kubeadm version and containerd status
+8. Verify kubeadm version and container runtime status
 
 ## Ansible configuration
 

@@ -236,6 +236,7 @@ resource "hcloud_server" "master_control_node" {
     dns64_resolvers        = var.dns64_resolvers
     enable_k8s_prereqs     = var.enable_k8s_prereqs
     kubernetes_version     = var.kubernetes_version
+    container_runtime      = var.container_runtime
     cloudflare_tunnel_token = var.cloudflare_tunnel_token
   })
 
@@ -289,6 +290,7 @@ resource "hcloud_server" "control_node_replica" {
     dns64_resolvers        = var.dns64_resolvers
     enable_k8s_prereqs     = var.enable_k8s_prereqs
     kubernetes_version     = var.kubernetes_version
+    container_runtime      = var.container_runtime
     cloudflare_tunnel_token = ""
   })
 
@@ -343,6 +345,7 @@ resource "hcloud_server" "worker_node" {
     dns64_resolvers    = var.dns64_resolvers
     enable_k8s_prereqs = var.enable_k8s_prereqs
     kubernetes_version = var.kubernetes_version
+    container_runtime  = var.container_runtime
   })
 
   labels = {

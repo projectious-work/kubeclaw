@@ -197,7 +197,7 @@ variable "ssh_key_prefix" {
 }
 
 # -----------------------------------------------------------------------------
-# Kubernetes Prerequisites (kubeadm, kubelet, containerd)
+# Kubernetes Prerequisites (kubeadm, kubelet, container runtime)
 # -----------------------------------------------------------------------------
 
 variable "enable_k8s_prereqs" {
@@ -210,4 +210,14 @@ variable "kubernetes_version" {
   description = "Kubernetes minor version for the pkgs.k8s.io apt source (e.g., '1.32')."
   type        = string
   default     = "1.32"
+}
+
+variable "container_runtime" {
+  description = "Container runtime for Kubernetes nodes: \"containerd\" or \"cri-o\""
+  type        = string
+  default     = "containerd"
+  validation {
+    condition     = contains(["containerd", "cri-o"], var.container_runtime)
+    error_message = "container_runtime must be \"containerd\" or \"cri-o\""
+  }
 }

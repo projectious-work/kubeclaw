@@ -100,5 +100,6 @@ If left empty, new keys will be auto-generated and stored in the OpenTofu state.
 
 | Variable | Type | Default | Description |
 |----------|------|---------|-------------|
-| `enable_k8s_prereqs` | `bool` | `true` | Install Kubernetes prerequisites (containerd, kubeadm, kubelet, kubectl) via cloud-init |
+| `enable_k8s_prereqs` | `bool` | `true` | Install Kubernetes prerequisites (container runtime, kubeadm, kubelet, kubectl) via cloud-init |
 | `kubernetes_version` | `string` | `"1.32"` | Kubernetes minor version for the pkgs.k8s.io apt source |
+| `container_runtime` | `string` | `"containerd"` | Container runtime for Kubernetes nodes: `"containerd"` or `"cri-o"` |

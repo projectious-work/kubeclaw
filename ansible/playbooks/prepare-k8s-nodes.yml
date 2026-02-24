@@ -2,13 +2,15 @@
 # =============================================================================
 # Kubernetes Prerequisites Playbook
 # =============================================================================
-# Installs containerd, kubeadm, kubelet, and kubectl on already-running nodes.
-# Cloud-init only runs at first boot — use this playbook for existing nodes.
+# Installs container runtime (containerd or CRI-O), kubeadm, kubelet, and
+# kubectl on already-running nodes. Cloud-init only runs at first boot — use
+# this playbook for existing nodes.
 #
 # Usage:
 #   ansible-playbook playbooks/prepare-k8s-nodes.yml
 #   ansible-playbook playbooks/prepare-k8s-nodes.yml --limit control_nodes
 #   ansible-playbook playbooks/prepare-k8s-nodes.yml -e "kubernetes_version=1.32"
+#   ansible-playbook playbooks/prepare-k8s-nodes.yml -e "container_runtime=cri-o"
 # =============================================================================
 
 - name: Prepare nodes for Kubernetes (kubeadm)
@@ -18,6 +20,7 @@
 
   vars:
     kubernetes_version: "1.32"
+    container_runtime: "containerd"
 
   tasks:
     # -------------------------------------------------------------------------
@@ -84,24 +87,29 @@
         state: absent
 
     # -------------------------------------------------------------------------
-    # Install and Configure containerd
+    # Install and Configure Container Runtime
     # -------------------------------------------------------------------------
+
+    # --- containerd ---
     - name: Install containerd
       ansible.builtin.apt:
         name: containerd
         state: present
         update_cache: true
+      when: container_runtime == "containerd"
 
     - name: Create containerd config directory
       ansible.builtin.file:
         path: /etc/containerd
         state: directory
         mode: '0755'
+      when: container_runtime == "containerd"
 
     - name: Generate default containerd config
       ansible.builtin.shell: containerd config default > /etc/containerd/config.toml
       args:
         creates: /etc/containerd/config.toml
+      when: container_runtime == "containerd"
 
     - name: Enable SystemdCgroup in containerd config
       ansible.builtin.replace:
@@ -109,6 +117,7 @@
         regexp: 'SystemdCgroup = false'
         replace: 'SystemdCgroup = true'
       notify: Restart containerd
+      when: container_runtime == "containerd"
 
     - name: Set sandbox image to pause:3.10 (matches kubeadm expectation)
       ansible.builtin.replace:
@@ -116,12 +125,59 @@
         regexp: 'registry\.k8s\.io/pause:3\.8'
         replace: 'registry.k8s.io/pause:3.10'
       notify: Restart containerd
+      when: container_runtime == "containerd"
 
     - name: Enable and start containerd
       ansible.builtin.service:
         name: containerd
         state: started
         enabled: true
+      when: container_runtime == "containerd"
+
+    # --- CRI-O ---
+    - name: Add CRI-O apt signing key
+      ansible.builtin.shell: >
+        curl -fsSL https://download.opensuse.org/repositories/isv:/cri-o:/stable:/v{{ kubernetes_version }}/deb/Release.key
+        | gpg --dearmor -o /etc/apt/keyrings/cri-o-apt-keyring.gpg
+      args:
+        creates: /etc/apt/keyrings/cri-o-apt-keyring.gpg
+      when: container_runtime == "cri-o"
+
+    - name: Create keyrings directory for CRI-O
+      ansible.builtin.file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: '0755'
+      when: container_runtime == "cri-o"
+
+    - name: Add CRI-O apt repository
+      ansible.builtin.copy:
+        dest: /etc/apt/sources.list.d/cri-o.list
+        content: "deb [signed-by=/etc/apt/keyrings/cri-o-apt-keyring.gpg] https://download.opensuse.org/repositories/isv:/cri-o:/stable:/v{{ kubernetes_version }}/deb/ /\n"
+        mode: '0644'
+      when: container_runtime == "cri-o"
+
+    - name: Install CRI-O
+      ansible.builtin.apt:
+        name: cri-o
+        state: present
+        update_cache: true
+      when: container_runtime == "cri-o"
+
+    - name: Enable and start CRI-O
+      ansible.builtin.service:
+        name: crio
+        state: started
+        enabled: true
+      when: container_runtime == "cri-o"
+
+    - name: Configure kubelet to use CRI-O socket
+      ansible.builtin.copy:
+        dest: /etc/default/kubelet
+        content: "KUBELET_EXTRA_ARGS=--container-runtime-endpoint=unix:///var/run/crio/crio.sock\n"
+        mode: '0644'
+      notify: Restart crio
+      when: container_runtime == "cri-o"
 
     # -------------------------------------------------------------------------
     # Kubernetes APT Repository
@@ -209,13 +265,31 @@
       ansible.builtin.command: systemctl is-active containerd
       register: containerd_status
       changed_when: false
+      when: container_runtime == "containerd"
 
     - name: Display containerd status
       ansible.builtin.debug:
         msg: "containerd status: {{ containerd_status.stdout }}"
+      when: container_runtime == "containerd"
+
+    - name: Verify CRI-O is running
+      ansible.builtin.command: systemctl is-active crio
+      register: crio_status
+      changed_when: false
+      when: container_runtime == "cri-o"
+
+    - name: Display CRI-O status
+      ansible.builtin.debug:
+        msg: "CRI-O status: {{ crio_status.stdout }}"
+      when: container_runtime == "cri-o"
 
   handlers:
     - name: Restart containerd
       ansible.builtin.service:
         name: containerd
+        state: restarted
+
+    - name: Restart crio
+      ansible.builtin.service:
+        name: crio
         state: restarted

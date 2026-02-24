@@ -43,6 +43,7 @@ Cloud-init templates are located in `cloud-init/` and rendered by OpenTofu via `
 | `dns64_resolvers` | `var.dns64_resolvers` |
 | `enable_k8s_prereqs` | `var.enable_k8s_prereqs` |
 | `kubernetes_version` | `var.kubernetes_version` |
+| `container_runtime` | `var.container_runtime` |
 | `cloudflare_tunnel_token` | `var.cloudflare_tunnel_token` (master), `""` (replicas) |
 
 **What it configures**:
@@ -57,7 +58,7 @@ Cloud-init templates are located in `cloud-init/` and rendered by OpenTofu via `
 - **`is_master = true`**: Installs `cloudflared`, allows SSH from localhost, creates `/etc/cloudflared/config.yml` with `edge-ip-version: "6"`. When `cloudflare_tunnel_token` is set, runs `cloudflared service install <token>` to auto-configure the tunnel as a systemd service.
 - **`is_master = false`**: Skips cloudflared installation (token always empty for replicas)
 - **`enable_nat64 = true`**: Configures DNS64 resolvers in systemd-resolved, adds NAT64 route (`64:ff9b::/96`), creates networkd-dispatcher persistence script
-- **`enable_k8s_prereqs = true`**: Installs containerd (with SystemdCgroup, sandbox image updated to `pause:3.10`), kubeadm, kubelet, kubectl, loads kernel modules (`overlay`, `br_netfilter`), sets sysctl params, disables swap, opens kubelet (10250) + etcd (2379-2380) ports
+- **`enable_k8s_prereqs = true`**: Installs the selected container runtime (`containerd` with SystemdCgroup and sandbox image fix, or `cri-o` from OBS repo with kubelet socket configuration), kubeadm, kubelet, kubectl, loads kernel modules (`overlay`, `br_netfilter`), sets sysctl params, disables swap, opens kubelet (10250) + etcd (2379-2380) ports
 
 ## worker-node.yaml.tpl
 
@@ -77,6 +78,7 @@ Cloud-init templates are located in `cloud-init/` and rendered by OpenTofu via `
 | `dns64_resolvers` | `var.dns64_resolvers` |
 | `enable_k8s_prereqs` | `var.enable_k8s_prereqs` |
 | `kubernetes_version` | `var.kubernetes_version` |
+| `container_runtime` | `var.container_runtime` |
 
 **What it configures**:
 
@@ -88,7 +90,7 @@ Cloud-init templates are located in `cloud-init/` and rendered by OpenTofu via `
 **Conditional sections**:
 
 - **`enable_nat64 = true`**: Uses DNS64 resolvers instead of Hetzner DNS, adds NAT64 prefix UFW rule
-- **`enable_k8s_prereqs = true`**: Same as control node prerequisites, but without etcd ports
+- **`enable_k8s_prereqs = true`**: Same as control node prerequisites (runtime selected by `container_runtime`), but without etcd ports
 
 ## Template rendering
 
@@ -105,6 +107,7 @@ user_data = templatefile("${path.module}/cloud-init/control-node.yaml.tpl", {
   dns64_resolvers        = var.dns64_resolvers
   enable_k8s_prereqs     = var.enable_k8s_prereqs
   kubernetes_version     = var.kubernetes_version
+  container_runtime      = var.container_runtime
   cloudflare_tunnel_token = var.cloudflare_tunnel_token
 })
 ```

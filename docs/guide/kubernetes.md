@@ -71,13 +71,26 @@ net.bridge.bridge-nf-call-ip6tables = 1
 net.ipv4.ip_forward = 1
 ```
 
-**containerd**
+**Container runtime**
 
-```bash
-systemctl is-active containerd
-```
+=== "containerd (default)"
 
-Expected output: `active`
+    ```bash
+    systemctl is-active containerd
+    ```
+
+    Expected output: `active`
+
+=== "CRI-O"
+
+    ```bash
+    systemctl is-active crio
+    ```
+
+    Expected output: `active`
+
+    !!! note "CRI-O CNI path"
+        CRI-O uses `/opt/cni/bin` for CNI binaries (the upstream default), unlike Debian's containerd which uses `/usr/lib/cni`. When installing Cilium with CRI-O, use `--set cni.binPath=/opt/cni/bin` (or omit the flag, since `/opt/cni/bin` is Cilium's default).
 
 **kubeadm**
 
@@ -328,7 +341,7 @@ Flags explained:
 - `--set ipv6.enabled=true` -- Enable IPv6 pod networking (external access via DNS64/NAT64)
 - `--set enableIPv6Masquerade=true` -- Masquerade pod IPv6 traffic to the node's public IPv6 when leaving the cluster. This is what allows pods to reach external services via NAT64
 - `--set operator.replicas=1` -- Cilium defaults to 2 operator replicas, but since the operator uses a host port, only one can run per node. Set to 1 for single-node clusters; increase when adding worker nodes
-- `--set cni.binPath=/usr/lib/cni` -- Debian's containerd package looks for CNI binaries in `/usr/lib/cni` instead of the default `/opt/cni/bin/`. Without this, kubelet reports `cni plugin not initialized`
+- `--set cni.binPath=/usr/lib/cni` -- Debian's containerd package looks for CNI binaries in `/usr/lib/cni` instead of the default `/opt/cni/bin/`. Without this, kubelet reports `cni plugin not initialized`. If using CRI-O, omit this flag (CRI-O uses the default `/opt/cni/bin`)
 
 !!! important "Restart containerd after Cilium install"
     After Cilium deploys the CNI plugin, containerd may have cached the "not initialized" state. Restart it to pick up the new CNI:

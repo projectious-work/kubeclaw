@@ -134,6 +134,7 @@ runcmd:
   - modprobe overlay
   - modprobe br_netfilter
   - sysctl --system
+%{ if container_runtime == "containerd" ~}
   # Install and configure containerd
   - apt-get update && apt-get install -y containerd
   - mkdir -p /etc/containerd
@@ -142,6 +143,19 @@ runcmd:
   - sed -i 's|registry.k8s.io/pause:3\.8|registry.k8s.io/pause:3.10|' /etc/containerd/config.toml
   - systemctl restart containerd
   - systemctl enable containerd
+%{ endif ~}
+%{ if container_runtime == "cri-o" ~}
+  # Install and configure CRI-O
+  - mkdir -p /etc/apt/keyrings
+  - curl -fsSL https://download.opensuse.org/repositories/isv:/cri-o:/stable:/v${kubernetes_version}/deb/Release.key | gpg --dearmor -o /etc/apt/keyrings/cri-o-apt-keyring.gpg
+  - echo 'deb [signed-by=/etc/apt/keyrings/cri-o-apt-keyring.gpg] https://download.opensuse.org/repositories/isv:/cri-o:/stable:/v${kubernetes_version}/deb/ /' | tee /etc/apt/sources.list.d/cri-o.list
+  - apt-get update && apt-get install -y cri-o
+  - systemctl enable crio
+  - systemctl start crio
+  # Configure kubelet to use CRI-O socket
+  - mkdir -p /etc/default
+  - echo 'KUBELET_EXTRA_ARGS=--container-runtime-endpoint=unix:///var/run/crio/crio.sock' > /etc/default/kubelet
+%{ endif ~}
   # Add Kubernetes apt repository
   - mkdir -p --mode=0755 /usr/share/keyrings
   - curl -fsSL https://pkgs.k8s.io/core:/stable:/v${kubernetes_version}/deb/Release.key | gpg --dearmor -o /usr/share/keyrings/kubernetes-apt-keyring.gpg

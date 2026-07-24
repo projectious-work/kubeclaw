@@ -1,0 +1,687 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Reference on KubeClaw</title><link>https://projectious-work.github.io/kubeclaw/docs/reference/</link><description>Recent content in Reference on KubeClaw</description><generator>Hugo</generator><language>en</language><atom:link href="https://projectious-work.github.io/kubeclaw/docs/reference/index.xml" rel="self" type="application/rss+xml"/><item><title>Ansible Playbooks Reference</title><link>https://projectious-work.github.io/kubeclaw/docs/reference/playbooks/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/reference/playbooks/</guid><description>&lt;p&gt;All playbooks are in &lt;code&gt;ansible/playbooks/&lt;/code&gt; and target the &lt;code&gt;k8s_cluster&lt;/code&gt; host group by default.&lt;/p&gt;
+&lt;h2 id="update-systemyml"&gt;update-system.yml&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;Purpose&lt;/strong&gt;: Run &lt;code&gt;apt update &amp;amp;&amp;amp; apt upgrade&lt;/code&gt; on all nodes.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Usage&lt;/strong&gt;:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;cd&lt;/span&gt; ansible
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;ansible-playbook playbooks/update-system.yml
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;ansible-playbook playbooks/update-system.yml --limit control_nodes
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;ansible-playbook playbooks/update-system.yml -e &lt;span class="s2"&gt;&amp;#34;reboot_after_update=true&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;strong&gt;Variables&lt;/strong&gt;:&lt;/p&gt;
+&lt;table&gt;
+	&lt;thead&gt;
+			&lt;tr&gt;
+					&lt;th&gt;Variable&lt;/th&gt;
+					&lt;th&gt;Default&lt;/th&gt;
+					&lt;th&gt;Description&lt;/th&gt;
+			&lt;/tr&gt;
+	&lt;/thead&gt;
+	&lt;tbody&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;reboot_after_update&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;&lt;code&gt;false&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Reboot after update if the system requires it&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;reboot_timeout&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;&lt;code&gt;300&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Timeout (seconds) to wait for reboot&lt;/td&gt;
+			&lt;/tr&gt;
+	&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;&lt;strong&gt;Tasks&lt;/strong&gt;:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Update apt cache&lt;/li&gt;
+&lt;li&gt;Upgrade all packages (dist-upgrade with autoremove)&lt;/li&gt;
+&lt;li&gt;Check if reboot is required (&lt;code&gt;/var/run/reboot-required&lt;/code&gt;)&lt;/li&gt;
+&lt;li&gt;Reboot if required and enabled&lt;/li&gt;
+&lt;li&gt;Wait for system to come back online&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id="security-hardeningyml"&gt;security-hardening.yml&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;Purpose&lt;/strong&gt;: Apply security measures on all nodes.&lt;/p&gt;</description></item><item><title>Cloud-Init Templates</title><link>https://projectious-work.github.io/kubeclaw/docs/reference/cloud-init/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/reference/cloud-init/</guid><description>&lt;p&gt;Cloud-init templates are located in &lt;code&gt;cloud-init/&lt;/code&gt; and rendered by OpenTofu via &lt;code&gt;templatefile()&lt;/code&gt; in &lt;code&gt;main.tf&lt;/code&gt;. They configure each server on first boot.&lt;/p&gt;
+&lt;h2 id="admin-nodeyamltpl"&gt;admin-node.yaml.tpl&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;Purpose&lt;/strong&gt;: Minimal jump host for initial SSH access.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Used by&lt;/strong&gt;: &lt;code&gt;hcloud_server.admin_node&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Template variables&lt;/strong&gt;:&lt;/p&gt;
+&lt;table&gt;
+	&lt;thead&gt;
+			&lt;tr&gt;
+					&lt;th&gt;Variable&lt;/th&gt;
+					&lt;th&gt;Source&lt;/th&gt;
+			&lt;/tr&gt;
+	&lt;/thead&gt;
+	&lt;tbody&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;ssh_public_key&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;&lt;code&gt;local.admin_node_public_key&lt;/code&gt;&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;root_password&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;&lt;code&gt;var.root_password&lt;/code&gt;&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;admin_user&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;&lt;code&gt;var.admin_user&lt;/code&gt;&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;keyboard_layout&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;&lt;code&gt;var.keyboard_layout&lt;/code&gt;&lt;/td&gt;
+			&lt;/tr&gt;
+	&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;&lt;strong&gt;What it configures&lt;/strong&gt;:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Admin user with sudo NOPASSWD&lt;/li&gt;
+&lt;li&gt;SSH hardening with &lt;code&gt;AllowTcpForwarding yes&lt;/code&gt; (needed for ProxyJump)&lt;/li&gt;
+&lt;li&gt;fail2ban for SSH protection&lt;/li&gt;
+&lt;li&gt;UFW allowing public SSH (port 22 from anywhere)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id="control-nodeyamltpl"&gt;control-node.yaml.tpl&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;Purpose&lt;/strong&gt;: Kubernetes control plane node with optional Cloudflare Tunnel.&lt;/p&gt;</description></item><item><title>Cost Estimate</title><link>https://projectious-work.github.io/kubeclaw/docs/reference/cost-estimate/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/reference/cost-estimate/</guid><description>&lt;h2 id="example-2-node-cluster"&gt;Example: 2-node cluster&lt;/h2&gt;
+&lt;table&gt;
+	&lt;thead&gt;
+			&lt;tr&gt;
+					&lt;th&gt;Component&lt;/th&gt;
+					&lt;th&gt;Specification&lt;/th&gt;
+					&lt;th&gt;Monthly Cost&lt;/th&gt;
+			&lt;/tr&gt;
+	&lt;/thead&gt;
+	&lt;tbody&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Node 1 (CX22, IPv6-only)&lt;/td&gt;
+					&lt;td&gt;2 vCPU / 4 GB RAM&lt;/td&gt;
+					&lt;td&gt;~€3.29&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Node 2 (CX22, IPv6-only)&lt;/td&gt;
+					&lt;td&gt;2 vCPU / 4 GB RAM&lt;/td&gt;
+					&lt;td&gt;~€3.29&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Block Volumes (10 GB each)&lt;/td&gt;
+					&lt;td&gt;Hetzner CSI&lt;/td&gt;
+					&lt;td&gt;~€0.96&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Private Network&lt;/td&gt;
+					&lt;td&gt;&amp;ndash;&lt;/td&gt;
+					&lt;td&gt;Free&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Cloudflare Tunnel + Access&lt;/td&gt;
+					&lt;td&gt;Up to 50 users&lt;/td&gt;
+					&lt;td&gt;Free&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;strong&gt;Total&lt;/strong&gt;&lt;/td&gt;
+					&lt;td&gt;&lt;/td&gt;
+					&lt;td&gt;&lt;strong&gt;~€7.54/month&lt;/strong&gt;&lt;/td&gt;
+			&lt;/tr&gt;
+	&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2 id="notes"&gt;Notes&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Costs vary with server types and volume count&lt;/li&gt;
+&lt;li&gt;IPv6-only nodes are cheaper (no IPv4 address surcharge)&lt;/li&gt;
+&lt;li&gt;The admin node (CX22, ~€3.29/month) is temporary and should be deleted after tunnel setup&lt;/li&gt;
+&lt;li&gt;Block volumes are billed per GB per month (~€0.048/GB)&lt;/li&gt;
+&lt;li&gt;See &lt;a href="https://www.hetzner.com/cloud/"&gt;Hetzner Cloud pricing&lt;/a&gt; for current prices&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id="scaling-costs"&gt;Scaling costs&lt;/h2&gt;
+&lt;table&gt;
+	&lt;thead&gt;
+			&lt;tr&gt;
+					&lt;th&gt;Configuration&lt;/th&gt;
+					&lt;th&gt;Nodes&lt;/th&gt;
+					&lt;th&gt;Estimated Monthly Cost&lt;/th&gt;
+			&lt;/tr&gt;
+	&lt;/thead&gt;
+	&lt;tbody&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Master-only (dev/learning)&lt;/td&gt;
+					&lt;td&gt;1&lt;/td&gt;
+					&lt;td&gt;~€3.29&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Master + 1 worker&lt;/td&gt;
+					&lt;td&gt;2&lt;/td&gt;
+					&lt;td&gt;~€6.58 + volumes&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;3 control + 2 workers (HA)&lt;/td&gt;
+					&lt;td&gt;5&lt;/td&gt;
+					&lt;td&gt;~€16.45 + volumes&lt;/td&gt;
+			&lt;/tr&gt;
+	&lt;/tbody&gt;
+&lt;/table&gt;</description></item><item><title>OS Images</title><link>https://projectious-work.github.io/kubeclaw/docs/reference/os-images/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/reference/os-images/</guid><description>&lt;p&gt;Hetzner Cloud offers the following Debian/Ubuntu images:&lt;/p&gt;
+&lt;table&gt;
+	&lt;thead&gt;
+			&lt;tr&gt;
+					&lt;th&gt;Image&lt;/th&gt;
+					&lt;th&gt;Name&lt;/th&gt;
+					&lt;th&gt;Recommendation&lt;/th&gt;
+			&lt;/tr&gt;
+	&lt;/thead&gt;
+	&lt;tbody&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;debian-13&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Debian 13 Trixie&lt;/td&gt;
+					&lt;td&gt;&lt;strong&gt;Recommended for K8s&lt;/strong&gt;&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;debian-12&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Debian 12 Bookworm&lt;/td&gt;
+					&lt;td&gt;Stable, well-proven&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;ubuntu-24.04&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Ubuntu 24.04 LTS&lt;/td&gt;
+					&lt;td&gt;Good for K8s&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;ubuntu-22.04&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Ubuntu 22.04 LTS&lt;/td&gt;
+					&lt;td&gt;Well-proven&lt;/td&gt;
+			&lt;/tr&gt;
+	&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2 id="why-debian-13"&gt;Why Debian 13?&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Stability&lt;/strong&gt;: long support cycles&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Compatibility&lt;/strong&gt;: all K8s tools (kubeadm, k3s, etc.) support Debian&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Small footprint&lt;/strong&gt;: leaner than Ubuntu, but not as small as Alpine&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;No glibc/musl issues&lt;/strong&gt;: unlike Alpine, no compatibility problems&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Hetzner Cloud doesn&amp;rsquo;t provide dedicated &amp;ldquo;slim&amp;rdquo; or &amp;ldquo;minimal&amp;rdquo; variants. The standard images are fairly compact already.&lt;/p&gt;</description></item><item><title>Outputs Reference</title><link>https://projectious-work.github.io/kubeclaw/docs/reference/outputs/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/reference/outputs/</guid><description>&lt;p&gt;All outputs exposed by the OpenTofu configuration. These are consumed by the setup scripts and can be queried manually.&lt;/p&gt;
+&lt;h2 id="network-information"&gt;Network Information&lt;/h2&gt;
+&lt;table&gt;
+	&lt;thead&gt;
+			&lt;tr&gt;
+					&lt;th&gt;Output&lt;/th&gt;
+					&lt;th&gt;Description&lt;/th&gt;
+			&lt;/tr&gt;
+	&lt;/thead&gt;
+	&lt;tbody&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;network_id&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;ID of the private network&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;network_name&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Name of the private network&lt;/td&gt;
+			&lt;/tr&gt;
+	&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2 id="cluster-metadata"&gt;Cluster Metadata&lt;/h2&gt;
+&lt;table&gt;
+	&lt;thead&gt;
+			&lt;tr&gt;
+					&lt;th&gt;Output&lt;/th&gt;
+					&lt;th&gt;Description&lt;/th&gt;
+			&lt;/tr&gt;
+	&lt;/thead&gt;
+	&lt;tbody&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;cluster_name&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Name of the cluster&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;admin_user&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Admin user name&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;ssh_key_prefix&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Prefix used for SSH key filenames&lt;/td&gt;
+			&lt;/tr&gt;
+	&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2 id="master-control-node"&gt;Master Control Node&lt;/h2&gt;
+&lt;table&gt;
+	&lt;thead&gt;
+			&lt;tr&gt;
+					&lt;th&gt;Output&lt;/th&gt;
+					&lt;th&gt;Description&lt;/th&gt;
+			&lt;/tr&gt;
+	&lt;/thead&gt;
+	&lt;tbody&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;master_control_node_id&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;ID of the master control node&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;master_control_node_name&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Name of the master control node&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;master_control_node_private_ip&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Private IP of the master control node&lt;/td&gt;
+			&lt;/tr&gt;
+	&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2 id="all-control-nodes-master--replicas"&gt;All Control Nodes (master + replicas)&lt;/h2&gt;
+&lt;table&gt;
+	&lt;thead&gt;
+			&lt;tr&gt;
+					&lt;th&gt;Output&lt;/th&gt;
+					&lt;th&gt;Description&lt;/th&gt;
+			&lt;/tr&gt;
+	&lt;/thead&gt;
+	&lt;tbody&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;control_node_count&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Total number of control nodes (master + replicas)&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;control_node_ids&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;IDs of all control nodes&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;control_node_names&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Names of all control nodes&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;control_node_private_ips&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Private IPs of all control nodes&lt;/td&gt;
+			&lt;/tr&gt;
+	&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2 id="worker-nodes"&gt;Worker Nodes&lt;/h2&gt;
+&lt;table&gt;
+	&lt;thead&gt;
+			&lt;tr&gt;
+					&lt;th&gt;Output&lt;/th&gt;
+					&lt;th&gt;Description&lt;/th&gt;
+			&lt;/tr&gt;
+	&lt;/thead&gt;
+	&lt;tbody&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;worker_node_count&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Number of worker nodes&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;worker_node_ids&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;IDs of worker nodes&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;worker_node_names&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Names of worker nodes&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;worker_node_private_ips&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Private IPs of worker nodes&lt;/td&gt;
+			&lt;/tr&gt;
+	&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2 id="admin-node"&gt;Admin Node&lt;/h2&gt;
+&lt;table&gt;
+	&lt;thead&gt;
+			&lt;tr&gt;
+					&lt;th&gt;Output&lt;/th&gt;
+					&lt;th&gt;Description&lt;/th&gt;
+			&lt;/tr&gt;
+	&lt;/thead&gt;
+	&lt;tbody&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;admin_node_id&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;ID of the admin node (null if disabled)&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;admin_node_name&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Name of the admin node (null if disabled)&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;admin_node_ipv6&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Public IPv6 address of the admin node (null if disabled)&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;admin_node_private_ip&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Private IP of the admin node (null if disabled)&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;enable_admin_node&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Whether the admin node is enabled&lt;/td&gt;
+			&lt;/tr&gt;
+	&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2 id="ssh-keys"&gt;SSH Keys&lt;/h2&gt;
+&lt;p&gt;These outputs are sensitive when auto-generated keys are used.&lt;/p&gt;</description></item><item><title>Project Structure</title><link>https://projectious-work.github.io/kubeclaw/docs/reference/project-structure/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/reference/project-structure/</guid><description>&lt;pre tabindex="0"&gt;&lt;code&gt;kubeclaw/
+├── main.tf # Infrastructure (providers, network, firewalls, servers)
+├── variables.tf # All configurable inputs
+├── outputs.tf # IPs, SSH keys, ssh_config_snippet, next-steps banner
+├── terraform.tfvars.example # Example configuration
+├── hugo.yaml # Hugo + Docsy configuration
+├── package.json # Docsy asset dependencies
+├── themes/docsy/ # Pinned Docsy theme submodule
+├── CLAUDE.md # Claude Code project instructions
+├── README.md # Project overview (concise)
+├── LICENSE # MIT License
+├── .gitignore
+├── .devcontainer/
+│ ├── devcontainer.json # Container config (bind mounts, extensions, port forwarding)
+│ ├── Dockerfile # Generated by aibox; do not edit directly
+│ ├── Dockerfile.local # Project layer: installs cloudflared
+│ └── docker-compose.override.yml # Project override: writable SSH mount
+├── cloud-init/
+│ ├── admin-node.yaml.tpl # Admin node (temporary jump host with public IPv6)
+│ ├── control-node.yaml.tpl # Control node (cloudflared on master, UFW, fail2ban, k8s prereqs)
+│ └── worker-node.yaml.tpl # Worker node (isolated, outbound DNS/HTTP/S only, k8s prereqs)
+├── scripts/
+│ ├── setup-ssh.sh # Export SSH keys from tofu state, generate ~/.ssh/config
+│ ├── ssh-agent-setup.sh # Fix SSH permissions, start ssh-agent, load keys
+│ ├── generate-ansible-inventory.sh # Build ansible/inventory.ini from tofu state
+│ ├── build-docs.sh # Build Hugo site locally
+│ ├── serve-docs.sh # Preview Hugo site locally
+│ └── deploy-docs.sh # Build and deploy Hugo to gh-pages
+├── ansible/
+│ ├── ansible.cfg # Ansible defaults (user, pipelining, SSH args)
+│ ├── inventory.ini # Auto-generated inventory (do not hand-edit)
+│ └── playbooks/
+│ ├── update-system.yml # System updates with optional reboot
+│ ├── security-hardening.yml # Unattended upgrades, fail2ban, sysctl hardening
+│ ├── configure-nat64.yml # NAT64/DNS64 for IPv4 reachability on running nodes
+│ └── prepare-k8s-nodes.yml # Kubernetes prerequisites (containerd, kubeadm) on running nodes
+└── content/ # Hugo documentation source
+ ├── _index.md # Branded landing page
+ └── docs/ # Documentation section
+ ├── _index.md # Documentation overview
+ ├── quick-start.md # Combined prerequisites + deployment steps
+ ├── introduction/
+ │ ├── _index.md
+ │ ├── architecture.md
+ │ ├── dns-and-nat64.md
+ │ ├── security-model.md
+ │ └── manual-setup.md
+ ├── guide/
+ │ ├── _index.md
+ │ ├── dev-container.md
+ │ ├── infrastructure.md
+ │ ├── ansible.md
+ │ ├── kubernetes.md
+ │ └── openclaw.md
+ ├── how-to/
+ │ ├── _index.md
+ │ ├── ssh-keys-with-passphrase.md
+ │ └── store-ssh-keys-in-password-manager.md
+ ├── reference/
+ │ ├── _index.md
+ │ ├── variables.md
+ │ ├── outputs.md
+ │ ├── cloud-init.md
+ │ ├── playbooks.md
+ │ ├── os-images.md
+ │ ├── project-structure.md
+ │ └── cost-estimate.md
+ ├── operations/
+ │ ├── _index.md
+ │ ├── scale-up-down.md
+ │ ├── ssh-key-rotation.md
+ │ ├── kubernetes-maintenance.md
+ │ ├── troubleshooting.md
+ │ ├── security.md
+ │ └── password-management.md
+ ├── roadmap/
+ │ ├── _index.md
+ │ └── cilium-ipv6.md
+ └── contributing/
+ ├── _index.md
+ ├── code-of-conduct.md
+ └── development.md
+&lt;/code&gt;&lt;/pre&gt;&lt;h2 id="key-files"&gt;Key Files&lt;/h2&gt;
+&lt;h3 id="infrastructure-root-level"&gt;Infrastructure (root level)&lt;/h3&gt;
+&lt;table&gt;
+	&lt;thead&gt;
+			&lt;tr&gt;
+					&lt;th&gt;File&lt;/th&gt;
+					&lt;th&gt;Purpose&lt;/th&gt;
+			&lt;/tr&gt;
+	&lt;/thead&gt;
+	&lt;tbody&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;main.tf&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Core infrastructure: providers, SSH keys, network/subnet, firewalls, servers, cloud-init rendering&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;variables.tf&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;All configurable inputs with types, defaults, and descriptions&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;outputs.tf&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Exposes IPs, SSH keys (sensitive), ssh_config_snippet, and next-steps banner&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;terraform.tfvars.example&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Reference configuration (actual &lt;code&gt;.tfvars&lt;/code&gt; is gitignored)&lt;/td&gt;
+			&lt;/tr&gt;
+	&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h3 id="cloud-init-templates"&gt;Cloud-Init Templates&lt;/h3&gt;
+&lt;table&gt;
+	&lt;thead&gt;
+			&lt;tr&gt;
+					&lt;th&gt;File&lt;/th&gt;
+					&lt;th&gt;Purpose&lt;/th&gt;
+			&lt;/tr&gt;
+	&lt;/thead&gt;
+	&lt;tbody&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;cloud-init/admin-node.yaml.tpl&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Minimal jump host: admin user, SSH hardening, fail2ban, public SSH&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;cloud-init/control-node.yaml.tpl&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Control plane: cloudflared (master only), UFW, fail2ban, optional NAT64 + K8s prereqs&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;cloud-init/worker-node.yaml.tpl&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Worker: restrictive UFW, no TCP forwarding, optional NAT64 + K8s prereqs&lt;/td&gt;
+			&lt;/tr&gt;
+	&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h3 id="scripts"&gt;Scripts&lt;/h3&gt;
+&lt;table&gt;
+	&lt;thead&gt;
+			&lt;tr&gt;
+					&lt;th&gt;File&lt;/th&gt;
+					&lt;th&gt;Purpose&lt;/th&gt;
+			&lt;/tr&gt;
+	&lt;/thead&gt;
+	&lt;tbody&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;scripts/setup-ssh.sh&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Export SSH keys, generate &lt;code&gt;~/.ssh/config&lt;/code&gt; with backup&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;scripts/ssh-agent-setup.sh&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Fix SSH permissions, start ssh-agent, load keys&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;scripts/generate-ansible-inventory.sh&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Build Ansible inventory from OpenTofu state&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;scripts/build-docs.sh&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Build the Hugo site locally&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;scripts/serve-docs.sh&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Preview the site locally&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;scripts/deploy-docs.sh&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Build Hugo and push to &lt;code&gt;gh-pages&lt;/code&gt;&lt;/td&gt;
+			&lt;/tr&gt;
+	&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h3 id="dev-container"&gt;Dev Container&lt;/h3&gt;
+&lt;p&gt;The aibox configuration in &lt;code&gt;aibox.toml&lt;/code&gt; is the source of truth for generated
+Dev Container files. Run &lt;code&gt;aibox apply&lt;/code&gt; after changing it; do not hand-edit
+&lt;code&gt;.devcontainer/Dockerfile&lt;/code&gt;, &lt;code&gt;docker-compose.yml&lt;/code&gt;, or &lt;code&gt;devcontainer.json&lt;/code&gt;.
+&lt;code&gt;Dockerfile.local&lt;/code&gt; and &lt;code&gt;docker-compose.override.yml&lt;/code&gt; are project-owned
+extensions and are safe to edit.&lt;/p&gt;</description></item><item><title>Variables Reference</title><link>https://projectious-work.github.io/kubeclaw/docs/reference/variables/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/reference/variables/</guid><description>&lt;p&gt;All configurable inputs for the OpenTofu infrastructure. Set these in &lt;code&gt;terraform.tfvars&lt;/code&gt;.&lt;/p&gt;
+&lt;h2 id="required-variables"&gt;Required Variables&lt;/h2&gt;
+&lt;table&gt;
+	&lt;thead&gt;
+			&lt;tr&gt;
+					&lt;th&gt;Variable&lt;/th&gt;
+					&lt;th&gt;Type&lt;/th&gt;
+					&lt;th&gt;Description&lt;/th&gt;
+			&lt;/tr&gt;
+	&lt;/thead&gt;
+	&lt;tbody&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;hcloud_token&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;&lt;code&gt;string&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Hetzner Cloud API Token (sensitive)&lt;/td&gt;
+			&lt;/tr&gt;
+	&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2 id="cluster-configuration"&gt;Cluster Configuration&lt;/h2&gt;
+&lt;table&gt;
+	&lt;thead&gt;
+			&lt;tr&gt;
+					&lt;th&gt;Variable&lt;/th&gt;
+					&lt;th&gt;Type&lt;/th&gt;
+					&lt;th&gt;Default&lt;/th&gt;
+					&lt;th&gt;Description&lt;/th&gt;
+			&lt;/tr&gt;
+	&lt;/thead&gt;
+	&lt;tbody&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;cluster_name&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;&lt;code&gt;string&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;&lt;code&gt;&amp;quot;k8s-cluster&amp;quot;&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Name prefix for all resources&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;location&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;&lt;code&gt;string&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;&lt;code&gt;&amp;quot;fsn1&amp;quot;&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Hetzner Cloud location (&lt;code&gt;fsn1&lt;/code&gt;, &lt;code&gt;nbg1&lt;/code&gt;, &lt;code&gt;hel1&lt;/code&gt;, &lt;code&gt;ash&lt;/code&gt;, &lt;code&gt;hil&lt;/code&gt;)&lt;/td&gt;
+			&lt;/tr&gt;
+	&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2 id="network-configuration"&gt;Network Configuration&lt;/h2&gt;
+&lt;table&gt;
+	&lt;thead&gt;
+			&lt;tr&gt;
+					&lt;th&gt;Variable&lt;/th&gt;
+					&lt;th&gt;Type&lt;/th&gt;
+					&lt;th&gt;Default&lt;/th&gt;
+					&lt;th&gt;Description&lt;/th&gt;
+			&lt;/tr&gt;
+	&lt;/thead&gt;
+	&lt;tbody&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;network_ip_range&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;&lt;code&gt;string&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;&lt;code&gt;&amp;quot;10.0.0.0/8&amp;quot;&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;IP range for the private network&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;subnet_ip_range&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;&lt;code&gt;string&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;&lt;code&gt;&amp;quot;10.0.0.0/24&amp;quot;&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;IP range for the subnet&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;network_zone&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;&lt;code&gt;string&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;&lt;code&gt;&amp;quot;eu-central&amp;quot;&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Network zone (&lt;code&gt;eu-central&lt;/code&gt;, &lt;code&gt;us-east&lt;/code&gt;, &lt;code&gt;us-west&lt;/code&gt;)&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;enable_public_ipv6&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;&lt;code&gt;bool&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;&lt;code&gt;true&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Enable public IPv6 for replica control nodes and worker nodes. The master always has public IPv6 (required for cloudflared). Setting to &lt;code&gt;false&lt;/code&gt; air-gaps replicas and workers.&lt;/td&gt;
+			&lt;/tr&gt;
+	&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2 id="server-configuration"&gt;Server Configuration&lt;/h2&gt;
+&lt;table&gt;
+	&lt;thead&gt;
+			&lt;tr&gt;
+					&lt;th&gt;Variable&lt;/th&gt;
+					&lt;th&gt;Type&lt;/th&gt;
+					&lt;th&gt;Default&lt;/th&gt;
+					&lt;th&gt;Description&lt;/th&gt;
+			&lt;/tr&gt;
+	&lt;/thead&gt;
+	&lt;tbody&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;server_image&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;&lt;code&gt;string&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;&lt;code&gt;&amp;quot;debian-13&amp;quot;&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Server image to use&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;master_control_node_type&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;&lt;code&gt;string&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;&lt;code&gt;&amp;quot;cx22&amp;quot;&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Server type for the master control node (runs cloudflared)&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;control_node_types&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;&lt;code&gt;list(object({type, count}))&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;&lt;code&gt;[]&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Server types and counts for replica control nodes&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;worker_node_types&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;&lt;code&gt;list(object({type, count}))&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;&lt;code&gt;[]&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Server types and counts for worker nodes&lt;/td&gt;
+			&lt;/tr&gt;
+	&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h3 id="node-type-examples"&gt;Node type examples&lt;/h3&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-hcl" data-lang="hcl"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# Master-only (default)
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="n"&gt;master_control_node_type&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;cx22&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="n"&gt;control_node_types&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="n"&gt;worker_node_types&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[]&lt;/span&gt;&lt;span class="c1"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 3 control nodes + 2 workers
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="n"&gt;control_node_types&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="n"&gt; { type&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt; &amp;#34;cx23&amp;#34;, count&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="m"&gt;2&lt;/span&gt; }&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="n"&gt;worker_node_types&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="n"&gt; { type&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt; &amp;#34;cx23&amp;#34;, count&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="m"&gt;2&lt;/span&gt; }&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="c1"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# Mixed worker types
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="n"&gt;worker_node_types&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="n"&gt; { type&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt; &amp;#34;cx23&amp;#34;, count&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="m"&gt;2&lt;/span&gt; }&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="n"&gt; { type&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt; &amp;#34;cx32&amp;#34;, count&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="m"&gt;1&lt;/span&gt; }&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id="authentication"&gt;Authentication&lt;/h2&gt;
+&lt;table&gt;
+	&lt;thead&gt;
+			&lt;tr&gt;
+					&lt;th&gt;Variable&lt;/th&gt;
+					&lt;th&gt;Type&lt;/th&gt;
+					&lt;th&gt;Default&lt;/th&gt;
+					&lt;th&gt;Description&lt;/th&gt;
+			&lt;/tr&gt;
+	&lt;/thead&gt;
+	&lt;tbody&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;root_password&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;&lt;code&gt;string&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;&lt;code&gt;&amp;quot;ChangeMe123!&amp;quot;&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Root password for emergency Web-Console access (sensitive)&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;admin_user&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;&lt;code&gt;string&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;&lt;code&gt;&amp;quot;kubernetes-admin&amp;quot;&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Admin user name for SSH access&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;keyboard_layout&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;&lt;code&gt;string&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;&lt;code&gt;&amp;quot;de&amp;quot;&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Keyboard layout for cloud-init&lt;/td&gt;
+			&lt;/tr&gt;
+	&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2 id="ssh-keys"&gt;SSH Keys&lt;/h2&gt;
+&lt;p&gt;If left empty, new keys will be auto-generated and stored in the OpenTofu state. When using custom keys, manage private keys yourself.&lt;/p&gt;</description></item></channel></rss>

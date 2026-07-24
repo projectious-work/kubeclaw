@@ -1,0 +1,870 @@
+<!doctype html><html itemscope itemtype=http://schema.org/WebPage lang=en class=no-js data-theme-init><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><meta name=color-scheme content="light dark"><meta name=theme-color media="(prefers-color-scheme: light)" content="#ffffff"><meta name=theme-color media="(prefers-color-scheme: dark)" content="#000000"><style>html{background:Canvas;color:CanvasText}@media(prefers-color-scheme:dark){html{background:#0b0d12;color:#e6e6e6}}html[data-theme-init] *{transition:none!important}</style><script>(function(){const t="td-color-theme",n=localStorage.getItem(t);let e=n||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");e==="auto"&&(e=window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"),document.documentElement.setAttribute("data-bs-theme",e)})()</script><link rel=alternate type=text/markdown href=https://projectious-work.github.io/kubeclaw/docs/guide/openclaw/index.md><meta name=robots content="index, follow"><link rel="shortcut icon" href=/kubeclaw/favicons/favicon.ico><link rel=apple-touch-icon href=/kubeclaw/favicons/apple-touch-icon-180x180.png sizes=180x180><link rel=icon type=image/png href=/kubeclaw/favicons/favicon-16x16.png sizes=16x16><link rel=icon type=image/png href=/kubeclaw/favicons/favicon-32x32.png sizes=32x32><link rel=icon type=image/png href=/kubeclaw/favicons/android-36x36.png sizes=36x36><link rel=icon type=image/png href=/kubeclaw/favicons/android-48x48.png sizes=48x48><link rel=icon type=image/png href=/kubeclaw/favicons/android-72x72.png sizes=72x72><link rel=icon type=image/png href=/kubeclaw/favicons/android-96x96.png sizes=96x96><link rel=icon type=image/png href=/kubeclaw/favicons/android-144x144.png sizes=144x144><link rel=icon type=image/png href=/kubeclaw/favicons/android-192x192.png sizes=192x192><title>OpenClaw Deployment | KubeClaw</title><meta name=description content="A step-by-step guide to deploying OpenClaw as an isolated AI assistant on the KubeClaw cluster, accessible via Telegram, WhatsApp, or Signal, with a web-based Control UI exposed through Cloudflare Tunnel.
+Architecture Overview ┌─────────────────────────────────────────────────────────────────────┐ │ Hetzner Private Network │ │ (10.0.0.0/24) │ │ │ │ ┌────────────────────────────────────────────────────────────┐ │ │ │ Kubernetes Cluster (kubeadm) + Cilium │ │ │ │ │ │ │ │ ┌─────────────────┐ ┌─────────────────┐ │ │ │ │ │ control-01 │ │ worker-01 │ │ │ │ │ │ (control plane)│◄─────►│ (worker node) │ │ │ │ │ │ 10.0.0.2 │ │ 10.0.0.3 │ │ │ │ │ │ │ │ │ │ │ │ │ │ ┌───────────┐ │ │ ┌───────────┐ │ │ │ │ │ │ │Block Vol │ │ │ │Block Vol │ │ │ │ │ │ │ │ 10 GB │ │ │ │ 10 GB │ │ │ │ │ │ │ └───────────┘ │ │ └───────────┘ │ │ │ │ │ └────────┬────────┘ └─────────────────┘ │ │ │ │ │ │ │ │ │ system-unrestricted namespace: │ │ │ │ └─ cloudflared (egress: ANY) │ │ │ │ │ │ │ │ apps-restricted namespace: │ │ │ │ └─ OpenClaw (Cilium FQDN egress whitelist) │ │ │ │ ├─ Telegram / WhatsApp / Signal │ │ │ │ └─ Control UI (:18789) │ │ │ │ │ │ │ └─────────────────────────────────────────────────────────────┘ │ │ │ │ │ cloudflared │ │ (outbound only) │ └──────────────────────────────┼──────────────────────────────────────┘ │ ▼ ┌───────────────────┐ │ Cloudflare │ │ Edge + Access │ └─────────┬─────────┘ │ ┌─────────┼─────────┐ │ │ │ ▼ ▼ ▼ [Telegram] [WhatsApp] [Signal] │ ▼ [Control UI] (browser dashboard) Prerequisites A running KubeClaw cluster (see Kubernetes guide) Anthropic API key (console.anthropic.com) At least one messaging channel: Channel What You Need Telegram Bot Token from @BotFather, your Telegram User ID WhatsApp A phone number with WhatsApp, access to scan a QR code Signal A dedicated phone number, signal-cli installed in the container Start with Telegram Telegram is the simplest channel to set up — it only requires a bot token and user ID, with no interactive pairing or additional dependencies. Step 1: Infrastructure Setup If you haven’t already set up the Hetzner Cloud infrastructure, follow the Quick Start and Kubernetes guide."><meta property="og:url" content="https://projectious-work.github.io/kubeclaw/docs/guide/openclaw/"><meta property="og:site_name" content="KubeClaw"><meta property="og:title" content="OpenClaw Deployment"><meta property="og:description" content="A step-by-step guide to deploying OpenClaw as an isolated AI assistant on the KubeClaw cluster, accessible via Telegram, WhatsApp, or Signal, with a web-based Control UI exposed through Cloudflare Tunnel.
+Architecture Overview ┌─────────────────────────────────────────────────────────────────────┐ │ Hetzner Private Network │ │ (10.0.0.0/24) │ │ │ │ ┌────────────────────────────────────────────────────────────┐ │ │ │ Kubernetes Cluster (kubeadm) + Cilium │ │ │ │ │ │ │ │ ┌─────────────────┐ ┌─────────────────┐ │ │ │ │ │ control-01 │ │ worker-01 │ │ │ │ │ │ (control plane)│◄─────►│ (worker node) │ │ │ │ │ │ 10.0.0.2 │ │ 10.0.0.3 │ │ │ │ │ │ │ │ │ │ │ │ │ │ ┌───────────┐ │ │ ┌───────────┐ │ │ │ │ │ │ │Block Vol │ │ │ │Block Vol │ │ │ │ │ │ │ │ 10 GB │ │ │ │ 10 GB │ │ │ │ │ │ │ └───────────┘ │ │ └───────────┘ │ │ │ │ │ └────────┬────────┘ └─────────────────┘ │ │ │ │ │ │ │ │ │ system-unrestricted namespace: │ │ │ │ └─ cloudflared (egress: ANY) │ │ │ │ │ │ │ │ apps-restricted namespace: │ │ │ │ └─ OpenClaw (Cilium FQDN egress whitelist) │ │ │ │ ├─ Telegram / WhatsApp / Signal │ │ │ │ └─ Control UI (:18789) │ │ │ │ │ │ │ └─────────────────────────────────────────────────────────────┘ │ │ │ │ │ cloudflared │ │ (outbound only) │ └──────────────────────────────┼──────────────────────────────────────┘ │ ▼ ┌───────────────────┐ │ Cloudflare │ │ Edge + Access │ └─────────┬─────────┘ │ ┌─────────┼─────────┐ │ │ │ ▼ ▼ ▼ [Telegram] [WhatsApp] [Signal] │ ▼ [Control UI] (browser dashboard) Prerequisites A running KubeClaw cluster (see Kubernetes guide) Anthropic API key (console.anthropic.com) At least one messaging channel: Channel What You Need Telegram Bot Token from @BotFather, your Telegram User ID WhatsApp A phone number with WhatsApp, access to scan a QR code Signal A dedicated phone number, signal-cli installed in the container Start with Telegram Telegram is the simplest channel to set up — it only requires a bot token and user ID, with no interactive pairing or additional dependencies. Step 1: Infrastructure Setup If you haven’t already set up the Hetzner Cloud infrastructure, follow the Quick Start and Kubernetes guide."><meta property="og:locale" content="en"><meta property="og:type" content="article"><meta property="article:section" content="docs"><meta property="article:modified_time" content="2026-07-24T21:25:23+02:00"><meta itemprop=name content="OpenClaw Deployment"><meta itemprop=description content="A step-by-step guide to deploying OpenClaw as an isolated AI assistant on the KubeClaw cluster, accessible via Telegram, WhatsApp, or Signal, with a web-based Control UI exposed through Cloudflare Tunnel.
+Architecture Overview ┌─────────────────────────────────────────────────────────────────────┐ │ Hetzner Private Network │ │ (10.0.0.0/24) │ │ │ │ ┌────────────────────────────────────────────────────────────┐ │ │ │ Kubernetes Cluster (kubeadm) + Cilium │ │ │ │ │ │ │ │ ┌─────────────────┐ ┌─────────────────┐ │ │ │ │ │ control-01 │ │ worker-01 │ │ │ │ │ │ (control plane)│◄─────►│ (worker node) │ │ │ │ │ │ 10.0.0.2 │ │ 10.0.0.3 │ │ │ │ │ │ │ │ │ │ │ │ │ │ ┌───────────┐ │ │ ┌───────────┐ │ │ │ │ │ │ │Block Vol │ │ │ │Block Vol │ │ │ │ │ │ │ │ 10 GB │ │ │ │ 10 GB │ │ │ │ │ │ │ └───────────┘ │ │ └───────────┘ │ │ │ │ │ └────────┬────────┘ └─────────────────┘ │ │ │ │ │ │ │ │ │ system-unrestricted namespace: │ │ │ │ └─ cloudflared (egress: ANY) │ │ │ │ │ │ │ │ apps-restricted namespace: │ │ │ │ └─ OpenClaw (Cilium FQDN egress whitelist) │ │ │ │ ├─ Telegram / WhatsApp / Signal │ │ │ │ └─ Control UI (:18789) │ │ │ │ │ │ │ └─────────────────────────────────────────────────────────────┘ │ │ │ │ │ cloudflared │ │ (outbound only) │ └──────────────────────────────┼──────────────────────────────────────┘ │ ▼ ┌───────────────────┐ │ Cloudflare │ │ Edge + Access │ └─────────┬─────────┘ │ ┌─────────┼─────────┐ │ │ │ ▼ ▼ ▼ [Telegram] [WhatsApp] [Signal] │ ▼ [Control UI] (browser dashboard) Prerequisites A running KubeClaw cluster (see Kubernetes guide) Anthropic API key (console.anthropic.com) At least one messaging channel: Channel What You Need Telegram Bot Token from @BotFather, your Telegram User ID WhatsApp A phone number with WhatsApp, access to scan a QR code Signal A dedicated phone number, signal-cli installed in the container Start with Telegram Telegram is the simplest channel to set up — it only requires a bot token and user ID, with no interactive pairing or additional dependencies. Step 1: Infrastructure Setup If you haven’t already set up the Hetzner Cloud infrastructure, follow the Quick Start and Kubernetes guide."><meta itemprop=dateModified content="2026-07-24T21:25:23+02:00"><meta itemprop=wordCount content="3470"><meta name=twitter:card content="summary"><meta name=twitter:title content="OpenClaw Deployment"><meta name=twitter:description content="A step-by-step guide to deploying OpenClaw as an isolated AI assistant on the KubeClaw cluster, accessible via Telegram, WhatsApp, or Signal, with a web-based Control UI exposed through Cloudflare Tunnel.
+Architecture Overview ┌─────────────────────────────────────────────────────────────────────┐ │ Hetzner Private Network │ │ (10.0.0.0/24) │ │ │ │ ┌────────────────────────────────────────────────────────────┐ │ │ │ Kubernetes Cluster (kubeadm) + Cilium │ │ │ │ │ │ │ │ ┌─────────────────┐ ┌─────────────────┐ │ │ │ │ │ control-01 │ │ worker-01 │ │ │ │ │ │ (control plane)│◄─────►│ (worker node) │ │ │ │ │ │ 10.0.0.2 │ │ 10.0.0.3 │ │ │ │ │ │ │ │ │ │ │ │ │ │ ┌───────────┐ │ │ ┌───────────┐ │ │ │ │ │ │ │Block Vol │ │ │ │Block Vol │ │ │ │ │ │ │ │ 10 GB │ │ │ │ 10 GB │ │ │ │ │ │ │ └───────────┘ │ │ └───────────┘ │ │ │ │ │ └────────┬────────┘ └─────────────────┘ │ │ │ │ │ │ │ │ │ system-unrestricted namespace: │ │ │ │ └─ cloudflared (egress: ANY) │ │ │ │ │ │ │ │ apps-restricted namespace: │ │ │ │ └─ OpenClaw (Cilium FQDN egress whitelist) │ │ │ │ ├─ Telegram / WhatsApp / Signal │ │ │ │ └─ Control UI (:18789) │ │ │ │ │ │ │ └─────────────────────────────────────────────────────────────┘ │ │ │ │ │ cloudflared │ │ (outbound only) │ └──────────────────────────────┼──────────────────────────────────────┘ │ ▼ ┌───────────────────┐ │ Cloudflare │ │ Edge + Access │ └─────────┬─────────┘ │ ┌─────────┼─────────┐ │ │ │ ▼ ▼ ▼ [Telegram] [WhatsApp] [Signal] │ ▼ [Control UI] (browser dashboard) Prerequisites A running KubeClaw cluster (see Kubernetes guide) Anthropic API key (console.anthropic.com) At least one messaging channel: Channel What You Need Telegram Bot Token from @BotFather, your Telegram User ID WhatsApp A phone number with WhatsApp, access to scan a QR code Signal A dedicated phone number, signal-cli installed in the container Start with Telegram Telegram is the simplest channel to set up — it only requires a bot token and user ID, with no interactive pairing or additional dependencies. Step 1: Infrastructure Setup If you haven’t already set up the Hetzner Cloud infrastructure, follow the Quick Start and Kubernetes guide."><link rel=preload href=/kubeclaw/scss/main.min.aeabf63efda4cea418039085e6f968fa9ab1b24e389b5f92b732afc5a24a9efa.css as=style integrity="sha256-rqv2Pv2kzqQYA5CF5vlo+pqxsk44m1+StzKvxaJKnvo=" crossorigin=anonymous><link href=/kubeclaw/scss/main.min.aeabf63efda4cea418039085e6f968fa9ab1b24e389b5f92b732afc5a24a9efa.css rel=stylesheet integrity="sha256-rqv2Pv2kzqQYA5CF5vlo+pqxsk44m1+StzKvxaJKnvo=" crossorigin=anonymous><script src=https://code.jquery.com/jquery-3.7.1.min.js integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin=anonymous></script><script defer src=https://unpkg.com/lunr@2.3.9/lunr.min.js integrity=sha384-203J0SNzyqHby3iU6hzvzltrWi/M41wOP5Gu+BiJMz5nwKykbkUx8Kp7iti0Lpli crossorigin=anonymous></script><link rel=preconnect href=https://fonts.googleapis.com><link rel=preconnect href=https://fonts.gstatic.com crossorigin><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel=stylesheet></head><body class=td-page><header><nav class="td-navbar js-navbar-scroll" data-bs-theme=dark><div class="td-navbar-container container-fluid flex-column flex-md-row"><a class=navbar-brand href=/kubeclaw/><span class="navbar-brand__logo navbar-logo"><svg id="Layer_1" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 500 500" style="enable-background:new 0 0 500 500"><g><path style="fill:#fff" d="M116.8525 421.9722c-5.7041.0-10.3442-4.3127-10.3442-9.6129V88.183c0-5.3002 4.6401-9.6117 10.3442-9.6117H320.858c3.0347.0 9.3959.5498 11.7506 2.6302l.3545.3442 58.905 63.2912c2.3101 2.491 2.9202 8.4928 2.9202 11.3184v256.2039c0 5.3002-4.6407 9.6129-10.3436 9.6129H116.8525z"/><g><g><g><path style="fill:#767676" d="M384.4445 423.2066H116.852c-6.3839.0-11.5786-4.8658-11.5786-10.8474V88.1831c0-5.9804 5.1947-10.8461 11.5786-10.8461h204.0062c.377.0 9.2786.0329 12.568 2.9389l.3947.3833 58.9508 63.337c3.2135 3.4652 3.2514 11.7924 3.2514 12.1593v256.2036C396.0231 418.3408 390.8284 423.2066 384.4445 423.2066zM116.5079 411.9189c.0848.0278.1999.0531.3441.0531h267.5925c.1442.0.2581-.0253.3441-.0531V156.1556c-.0076-.9033-.3593-3.7347-.7034-5.0037l-57.6527-61.9416c-1.4651-.3176-4.4533-.6389-5.5742-.6389H116.852c-.143.0-.2594.024-.3441.0531V411.9189zm267.4533-261.149zM327.0321 89.371v.0013V89.371z"/></g></g></g><g><g><path style="fill:#5b7fc0" d="M189.0874 210.1754l.0012-.0012c7.7751.0012 15.0295 4.1862 18.932 10.9234 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3304-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032s-11.328-2.2733-15.458-6.4032-6.4032-9.6186-6.4056-15.4628c.0012-6.025 2.454-11.4897 6.4116-15.4473C177.5953 212.627 183.0601 210.1742 189.0874 210.1754zm7.993 21.8576c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6539 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403S197.0816 234.1722 197.0804 232.033z"/><path style="opacity:.3;fill:#fff" d="M189.0898 210.176c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 212.6276 183.0612 210.176 189.0898 210.176zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 236.239 197.0839 234.2399 197.0839 232.0372z"/><g><defs><path id="SVGID_1_" d="M194.7376 237.6875c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.999 7.9942-7.9942 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.0839 234.2399 196.1861 236.239 194.7376 237.6875z"/></defs><clipPath id="SVGID_2_"><use xlink:href="#SVGID_1_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_2_);fill:#fff" d="M190.0704 225.0237c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 225.7247 191.9774 225.0237 190.0704 225.0237z"/><path style="opacity:.13;clip-path:url(#SVGID_2_);fill:#020202" d="M190.0704 225.0237c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 225.7247 191.9774 225.0237 190.0704 225.0237z"/></g><g><defs><path id="SVGID_3_" d="M189.0898 210.176c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 212.6276 183.0612 210.176 189.0898 210.176zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 236.239 197.0839 234.2399 197.0839 232.0372z"/></defs><clipPath id="SVGID_4_"><use xlink:href="#SVGID_3_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_4_);fill:#5b7fc0" d="M172.6595 215.6045c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8612 12.0547.0024 21.8636-9.797 21.8613-21.8612.0024-3.8475-1.0151-7.6326-2.9353-10.9462-3.8977-6.7324-11.1497-10.9151-18.926-10.9151C182.0806 209.1953 176.6171 211.647 172.6595 215.6045z"/></g></g><rect x="198.8952" y="225.1043" style="fill:#5b7fc0" width="122.6266" height="13.8671"/></g><g><path style="fill:#d95140" d="M189.0874 155.7611l.0012-.0012c7.7751.0012 15.0295 4.1862 18.932 10.9234 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3304-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032s-11.328-2.2733-15.458-6.4032-6.4032-9.6186-6.4056-15.4628c.0012-6.0249 2.454-11.4897 6.4116-15.4473C177.5953 158.2128 183.0601 155.7599 189.0874 155.7611zm7.993 21.8577c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6539 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403C196.2508 181.7667 197.0816 179.758 197.0804 177.6188z"/><path style="opacity:.3;fill:#fff" d="M189.0898 155.7617c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 158.2134 183.0612 155.7617 189.0898 155.7617zm7.9941 21.8613c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 181.8248 197.0839 179.8256 197.0839 177.623z"/><g><defs><path id="SVGID_5_" d="M194.7376 183.2733c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.9989 7.9942-7.9942 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.0839 179.8256 196.1861 181.8248 194.7376 183.2733z"/></defs><clipPath id="SVGID_6_"><use xlink:href="#SVGID_5_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_6_);fill:#fff" d="M190.0704 170.6095c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 171.3104 191.9774 170.6095 190.0704 170.6095z"/><path style="opacity:.13;clip-path:url(#SVGID_6_);fill:#020202" d="M190.0704 170.6095c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 171.3104 191.9774 170.6095 190.0704 170.6095z"/></g><g><defs><path id="SVGID_7_" d="M189.0898 155.7617c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 158.2134 183.0612 155.7617 189.0898 155.7617zm7.9941 21.8613c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 181.8248 197.0839 179.8256 197.0839 177.623z"/></defs><clipPath id="SVGID_8_"><use xlink:href="#SVGID_7_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_8_);fill:#d95140" d="M172.6595 161.1903c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8613 12.0547.0024 21.8636-9.797 21.8613-21.8613.0024-3.8474-1.0151-7.6326-2.9353-10.9462-3.8977-6.7324-11.1497-10.9151-18.926-10.9151C182.0806 154.7811 176.6171 157.2327 172.6595 161.1903z"/></g><rect x="198.8952" y="170.69" style="fill:#d95140" width="122.6266" height="13.8671"/></g><g><g><path style="fill:#56a55c" d="M189.5379 264.6147l.0012-.0012c7.7751.0012 15.0294 4.1862 18.932 10.9235 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3304-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032-5.8394.0-11.3281-2.2733-15.458-6.4032-4.13-4.13-6.4032-9.6186-6.4056-15.4628.0012-6.0249 2.454-11.4897 6.4116-15.4472C178.0458 267.0663 183.5105 264.6135 189.5379 264.6147zm7.993 21.8576c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6538 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403C196.7013 290.6202 197.5321 288.6115 197.5309 286.4723z"/><path style="opacity:.3;fill:#fff" d="M189.5403 264.6153c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8065-21.8612-21.8613.0-6.0285 2.4516-11.492 6.4116-15.452C178.0482 267.0669 183.5117 264.6153 189.5403 264.6153zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.6366 290.6783 197.5344 288.6792 197.5344 286.4765z"/><g><defs><path id="SVGID_9_" d="M195.1881 292.1268c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.9989 7.9942-7.9941 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.5344 288.6792 196.6366 290.6783 195.1881 292.1268z"/></defs><clipPath id="SVGID_10_"><use xlink:href="#SVGID_9_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_10_);fill:#fff" d="M190.5209 279.463c-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7446-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9941 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C194.239 280.164 192.4279 279.463 190.5209 279.463z"/><path style="opacity:.13;clip-path:url(#SVGID_10_);fill:#020202" d="M190.5209 279.463c-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7446-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9941 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C194.239 280.164 192.4279 279.463 190.5209 279.463z"/></g><g><defs><path id="SVGID_11_" d="M189.5403 264.6153c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8065-21.8612-21.8613.0-6.0285 2.4516-11.492 6.4116-15.452C178.0482 267.0669 183.5117 264.6153 189.5403 264.6153zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.6366 290.6783 197.5344 288.6792 197.5344 286.4765z"/></defs><clipPath id="SVGID_12_"><use xlink:href="#SVGID_11_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_12_);fill:#56a55c" d="M173.11 270.0439c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8613 12.0547.0024 21.8636-9.797 21.8613-21.8613.0024-3.8474-1.0151-7.6326-2.9353-10.9462-3.8977-6.7325-11.1497-10.9151-18.926-10.9151C182.5311 263.6346 177.0676 266.0863 173.11 270.0439z"/></g></g><rect x="199.3456" y="279.5436" style="fill:#56a55c" width="122.6266" height="13.8671"/></g><g><g><path style="fill:#f1bc42" d="M189.0874 318.7208l.0012-.0012c7.7751.0012 15.0295 4.1862 18.932 10.9234 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3305-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032s-11.328-2.2733-15.458-6.4032-6.4032-9.6186-6.4056-15.4628c.0012-6.025 2.454-11.4897 6.4116-15.4472C177.5953 321.1724 183.0601 318.7196 189.0874 318.7208zm7.993 21.8576c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6539 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403S197.0816 342.7176 197.0804 340.5784z"/><path style="opacity:.3;fill:#fff" d="M189.0898 318.7214c7.7763.0 15.0283 4.1826 18.926 10.915 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8612-12.0547.0024-21.8636-9.8065-21.8612-21.8612.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 321.173 183.0612 318.7214 189.0898 318.7214zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 344.7844 197.0839 342.7853 197.0839 340.5826z"/><g><defs><path id="SVGID_13_" d="M194.7376 346.2329c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.999 7.9942-7.9942 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.0839 342.7853 196.1861 344.7844 194.7376 346.2329z"/></defs><clipPath id="SVGID_14_"><use xlink:href="#SVGID_13_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_14_);fill:#fff" d="M190.0704 333.5691c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0834 6.1218 2.8788C193.7885 334.2701 191.9774 333.5691 190.0704 333.5691z"/><path style="opacity:.13;clip-path:url(#SVGID_14_);fill:#020202" d="M190.0704 333.5691c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0834 6.1218 2.8788C193.7885 334.2701 191.9774 333.5691 190.0704 333.5691z"/></g><g><defs><path id="SVGID_15_" d="M189.0898 318.7214c7.7763.0 15.0283 4.1826 18.926 10.915 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8612-12.0547.0024-21.8636-9.8065-21.8612-21.8612.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 321.173 183.0612 318.7214 189.0898 318.7214zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 344.7844 197.0839 342.7853 197.0839 340.5826z"/></defs><clipPath id="SVGID_16_"><use xlink:href="#SVGID_15_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_16_);fill:#f1bc42" d="M172.6595 324.15c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8612 12.0547.0024 21.8636-9.797 21.8613-21.8612.0024-3.8474-1.0151-7.6327-2.9353-10.9462-3.8977-6.7324-11.1497-10.9151-18.926-10.9151C182.0806 317.7407 176.6171 320.1924 172.6595 324.15z"/></g></g><rect x="198.8952" y="333.6497" style="fill:#f1bc42" width="122.6266" height="13.8671"/></g></g></svg></span><span class=navbar-brand__name>KubeClaw</span></a><div class="td-navbar__main td-navbar-nav-scroll td-navbar-nav-scroll--indicator" id=main_navbar><div class="scroll-indicator scroll-left"></div><ul class=navbar-nav><li class=nav-item><a class=nav-link href=/kubeclaw/docs/><span>Documentation</span></a></li><li class=nav-item><a class=nav-link href=https://github.com/projectious-work/kubeclaw target=_blank rel=noopener><i class='fa-brands fa-github' aria-hidden=true></i><span>GitHub</span></a></li><li class="nav-item td-navbar__version-menu"><div class="td-version-menu dropdown"><a class="nav-link dropdown-toggle td-version-menu__title" href=# role=button data-bs-toggle=dropdown aria-haspopup=true aria-expanded=false><span class=td-version-menu__title-text>Releases</span></a><ul class=dropdown-menu><li><span class="dropdown-item disabled dropdown-item-text"><strong>Versions</strong></span></li><li><a class="dropdown-item active dropdown-item-latest" aria-current=page href=https://projectious-work.github.io/kubeclaw>main</a></li><li><a class=dropdown-item href=https://projectious-work.github.io/kubeclaw/v0.1>v0.1</a></li></ul></div></li><li class="nav-item td-navbar__light-dark-menu"><div class="td-light-dark-menu dropdown"><svg class="d-none"><symbol id="check2" viewBox="0 0 16 16"><path d="M13.854 3.646a.5.5.0 010 .708l-7 7a.5.5.0 01-.708.0l-3.5-3.5a.5.5.0 11.708-.708L6.5 10.293l6.646-6.647a.5.5.0 01.708.0z"/></symbol><symbol id="circle-half" viewBox="0 0 16 16"><path d="M8 15A7 7 0 108 1v14zm0 1A8 8 0 118 0a8 8 0 010 16z"/></symbol><symbol id="moon-stars-fill" viewBox="0 0 16 16"><path d="M6 .278a.768.768.0 01.08.858 7.208 7.208.0 00-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527.0 1.04-.055 1.533-.16a.787.787.0 01.81.316.733.733.0 01-.031.893A8.349 8.349.0 018.344 16C3.734 16 0 12.286.0 7.71.0 4.266 2.114 1.312 5.124.06A.752.752.0 016 .278z"/><path d="M10.794 3.148a.217.217.0 01.412.0l.387 1.162c.173.518.579.924 1.097 1.097l1.162.387a.217.217.0 010 .412l-1.162.387A1.734 1.734.0 0011.593 7.69l-.387 1.162a.217.217.0 01-.412.0l-.387-1.162A1.734 1.734.0 009.31 6.593l-1.162-.387a.217.217.0 010-.412l1.162-.387a1.734 1.734.0 001.097-1.097l.387-1.162zM13.863.099a.145.145.0 01.274.0l.258.774c.115.346.386.617.732.732l.774.258a.145.145.0 010 .274l-.774.258a1.156 1.156.0 00-.732.732l-.258.774a.145.145.0 01-.274.0l-.258-.774a1.156 1.156.0 00-.732-.732l-.774-.258a.145.145.0 010-.274l.774-.258c.346-.115.617-.386.732-.732L13.863.1z"/></symbol><symbol id="sun-fill" viewBox="0 0 16 16"><path d="M8 12a4 4 0 100-8 4 4 0 000 8zM8 0a.5.5.0 01.5.5v2a.5.5.0 01-1 0v-2A.5.5.0 018 0zm0 13a.5.5.0 01.5.5v2a.5.5.0 01-1 0v-2A.5.5.0 018 13zm8-5a.5.5.0 01-.5.5h-2a.5.5.0 010-1h2a.5.5.0 01.5.5zM3 8a.5.5.0 01-.5.5h-2a.5.5.0 010-1h2A.5.5.0 013 8zm10.657-5.657a.5.5.0 010 .707l-1.414 1.415a.5.5.0 11-.707-.708l1.414-1.414a.5.5.0 01.707.0zm-9.193 9.193a.5.5.0 010 .707L3.05 13.657a.5.5.0 01-.707-.707l1.414-1.414a.5.5.0 01.707.0zm9.193 2.121a.5.5.0 01-.707.0l-1.414-1.414a.5.5.0 01.707-.707l1.414 1.414a.5.5.0 010 .707zM4.464 4.465a.5.5.0 01-.707.0L2.343 3.05a.5.5.0 11.707-.707l1.414 1.414a.5.5.0 010 .708z"/></symbol></svg>
+<button class="btn btn-link nav-link dropdown-toggle d-flex align-items-center" id=bd-theme type=button aria-expanded=false data-bs-toggle=dropdown aria-label="Toggle theme (auto)">
+<svg class="bi my-1 theme-icon-active"><use href="#circle-half"/></svg></button><ul class=dropdown-menu aria-labelledby=bd-theme><li><button type=button class="dropdown-item d-flex align-items-center" data-bs-theme-value=light aria-pressed=false>
+<svg class="bi me-2 opacity-50"><use href="#sun-fill"/></svg>
+Light
+<svg class="bi ms-auto d-none"><use href="#check2"/></svg></button></li><li><button type=button class="dropdown-item d-flex align-items-center" data-bs-theme-value=dark aria-pressed=false>
+<svg class="bi me-2 opacity-50"><use href="#moon-stars-fill"/></svg>
+Dark
+<svg class="bi ms-auto d-none"><use href="#check2"/></svg></button></li><li><button type=button class="dropdown-item d-flex align-items-center active" data-bs-theme-value=auto aria-pressed=true>
+<svg class="bi me-2 opacity-50"><use href="#circle-half"/></svg>
+Auto
+<svg class="bi ms-auto d-none"><use href="#check2"/></svg></button></li></ul></div></li></ul><div class="scroll-indicator scroll-right"></div></div><div class="td-navbar__search d-none d-lg-block"><div class="td-search td-search--offline"><div class=td-search__icon></div><input type=search name=q class="td-search__input form-control" placeholder='Search this site…' aria-label='Search this site…' autocomplete=off data-offline-search-index-json-src=/kubeclaw/offline-search-index.8cf64d88ce7ebc51050a17b062c3d022.json data-offline-search-base-href=/ data-offline-search-max-results=25></div></div></div></nav></header><div class="container-fluid td-outer"><div class=td-main data-bs-spy=scroll data-bs-target=.td-toc data-bs-root-margin="0px 0px -10%"><div class="row flex-xl-nowrap"><aside class="col-12 col-md-3 col-xl-2 td-sidebar d-print-none"><div id=td-sidebar-menu class=td-sidebar__inner><form class="td-sidebar__search d-flex align-items-center"><div class="td-search td-search--offline"><div class=td-search__icon></div><input type=search name=q class="td-search__input form-control" placeholder='Search this site…' aria-label='Search this site…' autocomplete=off data-offline-search-index-json-src=/kubeclaw/offline-search-index.8cf64d88ce7ebc51050a17b062c3d022.json data-offline-search-base-href=/ data-offline-search-max-results=25></div><button class="btn btn-link td-sidebar__toggle" type=button data-bs-toggle=collapse data-bs-target=#td-section-nav aria-controls=td-section-nav aria-expanded=false aria-label="Toggle section navigation"></button></form><nav class="td-sidebar-nav collapse foldable-nav" id=td-section-nav><ul class="td-sidebar-nav__section pe-md-3 ul-0"><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child active-path" id=m-kubeclawdocs-li><a href=/kubeclaw/docs/ class="align-left ps-0 td-sidebar-link td-sidebar-link__section tree-root" id=m-kubeclawdocs><span>Documentation</span></a><ul class=ul-1><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id=m-kubeclawdocsintroduction-li><input type=checkbox id=m-kubeclawdocsintroduction-check>
+<label for=m-kubeclawdocsintroduction-check><a href=/kubeclaw/docs/introduction/ class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id=m-kubeclawdocsintroduction><span>Introduction</span></a></label><ul class="ul-2 foldable"><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kubeclawdocsintroductionarchitecture-li><input type=checkbox id=m-kubeclawdocsintroductionarchitecture-check>
+<label for=m-kubeclawdocsintroductionarchitecture-check><a href=/kubeclaw/docs/introduction/architecture/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kubeclawdocsintroductionarchitecture><span>Architecture</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kubeclawdocsintroductiondns-and-nat64-li><input type=checkbox id=m-kubeclawdocsintroductiondns-and-nat64-check>
+<label for=m-kubeclawdocsintroductiondns-and-nat64-check><a href=/kubeclaw/docs/introduction/dns-and-nat64/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kubeclawdocsintroductiondns-and-nat64><span>DNS and NAT64</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kubeclawdocsintroductionmanual-setup-li><input type=checkbox id=m-kubeclawdocsintroductionmanual-setup-check>
+<label for=m-kubeclawdocsintroductionmanual-setup-check><a href=/kubeclaw/docs/introduction/manual-setup/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kubeclawdocsintroductionmanual-setup><span>Manual Setup (Alternative)</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kubeclawdocsintroductionsecurity-model-li><input type=checkbox id=m-kubeclawdocsintroductionsecurity-model-check>
+<label for=m-kubeclawdocsintroductionsecurity-model-check><a href=/kubeclaw/docs/introduction/security-model/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kubeclawdocsintroductionsecurity-model><span>Security Model</span></a></label></li></ul></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child active-path" id=m-kubeclawdocsguide-li><input type=checkbox id=m-kubeclawdocsguide-check checked>
+<label for=m-kubeclawdocsguide-check><a href=/kubeclaw/docs/guide/ class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id=m-kubeclawdocsguide><span>Guide</span></a></label><ul class="ul-2 foldable"><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kubeclawdocsguidecloudflare-tunnel-li><input type=checkbox id=m-kubeclawdocsguidecloudflare-tunnel-check>
+<label for=m-kubeclawdocsguidecloudflare-tunnel-check><a href=/kubeclaw/docs/guide/cloudflare-tunnel/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kubeclawdocsguidecloudflare-tunnel><span>Cloudflare Tunnel Setup</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kubeclawdocsguidedev-container-li><input type=checkbox id=m-kubeclawdocsguidedev-container-check>
+<label for=m-kubeclawdocsguidedev-container-check><a href=/kubeclaw/docs/guide/dev-container/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kubeclawdocsguidedev-container><span>Dev Container</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kubeclawdocsguideinfrastructure-li><input type=checkbox id=m-kubeclawdocsguideinfrastructure-check>
+<label for=m-kubeclawdocsguideinfrastructure-check><a href=/kubeclaw/docs/guide/infrastructure/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kubeclawdocsguideinfrastructure><span>Infrastructure (OpenTofu)</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kubeclawdocsguidekubernetes-li><input type=checkbox id=m-kubeclawdocsguidekubernetes-check>
+<label for=m-kubeclawdocsguidekubernetes-check><a href=/kubeclaw/docs/guide/kubernetes/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kubeclawdocsguidekubernetes><span>Kubernetes (kubeadm)</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child active-path" id=m-kubeclawdocsguideopenclaw-li><input type=checkbox id=m-kubeclawdocsguideopenclaw-check checked>
+<label for=m-kubeclawdocsguideopenclaw-check><a href=/kubeclaw/docs/guide/openclaw/ class="align-left ps-0 active td-sidebar-link td-sidebar-link__page" id=m-kubeclawdocsguideopenclaw><span class=td-sidebar-nav-active-item>OpenClaw Deployment</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kubeclawdocsguideansible-li><input type=checkbox id=m-kubeclawdocsguideansible-check>
+<label for=m-kubeclawdocsguideansible-check><a href=/kubeclaw/docs/guide/ansible/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kubeclawdocsguideansible><span>Server Management (Ansible)</span></a></label></li></ul></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id=m-kubeclawdocshow-to-li><input type=checkbox id=m-kubeclawdocshow-to-check>
+<label for=m-kubeclawdocshow-to-check><a href=/kubeclaw/docs/how-to/ class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id=m-kubeclawdocshow-to><span>How-to</span></a></label><ul class="ul-2 foldable"><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kubeclawdocshow-tossh-keys-with-passphrase-li><input type=checkbox id=m-kubeclawdocshow-tossh-keys-with-passphrase-check>
+<label for=m-kubeclawdocshow-tossh-keys-with-passphrase-check><a href=/kubeclaw/docs/how-to/ssh-keys-with-passphrase/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kubeclawdocshow-tossh-keys-with-passphrase><span>SSH Keys with Passphrase</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kubeclawdocshow-tostore-ssh-keys-in-password-manager-li><input type=checkbox id=m-kubeclawdocshow-tostore-ssh-keys-in-password-manager-check>
+<label for=m-kubeclawdocshow-tostore-ssh-keys-in-password-manager-check><a href=/kubeclaw/docs/how-to/store-ssh-keys-in-password-manager/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kubeclawdocshow-tostore-ssh-keys-in-password-manager><span>Store SSH Keys in Password Manager</span></a></label></li></ul></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id=m-kubeclawdocsreference-li><input type=checkbox id=m-kubeclawdocsreference-check>
+<label for=m-kubeclawdocsreference-check><a href=/kubeclaw/docs/reference/ class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id=m-kubeclawdocsreference><span>Reference</span></a></label><ul class="ul-2 foldable"><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kubeclawdocsreferenceplaybooks-li><input type=checkbox id=m-kubeclawdocsreferenceplaybooks-check>
+<label for=m-kubeclawdocsreferenceplaybooks-check><a href=/kubeclaw/docs/reference/playbooks/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kubeclawdocsreferenceplaybooks><span>Ansible Playbooks Reference</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kubeclawdocsreferencecloud-init-li><input type=checkbox id=m-kubeclawdocsreferencecloud-init-check>
+<label for=m-kubeclawdocsreferencecloud-init-check><a href=/kubeclaw/docs/reference/cloud-init/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kubeclawdocsreferencecloud-init><span>Cloud-Init Templates</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kubeclawdocsreferencecost-estimate-li><input type=checkbox id=m-kubeclawdocsreferencecost-estimate-check>
+<label for=m-kubeclawdocsreferencecost-estimate-check><a href=/kubeclaw/docs/reference/cost-estimate/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kubeclawdocsreferencecost-estimate><span>Cost Estimate</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kubeclawdocsreferenceos-images-li><input type=checkbox id=m-kubeclawdocsreferenceos-images-check>
+<label for=m-kubeclawdocsreferenceos-images-check><a href=/kubeclaw/docs/reference/os-images/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kubeclawdocsreferenceos-images><span>OS Images</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kubeclawdocsreferenceoutputs-li><input type=checkbox id=m-kubeclawdocsreferenceoutputs-check>
+<label for=m-kubeclawdocsreferenceoutputs-check><a href=/kubeclaw/docs/reference/outputs/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kubeclawdocsreferenceoutputs><span>Outputs Reference</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kubeclawdocsreferenceproject-structure-li><input type=checkbox id=m-kubeclawdocsreferenceproject-structure-check>
+<label for=m-kubeclawdocsreferenceproject-structure-check><a href=/kubeclaw/docs/reference/project-structure/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kubeclawdocsreferenceproject-structure><span>Project Structure</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kubeclawdocsreferencevariables-li><input type=checkbox id=m-kubeclawdocsreferencevariables-check>
+<label for=m-kubeclawdocsreferencevariables-check><a href=/kubeclaw/docs/reference/variables/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kubeclawdocsreferencevariables><span>Variables Reference</span></a></label></li></ul></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id=m-kubeclawdocsoperations-li><input type=checkbox id=m-kubeclawdocsoperations-check>
+<label for=m-kubeclawdocsoperations-check><a href=/kubeclaw/docs/operations/ class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id=m-kubeclawdocsoperations><span>Operations</span></a></label><ul class="ul-2 foldable"><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kubeclawdocsoperationskubernetes-maintenance-li><input type=checkbox id=m-kubeclawdocsoperationskubernetes-maintenance-check>
+<label for=m-kubeclawdocsoperationskubernetes-maintenance-check><a href=/kubeclaw/docs/operations/kubernetes-maintenance/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kubeclawdocsoperationskubernetes-maintenance><span>Kubernetes Maintenance</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kubeclawdocsoperationspassword-management-li><input type=checkbox id=m-kubeclawdocsoperationspassword-management-check>
+<label for=m-kubeclawdocsoperationspassword-management-check><a href=/kubeclaw/docs/operations/password-management/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kubeclawdocsoperationspassword-management><span>Password Management</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kubeclawdocsoperationsscale-up-down-li><input type=checkbox id=m-kubeclawdocsoperationsscale-up-down-check>
+<label for=m-kubeclawdocsoperationsscale-up-down-check><a href=/kubeclaw/docs/operations/scale-up-down/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kubeclawdocsoperationsscale-up-down><span>Scale Up/Down</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kubeclawdocsoperationssecurity-li><input type=checkbox id=m-kubeclawdocsoperationssecurity-check>
+<label for=m-kubeclawdocsoperationssecurity-check><a href=/kubeclaw/docs/operations/security/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kubeclawdocsoperationssecurity><span>Security</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kubeclawdocsoperationsssh-key-rotation-li><input type=checkbox id=m-kubeclawdocsoperationsssh-key-rotation-check>
+<label for=m-kubeclawdocsoperationsssh-key-rotation-check><a href=/kubeclaw/docs/operations/ssh-key-rotation/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kubeclawdocsoperationsssh-key-rotation><span>SSH Key Rotation</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kubeclawdocsoperationstroubleshooting-li><input type=checkbox id=m-kubeclawdocsoperationstroubleshooting-check>
+<label for=m-kubeclawdocsoperationstroubleshooting-check><a href=/kubeclaw/docs/operations/troubleshooting/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kubeclawdocsoperationstroubleshooting><span>Troubleshooting</span></a></label></li></ul></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id=m-kubeclawdocsroadmap-li><input type=checkbox id=m-kubeclawdocsroadmap-check>
+<label for=m-kubeclawdocsroadmap-check><a href=/kubeclaw/docs/roadmap/ class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id=m-kubeclawdocsroadmap><span>Roadmap</span></a></label><ul class="ul-2 foldable"><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kubeclawdocsroadmapcilium-ipv6-li><input type=checkbox id=m-kubeclawdocsroadmapcilium-ipv6-check>
+<label for=m-kubeclawdocsroadmapcilium-ipv6-check><a href=/kubeclaw/docs/roadmap/cilium-ipv6/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kubeclawdocsroadmapcilium-ipv6><span>Cilium Dual-Stack Pod Network</span></a></label></li></ul></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id=m-kubeclawdocscontributing-li><input type=checkbox id=m-kubeclawdocscontributing-check>
+<label for=m-kubeclawdocscontributing-check><a href=/kubeclaw/docs/contributing/ class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id=m-kubeclawdocscontributing><span>Contributing</span></a></label><ul class="ul-2 foldable"><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kubeclawdocscontributingcode-of-conduct-li><input type=checkbox id=m-kubeclawdocscontributingcode-of-conduct-check>
+<label for=m-kubeclawdocscontributingcode-of-conduct-check><a href=/kubeclaw/docs/contributing/code-of-conduct/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kubeclawdocscontributingcode-of-conduct><span>Code of Conduct</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kubeclawdocscontributingdevelopment-li><input type=checkbox id=m-kubeclawdocscontributingdevelopment-check>
+<label for=m-kubeclawdocscontributingdevelopment-check><a href=/kubeclaw/docs/contributing/development/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kubeclawdocscontributingdevelopment><span>Development Setup</span></a></label></li></ul></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kubeclawdocsquick-start-li><input type=checkbox id=m-kubeclawdocsquick-start-check>
+<label for=m-kubeclawdocsquick-start-check><a href=/kubeclaw/docs/quick-start/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kubeclawdocsquick-start><span>Quick Start</span></a></label></li></ul></li></ul></nav></div></aside><aside class=td-sidebar-toc><div class="td-page-meta ms-2 pb-1 pt-2 mb-0"><a href=/kubeclaw/docs/guide/openclaw/index.md class=td-page-meta__markdown><i class="fa-brands fa-markdown fa-fw"></i> View Markdown</a>
+<a id=print href=/kubeclaw/_print/docs/guide/><i class="fa-solid fa-print fa-fw"></i> Print entire section</a></div><div class=td-toc data-proofer-ignore><div class=td-toc-title><span class=td-toc-title__text>On this page</span>
+<a class=td-toc-title__link title="Top of page" href=#></a></div><nav id=TableOfContents><ul><li><a href=#architecture-overview>Architecture Overview</a></li><li><a href=#prerequisites>Prerequisites</a></li><li><a href=#step-1-infrastructure-setup>Step 1: Infrastructure Setup</a></li><li><a href=#step-2-deploy-openclaw>Step 2: Deploy OpenClaw</a><ul><li><a href=#21-create-openclaw-configuration>2.1 Create OpenClaw Configuration</a></li><li><a href=#22-create-secrets>2.2 Create Secrets</a></li><li><a href=#23-deploy-openclaw-statefulset>2.3 Deploy OpenClaw StatefulSet</a></li><li><a href=#24-verify-deployment>2.4 Verify Deployment</a></li></ul></li><li><a href=#step-3-configure-messaging-channel>Step 3: Configure Messaging Channel</a><ul><li><a href=#telegram-setup>Telegram Setup</a><ul><li><a href=#31-create-a-bot>3.1 Create a Bot</a></li><li><a href=#32-find-your-user-id>3.2 Find Your User ID</a></li><li><a href=#33-update-configuration>3.3 Update Configuration</a></li><li><a href=#34-test>3.4 Test</a></li></ul></li><li><a href=#whatsapp-setup>WhatsApp Setup</a><ul><li><a href=#31-link-your-whatsapp-account>3.1 Link Your WhatsApp Account</a></li><li><a href=#32-verify-connection>3.2 Verify Connection</a></li><li><a href=#33-network-policy-considerations>3.3 Network Policy Considerations</a></li></ul></li></ul></li><li><a href=#hahahugoshortcode28s13hbhb>HAHAHUGOSHORTCODE28s13HBHB</a><ul><li><a href=#signal-setup>Signal Setup</a><ul><li><a href=#31-build-a-custom-image-with-signal-cli>3.1 Build a Custom Image with signal-cli</a></li><li><a href=#32-register-the-bot-phone-number>3.2 Register the Bot Phone Number</a></li><li><a href=#33-alternatively-link-an-existing-account>3.3 Alternatively: Link an Existing Account</a></li></ul></li></ul></li><li><a href=#step-4-expose-control-ui-via-cloudflare-tunnel>Step 4: Expose Control UI via Cloudflare Tunnel</a><ul><li><a href=#41-add-tunnel-route>4.1 Add Tunnel Route</a></li><li><a href=#42-create-cloudflare-access-policy>4.2 Create Cloudflare Access Policy</a></li><li><a href=#43-access-the-dashboard>4.3 Access the Dashboard</a></li></ul></li><li><a href=#step-5-verify--test>Step 5: Verify & Test</a><ul><li><a href=#test-messaging>Test Messaging</a></li><li><a href=#test-control-ui>Test Control UI</a></li><li><a href=#check-pod-health>Check Pod Health</a></li></ul></li><li><a href=#maintenance>Maintenance</a><ul><li><a href=#update-openclaw>Update OpenClaw</a></li><li><a href=#rotate-secrets>Rotate Secrets</a></li><li><a href=#build-a-custom-image-optional>Build a Custom Image (Optional)</a></li><li><a href=#useful-commands>Useful Commands</a></li><li><a href=#configuration-changes>Configuration Changes</a></li></ul></li></ul></nav></div></aside><main class="col-12 col-md-9 col-xl-8 ps-md-5" role=main><nav aria-label=breadcrumb class=td-breadcrumbs><ol class=breadcrumb><li class=breadcrumb-item><a href=/kubeclaw/docs/>Documentation</a></li><li class=breadcrumb-item><a href=/kubeclaw/docs/guide/>Guide</a></li><li class="breadcrumb-item active" aria-current=page>OpenClaw Deployment</li></ol></nav><div class=td-content><h1>OpenClaw Deployment</h1><header class=article-meta></header><p>A step-by-step guide to deploying OpenClaw as an isolated AI assistant on the KubeClaw cluster, accessible via Telegram, WhatsApp, or Signal, with a web-based Control UI exposed through Cloudflare Tunnel.</p><h2 id=architecture-overview>Architecture Overview</h2><pre tabindex=0><code>┌─────────────────────────────────────────────────────────────────────┐
+│                    Hetzner Private Network                          │
+│                        (10.0.0.0/24)                                │
+│                                                                     │
+│  ┌────────────────────────────────────────────────────────────┐    │
+│  │            Kubernetes Cluster (kubeadm) + Cilium             │    │
+│  │                                                             │    │
+│  │   ┌─────────────────┐       ┌─────────────────┐            │    │
+│  │   │   control-01    │       │   worker-01     │            │    │
+│  │   │  (control plane)│◄─────►│  (worker node)  │            │    │
+│  │   │   10.0.0.2      │       │   10.0.0.3      │            │    │
+│  │   │                 │       │                 │            │    │
+│  │   │  ┌───────────┐  │       │  ┌───────────┐  │            │    │
+│  │   │  │Block Vol  │  │       │  │Block Vol  │  │            │    │
+│  │   │  │  10 GB    │  │       │  │  10 GB    │  │            │    │
+│  │   │  └───────────┘  │       │  └───────────┘  │            │    │
+│  │   └────────┬────────┘       └─────────────────┘            │    │
+│  │            │                                                │    │
+│  │   system-unrestricted namespace:                           │    │
+│  │     └─ cloudflared (egress: ANY)                           │    │
+│  │                                                             │    │
+│  │   apps-restricted namespace:                                │    │
+│  │     └─ OpenClaw (Cilium FQDN egress whitelist)             │    │
+│  │          ├─ Telegram / WhatsApp / Signal                   │    │
+│  │          └─ Control UI (:18789)                            │    │
+│  │                                                             │    │
+│  └─────────────────────────────────────────────────────────────┘    │
+│                              │                                      │
+│                      cloudflared                                    │
+│                    (outbound only)                                  │
+└──────────────────────────────┼──────────────────────────────────────┘
+                               │
+                               ▼
+                    ┌───────────────────┐
+                    │    Cloudflare     │
+                    │  Edge + Access    │
+                    └─────────┬─────────┘
+                              │
+                    ┌─────────┼─────────┐
+                    │         │         │
+                    ▼         ▼         ▼
+               [Telegram] [WhatsApp] [Signal]
+                    │
+                    ▼
+             [Control UI]
+          (browser dashboard)
+</code></pre><h2 id=prerequisites>Prerequisites</h2><ul><li>A running KubeClaw cluster (see <a href=/kubeclaw/docs/guide/kubernetes/>Kubernetes guide</a>)</li><li>Anthropic API key (<a href=https://console.anthropic.com>console.anthropic.com</a>)</li><li>At least one messaging channel:</li></ul><table><thead><tr><th>Channel</th><th>What You Need</th></tr></thead><tbody><tr><td><strong>Telegram</strong></td><td>Bot Token from <a href=https://t.me/BotFather>@BotFather</a>, your Telegram User ID</td></tr><tr><td><strong>WhatsApp</strong></td><td>A phone number with WhatsApp, access to scan a QR code</td></tr><tr><td><strong>Signal</strong></td><td>A dedicated phone number, <code>signal-cli</code> installed in the container</td></tr></tbody></table><div class="alert alert-primary" role=alert><div class="h4 alert-heading" role=heading>Start with Telegram</div>Telegram is the simplest channel to set up — it only requires a bot token and user ID, with no interactive pairing or additional dependencies.</div><h2 id=step-1-infrastructure-setup>Step 1: Infrastructure Setup</h2><p>If you haven&rsquo;t already set up the Hetzner Cloud infrastructure, follow the <a href=/kubeclaw/docs/quick-start/>Quick Start</a> and <a href=/kubeclaw/docs/guide/kubernetes/>Kubernetes guide</a>.</p><p>This guide assumes you have:</p><ul><li>A running Kubernetes cluster with Cilium CNI</li><li>Hetzner CSI driver installed</li><li>Namespaces created (<code>system-unrestricted</code>, <code>apps-restricted</code>)</li><li>CoreDNS forwarding to DNS64 resolvers (see <a href=/kubeclaw/docs/guide/kubernetes/>Kubernetes guide, Step 4</a>)</li><li>Cloudflare Tunnel configured on the master control node</li></ul><h2 id=step-2-deploy-openclaw>Step 2: Deploy OpenClaw</h2><h3 id=21-create-openclaw-configuration>2.1 Create OpenClaw Configuration</h3><p>OpenClaw uses <a href=https://json5.org/>JSON5</a> configuration (supports comments and trailing commas). Create a ConfigMap with the base configuration:</p><p><ul class="nav nav-tabs" id=tabs-5 role=tablist><li class=nav-item><button class="nav-link active" id=tabs-05-00-tab data-bs-toggle=tab data-bs-target=#tabs-05-00 role=tab aria-controls=tabs-05-00 aria-selected=true>
+Telegram</button></li><li class=nav-item><button class=nav-link id=tabs-05-01-tab data-bs-toggle=tab data-bs-target=#tabs-05-01 role=tab aria-controls=tabs-05-01 aria-selected=false>
+WhatsApp</button></li><li class=nav-item><button class=nav-link id=tabs-05-02-tab data-bs-toggle=tab data-bs-target=#tabs-05-02 role=tab aria-controls=tabs-05-02 aria-selected=false>
+Signal</button></li></ul><div class=tab-content id=tabs-5-content><div class="tab-pane fade show active" id=tabs-05-00 role=tabpanel aria-labelled-by=tabs-05-00-tab tabindex=5><pre tabindex=0><code>```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: openclaw-config
+  namespace: apps-restricted
+data:
+  openclaw.json: |
+    {
+      // Model configuration
+      &#34;agents&#34;: {
+        &#34;defaults&#34;: {
+          &#34;model&#34;: {
+            // Primary model for conversations
+            &#34;primary&#34;: &#34;anthropic/claude-sonnet-4-5-20250929&#34;,
+            // Fallback chain: tried in order if the primary fails
+            // (rate limit, auth error, timeout, outage)
+            &#34;fallbacks&#34;: [
+              &#34;anthropic/claude-haiku-4-5-20251001&#34;
+            ]
+          },
+          // Aliases appear in the Control UI model selector
+          &#34;models&#34;: {
+            &#34;anthropic/claude-sonnet-4-5-20250929&#34;: { &#34;alias&#34;: &#34;Sonnet&#34; },
+            &#34;anthropic/claude-haiku-4-5-20251001&#34;: { &#34;alias&#34;: &#34;Haiku&#34; },
+            &#34;anthropic/claude-opus-4-6&#34;: { &#34;alias&#34;: &#34;Opus&#34; }
+          }
+        }
+      },
+
+      // Provider credentials
+      &#34;models&#34;: {
+        &#34;providers&#34;: {
+          &#34;anthropic&#34;: { &#34;apiKey&#34;: &#34;$ANTHROPIC_API_KEY&#34; }
+        }
+      },
+
+      // Messaging channel
+      &#34;channels&#34;: {
+        &#34;telegram&#34;: {
+          &#34;enabled&#34;: true,
+          &#34;dmPolicy&#34;: &#34;allowlist&#34;,
+          &#34;allowFrom&#34;: [&#34;&lt;YOUR_TELEGRAM_USER_ID&gt;&#34;]
+        }
+      },
+
+      // Gateway authentication (required for Control UI)
+      &#34;gateway&#34;: {
+        &#34;port&#34;: 18789,
+        &#34;bind&#34;: &#34;lan&#34;,
+        &#34;auth&#34;: {
+          &#34;mode&#34;: &#34;token&#34;
+        },
+        &#34;controlUi&#34;: {
+          &#34;enabled&#34;: true
+        }
+      }
+    }
+```</code></pre></div><div class="tab-pane fade" id=tabs-05-01 role=tabpanel aria-labelled-by=tabs-05-01-tab tabindex=5><pre tabindex=0><code>```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: openclaw-config
+  namespace: apps-restricted
+data:
+  openclaw.json: |
+    {
+      &#34;agents&#34;: {
+        &#34;defaults&#34;: {
+          &#34;model&#34;: {
+            &#34;primary&#34;: &#34;anthropic/claude-sonnet-4-5-20250929&#34;,
+            &#34;fallbacks&#34;: [
+              &#34;anthropic/claude-haiku-4-5-20251001&#34;
+            ]
+          },
+          &#34;models&#34;: {
+            &#34;anthropic/claude-sonnet-4-5-20250929&#34;: { &#34;alias&#34;: &#34;Sonnet&#34; },
+            &#34;anthropic/claude-haiku-4-5-20251001&#34;: { &#34;alias&#34;: &#34;Haiku&#34; },
+            &#34;anthropic/claude-opus-4-6&#34;: { &#34;alias&#34;: &#34;Opus&#34; }
+          }
+        }
+      },
+
+      &#34;models&#34;: {
+        &#34;providers&#34;: {
+          &#34;anthropic&#34;: { &#34;apiKey&#34;: &#34;$ANTHROPIC_API_KEY&#34; }
+        }
+      },
+
+      &#34;channels&#34;: {
+        &#34;whatsapp&#34;: {
+          &#34;enabled&#34;: true,
+          &#34;dmPolicy&#34;: &#34;allowlist&#34;,
+          &#34;allowFrom&#34;: [&#34;&lt;YOUR_PHONE_E164&gt;&#34;]
+        }
+      },
+
+      &#34;gateway&#34;: {
+        &#34;port&#34;: 18789,
+        &#34;bind&#34;: &#34;lan&#34;,
+        &#34;auth&#34;: {
+          &#34;mode&#34;: &#34;token&#34;
+        },
+        &#34;controlUi&#34;: {
+          &#34;enabled&#34;: true
+        }
+      }
+    }
+```
+
+&lt;div class=&#34;alert alert-primary&#34; role=&#34;alert&#34;&gt;&lt;div class=&#34;h4 alert-heading&#34; role=&#34;heading&#34;&gt;Phone number format&lt;/div&gt;
+
+
+Use E.164 format for `allowFrom`, e.g. `&#34;+15551234567&#34;` (with country code, no spaces).
+
+&lt;/div&gt;</code></pre></div><div class="tab-pane fade" id=tabs-05-02 role=tabpanel aria-labelled-by=tabs-05-02-tab tabindex=5><pre tabindex=0><code>```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: openclaw-config
+  namespace: apps-restricted
+data:
+  openclaw.json: |
+    {
+      &#34;agents&#34;: {
+        &#34;defaults&#34;: {
+          &#34;model&#34;: {
+            &#34;primary&#34;: &#34;anthropic/claude-sonnet-4-5-20250929&#34;,
+            &#34;fallbacks&#34;: [
+              &#34;anthropic/claude-haiku-4-5-20251001&#34;
+            ]
+          },
+          &#34;models&#34;: {
+            &#34;anthropic/claude-sonnet-4-5-20250929&#34;: { &#34;alias&#34;: &#34;Sonnet&#34; },
+            &#34;anthropic/claude-haiku-4-5-20251001&#34;: { &#34;alias&#34;: &#34;Haiku&#34; },
+            &#34;anthropic/claude-opus-4-6&#34;: { &#34;alias&#34;: &#34;Opus&#34; }
+          }
+        }
+      },
+
+      &#34;models&#34;: {
+        &#34;providers&#34;: {
+          &#34;anthropic&#34;: { &#34;apiKey&#34;: &#34;$ANTHROPIC_API_KEY&#34; }
+        }
+      },
+
+      &#34;channels&#34;: {
+        &#34;signal&#34;: {
+          &#34;enabled&#34;: true,
+          &#34;account&#34;: &#34;&lt;BOT_PHONE_E164&gt;&#34;,
+          &#34;cliPath&#34;: &#34;signal-cli&#34;,
+          &#34;dmPolicy&#34;: &#34;allowlist&#34;,
+          &#34;allowFrom&#34;: [&#34;&lt;YOUR_PHONE_E164&gt;&#34;]
+        }
+      },
+
+      &#34;gateway&#34;: {
+        &#34;port&#34;: 18789,
+        &#34;bind&#34;: &#34;lan&#34;,
+        &#34;auth&#34;: {
+          &#34;mode&#34;: &#34;token&#34;
+        },
+        &#34;controlUi&#34;: {
+          &#34;enabled&#34;: true
+        }
+      }
+    }
+```
+
+&lt;div class=&#34;alert alert-primary&#34; role=&#34;alert&#34;&gt;&lt;div class=&#34;h4 alert-heading&#34; role=&#34;heading&#34;&gt;Signal requires a custom container image&lt;/div&gt;
+
+
+Signal integration requires `signal-cli` (a Java application) installed in the container. See [Step 3: Signal Setup](#signal-setup) for details.
+
+&lt;/div&gt;</code></pre></div></div>Replace placeholders:</p><ul><li><code>&lt;YOUR_TELEGRAM_USER_ID></code> — your numeric Telegram user ID (see <a href=#telegram-setup>Step 3: Telegram Setup</a>)</li><li><code>&lt;YOUR_PHONE_E164></code> — your phone number in E.164 format (e.g. <code>+15551234567</code>)</li><li><code>&lt;BOT_PHONE_E164></code> — dedicated phone number for the Signal bot</li></ul><div class="alert alert-primary" role=alert><div class="h4 alert-heading" role=heading>Model configuration</div>The config above uses Sonnet as the primary model with Haiku as a fallback. OpenClaw automatically fails over when the primary model hits rate limits, auth errors, or timeouts.
+**Customizing models:**
+- **`model.primary`** — the default model for all conversations
+- **`model.fallbacks`** — ordered list of backup models, tried in sequence on failure
+- **`models`** — allowlist with aliases that appear in the Control UI model selector. You can switch models from the UI during a conversation
+- **`models.providers`** — provider credentials. Supports Anthropic, OpenAI, Google Gemini, OpenRouter, and local models (Ollama). Add multiple providers to mix models:
+```json5
+"models": {
+"providers": {
+"anthropic": { "apiKey": "$ANTHROPIC_API_KEY" },
+"openai": { "apiKey": "$OPENAI_API_KEY" }
+}
+}
+```
+- **Per-agent overrides** — individual agents in `agents.list[]` can override the default model. See the [OpenClaw model docs](https://docs.openclaw.ai/concepts/models) for details.</div><h3 id=22-create-secrets>2.2 Create Secrets</h3><p>Generate a gateway authentication token and create the Kubernetes secret:</p><p><ul class="nav nav-tabs" id=tabs-7 role=tablist><li class=nav-item><button class="nav-link active" id=tabs-07-00-tab data-bs-toggle=tab data-bs-target=#tabs-07-00 role=tab aria-controls=tabs-07-00 aria-selected=true>
+Telegram</button></li><li class=nav-item><button class=nav-link id=tabs-07-01-tab data-bs-toggle=tab data-bs-target=#tabs-07-01 role=tab aria-controls=tabs-07-01 aria-selected=false>
+WhatsApp</button></li><li class=nav-item><button class=nav-link id=tabs-07-02-tab data-bs-toggle=tab data-bs-target=#tabs-07-02 role=tab aria-controls=tabs-07-02 aria-selected=false>
+Signal</button></li></ul><div class=tab-content id=tabs-7-content><div class="tab-pane fade show active" id=tabs-07-00 role=tabpanel aria-labelled-by=tabs-07-00-tab tabindex=7><pre tabindex=0><code>```bash
+# Generate a strong gateway token
+GATEWAY_TOKEN=$(openssl rand -hex 32)
+echo &#34;Save this token for Control UI access: $GATEWAY_TOKEN&#34;
+
+kubectl create secret generic openclaw-secrets \
+  --namespace apps-restricted \
+  --from-literal=ANTHROPIC_API_KEY=&lt;YOUR_ANTHROPIC_API_KEY&gt; \
+  --from-literal=TELEGRAM_BOT_TOKEN=&lt;YOUR_TELEGRAM_BOT_TOKEN&gt; \
+  --from-literal=OPENCLAW_GATEWAY_TOKEN=$GATEWAY_TOKEN
+```</code></pre></div><div class="tab-pane fade" id=tabs-07-01 role=tabpanel aria-labelled-by=tabs-07-01-tab tabindex=7><pre tabindex=0><code>```bash
+GATEWAY_TOKEN=$(openssl rand -hex 32)
+echo &#34;Save this token for Control UI access: $GATEWAY_TOKEN&#34;
+
+kubectl create secret generic openclaw-secrets \
+  --namespace apps-restricted \
+  --from-literal=ANTHROPIC_API_KEY=&lt;YOUR_ANTHROPIC_API_KEY&gt; \
+  --from-literal=OPENCLAW_GATEWAY_TOKEN=$GATEWAY_TOKEN
+```
+
+&lt;div class=&#34;alert alert-primary&#34; role=&#34;alert&#34;&gt;&lt;div class=&#34;h4 alert-heading&#34; role=&#34;heading&#34;&gt;No API token needed&lt;/div&gt;
+
+
+WhatsApp uses QR-code based linking — no API keys or tokens required. You&#39;ll pair your account interactively in [Step 3](#whatsapp-setup).
+
+&lt;/div&gt;</code></pre></div><div class="tab-pane fade" id=tabs-07-02 role=tabpanel aria-labelled-by=tabs-07-02-tab tabindex=7><pre tabindex=0><code>```bash
+GATEWAY_TOKEN=$(openssl rand -hex 32)
+echo &#34;Save this token for Control UI access: $GATEWAY_TOKEN&#34;
+
+kubectl create secret generic openclaw-secrets \
+  --namespace apps-restricted \
+  --from-literal=ANTHROPIC_API_KEY=&lt;YOUR_ANTHROPIC_API_KEY&gt; \
+  --from-literal=OPENCLAW_GATEWAY_TOKEN=$GATEWAY_TOKEN
+```</code></pre></div></div><div class="alert alert-primary" role=alert><div class="h4 alert-heading" role=heading>Save the gateway token</div>The `GATEWAY_TOKEN` is required to access the Control UI dashboard. Save it securely — you'll need it when logging into the web interface.</div></p><h3 id=23-deploy-openclaw-statefulset>2.3 Deploy OpenClaw StatefulSet</h3><p>Create file <code>openclaw.yaml</code>:</p><p><ul class="nav nav-tabs" id=tabs-9 role=tablist><li class=nav-item><button class="nav-link active" id=tabs-09-00-tab data-bs-toggle=tab data-bs-target=#tabs-09-00 role=tab aria-controls=tabs-09-00 aria-selected=true>
+Telegram</button></li><li class=nav-item><button class=nav-link id=tabs-09-01-tab data-bs-toggle=tab data-bs-target=#tabs-09-01 role=tab aria-controls=tabs-09-01 aria-selected=false>
+WhatsApp</button></li><li class=nav-item><button class=nav-link id=tabs-09-02-tab data-bs-toggle=tab data-bs-target=#tabs-09-02 role=tab aria-controls=tabs-09-02 aria-selected=false>
+Signal</button></li></ul><div class=tab-content id=tabs-9-content><div class="tab-pane fade show active" id=tabs-09-00 role=tabpanel aria-labelled-by=tabs-09-00-tab tabindex=9><pre tabindex=0><code>```yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: openclaw
+  namespace: apps-restricted
+spec:
+  serviceName: openclaw
+  replicas: 1
+  selector:
+    matchLabels:
+      app: openclaw
+  template:
+    metadata:
+      labels:
+        app: openclaw
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      containers:
+        - name: openclaw
+          image: node:22-slim
+          workingDir: /app
+          command:
+            - /bin/sh
+            - -c
+            - |
+              npm install -g openclaw@latest &amp;&amp;
+              openclaw gateway --port 18789
+          env:
+            - name: ANTHROPIC_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: openclaw-secrets
+                  key: ANTHROPIC_API_KEY
+            - name: TELEGRAM_BOT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: openclaw-secrets
+                  key: TELEGRAM_BOT_TOKEN
+            - name: OPENCLAW_GATEWAY_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: openclaw-secrets
+                  key: OPENCLAW_GATEWAY_TOKEN
+            - name: OPENCLAW_CONFIG_PATH
+              value: /etc/openclaw/openclaw.json
+            - name: OPENCLAW_STATE_DIR
+              value: /home/node/.openclaw
+          ports:
+            - containerPort: 18789
+              name: gateway
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [&#34;ALL&#34;]
+          resources:
+            requests:
+              memory: &#34;512Mi&#34;
+              cpu: &#34;250m&#34;
+            limits:
+              memory: &#34;2Gi&#34;
+              cpu: &#34;2000m&#34;
+          volumeMounts:
+            - name: config
+              mountPath: /etc/openclaw/openclaw.json
+              subPath: openclaw.json
+              readOnly: true
+            - name: data
+              mountPath: /home/node/.openclaw
+      volumes:
+        - name: config
+          configMap:
+            name: openclaw-config
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: hcloud-volumes
+        resources:
+          requests:
+            storage: 10Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: openclaw
+  namespace: apps-restricted
+spec:
+  selector:
+    app: openclaw
+  ports:
+    - port: 18789
+      targetPort: 18789
+      name: gateway
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: openclaw-egress
+  namespace: apps-restricted
+spec:
+  endpointSelector:
+    matchLabels:
+      app: openclaw
+  egress:
+    # DNS resolution (required for FQDN rules)
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: &#34;53&#34;
+              protocol: UDP
+            - port: &#34;53&#34;
+              protocol: TCP
+
+    # Allow internal cluster communication
+    - toEntities:
+        - cluster
+
+    # Anthropic API
+    - toFQDNs:
+        - matchName: &#34;api.anthropic.com&#34;
+      toPorts:
+        - ports:
+            - port: &#34;443&#34;
+              protocol: TCP
+
+    # Telegram API
+    - toFQDNs:
+        - matchName: &#34;api.telegram.org&#34;
+      toPorts:
+        - ports:
+            - port: &#34;443&#34;
+              protocol: TCP
+```</code></pre></div><div class="tab-pane fade" id=tabs-09-01 role=tabpanel aria-labelled-by=tabs-09-01-tab tabindex=9><pre tabindex=0><code>```yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: openclaw
+  namespace: apps-restricted
+spec:
+  serviceName: openclaw
+  replicas: 1
+  selector:
+    matchLabels:
+      app: openclaw
+  template:
+    metadata:
+      labels:
+        app: openclaw
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      containers:
+        - name: openclaw
+          image: node:22-slim
+          workingDir: /app
+          command:
+            - /bin/sh
+            - -c
+            - |
+              npm install -g openclaw@latest &amp;&amp;
+              openclaw gateway --port 18789
+          env:
+            - name: ANTHROPIC_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: openclaw-secrets
+                  key: ANTHROPIC_API_KEY
+            - name: OPENCLAW_GATEWAY_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: openclaw-secrets
+                  key: OPENCLAW_GATEWAY_TOKEN
+            - name: OPENCLAW_CONFIG_PATH
+              value: /etc/openclaw/openclaw.json
+            - name: OPENCLAW_STATE_DIR
+              value: /home/node/.openclaw
+          ports:
+            - containerPort: 18789
+              name: gateway
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [&#34;ALL&#34;]
+          resources:
+            requests:
+              memory: &#34;512Mi&#34;
+              cpu: &#34;250m&#34;
+            limits:
+              memory: &#34;2Gi&#34;
+              cpu: &#34;2000m&#34;
+          volumeMounts:
+            - name: config
+              mountPath: /etc/openclaw/openclaw.json
+              subPath: openclaw.json
+              readOnly: true
+            - name: data
+              mountPath: /home/node/.openclaw
+      volumes:
+        - name: config
+          configMap:
+            name: openclaw-config
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: hcloud-volumes
+        resources:
+          requests:
+            storage: 10Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: openclaw
+  namespace: apps-restricted
+spec:
+  selector:
+    app: openclaw
+  ports:
+    - port: 18789
+      targetPort: 18789
+      name: gateway
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: openclaw-egress
+  namespace: apps-restricted
+spec:
+  endpointSelector:
+    matchLabels:
+      app: openclaw
+  egress:
+    # DNS resolution (required for FQDN rules)
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: &#34;53&#34;
+              protocol: UDP
+            - port: &#34;53&#34;
+              protocol: TCP
+
+    # Allow internal cluster communication
+    - toEntities:
+        - cluster
+
+    # Anthropic API
+    - toFQDNs:
+        - matchName: &#34;api.anthropic.com&#34;
+      toPorts:
+        - ports:
+            - port: &#34;443&#34;
+              protocol: TCP
+
+    # WhatsApp servers
+    - toFQDNs:
+        - matchName: &#34;web.whatsapp.com&#34;
+        - matchPattern: &#34;*.whatsapp.net&#34;
+        - matchPattern: &#34;*.whatsapp.com&#34;
+      toPorts:
+        - ports:
+            - port: &#34;443&#34;
+              protocol: TCP
+            - port: &#34;5222&#34;
+              protocol: TCP
+```</code></pre></div><div class="tab-pane fade" id=tabs-09-02 role=tabpanel aria-labelled-by=tabs-09-02-tab tabindex=9><pre tabindex=0><code>```yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: openclaw
+  namespace: apps-restricted
+spec:
+  serviceName: openclaw
+  replicas: 1
+  selector:
+    matchLabels:
+      app: openclaw
+  template:
+    metadata:
+      labels:
+        app: openclaw
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      containers:
+        - name: openclaw
+          image: your-registry/openclaw-signal:latest  # Custom image with signal-cli
+          env:
+            - name: ANTHROPIC_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: openclaw-secrets
+                  key: ANTHROPIC_API_KEY
+            - name: OPENCLAW_GATEWAY_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: openclaw-secrets
+                  key: OPENCLAW_GATEWAY_TOKEN
+            - name: OPENCLAW_CONFIG_PATH
+              value: /etc/openclaw/openclaw.json
+            - name: OPENCLAW_STATE_DIR
+              value: /home/node/.openclaw
+          ports:
+            - containerPort: 18789
+              name: gateway
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [&#34;ALL&#34;]
+          resources:
+            requests:
+              memory: &#34;512Mi&#34;
+              cpu: &#34;250m&#34;
+            limits:
+              memory: &#34;2Gi&#34;
+              cpu: &#34;2000m&#34;
+          volumeMounts:
+            - name: config
+              mountPath: /etc/openclaw/openclaw.json
+              subPath: openclaw.json
+              readOnly: true
+            - name: data
+              mountPath: /home/node/.openclaw
+      volumes:
+        - name: config
+          configMap:
+            name: openclaw-config
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: hcloud-volumes
+        resources:
+          requests:
+            storage: 10Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: openclaw
+  namespace: apps-restricted
+spec:
+  selector:
+    app: openclaw
+  ports:
+    - port: 18789
+      targetPort: 18789
+      name: gateway
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: openclaw-egress
+  namespace: apps-restricted
+spec:
+  endpointSelector:
+    matchLabels:
+      app: openclaw
+  egress:
+    # DNS resolution (required for FQDN rules)
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: &#34;53&#34;
+              protocol: UDP
+            - port: &#34;53&#34;
+              protocol: TCP
+
+    # Allow internal cluster communication
+    - toEntities:
+        - cluster
+
+    # Anthropic API
+    - toFQDNs:
+        - matchName: &#34;api.anthropic.com&#34;
+      toPorts:
+        - ports:
+            - port: &#34;443&#34;
+              protocol: TCP
+
+    # Signal servers
+    - toFQDNs:
+        - matchName: &#34;chat.signal.org&#34;
+        - matchName: &#34;storage.signal.org&#34;
+        - matchName: &#34;cdn.signal.org&#34;
+        - matchName: &#34;cdn2.signal.org&#34;
+        - matchName: &#34;contentproxy.signal.org&#34;
+      toPorts:
+        - ports:
+            - port: &#34;443&#34;
+              protocol: TCP
+```</code></pre></div></div><div class="alert alert-primary" role=alert><div class="h4 alert-heading" role=heading>Cilium FQDN egress whitelist</div>Each manifest includes a `CiliumNetworkPolicy` that restricts OpenClaw's outbound traffic to only the Anthropic API and the messaging provider's servers. Combined with the namespace-level default-deny policy from the [Kubernetes guide](/kubeclaw/docs/guide/kubernetes/), this means OpenClaw **cannot** reach any other external service. Cilium's DNS proxy intercepts DNS64-synthesized AAAA responses and maps them to the FQDN, so these rules work transparently with NAT64.</div><div class="alert alert-primary" role=alert><div class="h4 alert-heading" role=heading>Startup time</div>The pod installs OpenClaw via `npm install -g` on every restart, which takes 1–2 minutes. For faster restarts, build a custom Docker image with OpenClaw baked in (see [Maintenance](#build-a-custom-image-optional)).</div>Apply:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl apply -f openclaw-config.yaml
+</span></span><span class=line><span class=cl>kubectl apply -f openclaw.yaml
+</span></span></code></pre></div><h3 id=24-verify-deployment>2.4 Verify Deployment</h3><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># Watch pod status (wait for Running)</span>
+</span></span><span class=line><span class=cl>kubectl get pods -n apps-restricted -w
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Check logs (wait for &#34;gateway listening&#34; message)</span>
+</span></span><span class=line><span class=cl>kubectl logs -n apps-restricted -l <span class=nv>app</span><span class=o>=</span>openclaw -f
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Check persistent volume</span>
+</span></span><span class=line><span class=cl>kubectl get pvc -n apps-restricted
+</span></span></code></pre></div><p>The gateway is ready when you see output like:</p><pre tabindex=0><code>gateway listening on 0.0.0.0:18789
+</code></pre><h2 id=step-3-configure-messaging-channel>Step 3: Configure Messaging Channel</h2><h3 id=telegram-setup>Telegram Setup</h3><h4 id=31-create-a-bot>3.1 Create a Bot</h4><ol><li>Open Telegram and message <a href=https://t.me/BotFather>@BotFather</a></li><li>Send <code>/newbot</code> and follow the prompts</li><li>Save the bot token (format: <code>123456789:ABCdefGHI...</code>)</li></ol><h4 id=32-find-your-user-id>3.2 Find Your User ID</h4><p>The safest way (no third-party bots required):</p><ol><li>Message your new bot (send any message)</li><li>Check the OpenClaw logs:</li></ol><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl logs -n apps-restricted -l <span class=nv>app</span><span class=o>=</span>openclaw -f
+</span></span></code></pre></div><ol start=3><li>Look for your numeric ID in the <code>from.id</code> field of the incoming message log</li></ol><p>Alternatively, query the Telegram Bot API directly:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>curl <span class=s2>&#34;https://api.telegram.org/bot&lt;BOT_TOKEN&gt;/getUpdates&#34;</span>
+</span></span></code></pre></div><h4 id=33-update-configuration>3.3 Update Configuration</h4><p>Edit the ConfigMap with your actual user ID:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl edit configmap openclaw-config -n apps-restricted
+</span></span></code></pre></div><p>Replace <code>&lt;YOUR_TELEGRAM_USER_ID></code> with your numeric ID, then restart:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl rollout restart statefulset/openclaw -n apps-restricted
+</span></span></code></pre></div><h4 id=34-test>3.4 Test</h4><ol><li>Open Telegram and find your bot</li><li>Send any message</li><li>If using <code>dmPolicy: "pairing"</code>, approve the pairing request:</li></ol><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl <span class=nb>exec</span> -n apps-restricted -it openclaw-0 -- openclaw pairing list telegram
+</span></span><span class=line><span class=cl>kubectl <span class=nb>exec</span> -n apps-restricted -it openclaw-0 -- openclaw pairing approve telegram &lt;CODE&gt;
+</span></span></code></pre></div><p>If using <code>dmPolicy: "allowlist"</code> (recommended), your user ID is pre-approved and the bot responds immediately.</p><hr><h3 id=whatsapp-setup>WhatsApp Setup</h3><h4 id=31-link-your-whatsapp-account>3.1 Link Your WhatsApp Account</h4><p>WhatsApp uses QR-code based pairing — no API keys needed. Exec into the pod and run the login command:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl <span class=nb>exec</span> -n apps-restricted -it openclaw-0 -- openclaw channels login --channel whatsapp
+</span></span></code></pre></div><p>This displays a QR code in the terminal. Scan it with your WhatsApp app:</p><ol><li>Open WhatsApp on your phone</li><li>Go to <strong>Settings</strong> > <strong>Linked Devices</strong> > <strong>Link a Device</strong></li><li>Scan the QR code</li></ol><div class="alert alert-primary" role=alert><div class="h4 alert-heading" role=heading>Dedicated number recommended</div>Using a separate WhatsApp number (not your personal one) provides cleaner access boundaries and avoids self-chat confusion. If using your personal number, add `"selfChatMode": true` to the WhatsApp channel configuration.</div><h4 id=32-verify-connection>3.2 Verify Connection</h4><p>After linking, restart the gateway to pick up the stored credentials:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl rollout restart statefulset/openclaw -n apps-restricted
+</span></span></code></pre></div><p>Check logs for WhatsApp connection:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl logs -n apps-restricted -l <span class=nv>app</span><span class=o>=</span>openclaw -f
+</span></span></code></pre></div><h4 id=33-network-policy-considerations>3.3 Network Policy Considerations</h4><p>WhatsApp (via the Baileys library) connects to multiple WhatsApp servers. The key domains include:</p><ul><li><code>web.whatsapp.com</code></li><li><code>*.whatsapp.net</code> (messaging, media)</li></ul><h2 id=hahahugoshortcode28s13hbhb><div class="alert alert-primary" role=alert><div class="h4 alert-heading" role=heading>WhatsApp credentials persist</div>WhatsApp credentials are stored at `~/.openclaw/credentials/whatsapp/` on the persistent volume. They survive pod restarts — you only need to scan the QR code once.</div></h2><h3 id=signal-setup>Signal Setup</h3><div class="alert alert-primary" role=alert><div class="h4 alert-heading" role=heading>Advanced setup</div>Signal requires `signal-cli`, a Java-based application, installed in the container. This section requires building a custom Docker image.</div><h4 id=31-build-a-custom-image-with-signal-cli>3.1 Build a Custom Image with signal-cli</h4><p>Create a <code>Dockerfile.openclaw-signal</code>:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-dockerfile data-lang=dockerfile><span class=line><span class=cl><span class=k>FROM</span><span class=w> </span><span class=s>node:22-slim</span><span class=err>
+</span></span></span><span class=line><span class=cl><span class=err>
+</span></span></span><span class=line><span class=cl><span class=c># Install signal-cli native build</span><span class=err>
+</span></span></span><span class=line><span class=cl><span class=k>RUN</span> apt-get update <span class=o>&amp;&amp;</span> apt-get install -y curl <span class=o>&amp;&amp;</span> <span class=se>\
+</span></span></span><span class=line><span class=cl>    <span class=nv>VERSION</span><span class=o>=</span><span class=k>$(</span>curl -Ls -o /dev/null -w <span class=s1>&#39;%{url_effective}&#39;</span> <span class=se>\
+</span></span></span><span class=line><span class=cl>      https://github.com/AsamK/signal-cli/releases/latest <span class=p>|</span> <span class=se>\
+</span></span></span><span class=line><span class=cl>      sed -e <span class=s1>&#39;s/^.*\/v//&#39;</span><span class=k>)</span> <span class=o>&amp;&amp;</span> <span class=se>\
+</span></span></span><span class=line><span class=cl>    curl -L -O <span class=s2>&#34;https://github.com/AsamK/signal-cli/releases/download/v</span><span class=si>${</span><span class=nv>VERSION</span><span class=si>}</span><span class=s2>/signal-cli-</span><span class=si>${</span><span class=nv>VERSION</span><span class=si>}</span><span class=s2>-Linux-native.tar.gz&#34;</span> <span class=o>&amp;&amp;</span> <span class=se>\
+</span></span></span><span class=line><span class=cl>    tar xf <span class=s2>&#34;signal-cli-</span><span class=si>${</span><span class=nv>VERSION</span><span class=si>}</span><span class=s2>-Linux-native.tar.gz&#34;</span> -C /opt <span class=o>&amp;&amp;</span> <span class=se>\
+</span></span></span><span class=line><span class=cl>    ln -sf /opt/signal-cli /usr/local/bin/signal-cli <span class=o>&amp;&amp;</span> <span class=se>\
+</span></span></span><span class=line><span class=cl>    rm -f <span class=s2>&#34;signal-cli-</span><span class=si>${</span><span class=nv>VERSION</span><span class=si>}</span><span class=s2>-Linux-native.tar.gz&#34;</span> <span class=o>&amp;&amp;</span> <span class=se>\
+</span></span></span><span class=line><span class=cl>    apt-get remove -y curl <span class=o>&amp;&amp;</span> apt-get autoremove -y <span class=o>&amp;&amp;</span> <span class=se>\
+</span></span></span><span class=line><span class=cl>    rm -rf /var/lib/apt/lists/*<span class=err>
+</span></span></span><span class=line><span class=cl><span class=err>
+</span></span></span><span class=line><span class=cl><span class=c># Install OpenClaw globally</span><span class=err>
+</span></span></span><span class=line><span class=cl><span class=k>RUN</span> npm install -g openclaw@latest<span class=err>
+</span></span></span><span class=line><span class=cl><span class=err>
+</span></span></span><span class=line><span class=cl><span class=k>USER</span><span class=w> </span><span class=s>1000</span><span class=err>
+</span></span></span><span class=line><span class=cl><span class=k>WORKDIR</span><span class=w> </span><span class=s>/app</span><span class=err>
+</span></span></span><span class=line><span class=cl><span class=err>
+</span></span></span><span class=line><span class=cl><span class=k>CMD</span> <span class=p>[</span><span class=s2>&#34;openclaw&#34;</span><span class=p>,</span> <span class=s2>&#34;gateway&#34;</span><span class=p>,</span> <span class=s2>&#34;--port&#34;</span><span class=p>,</span> <span class=s2>&#34;18789&#34;</span><span class=p>]</span><span class=err>
+</span></span></span></code></pre></div><p>Build and push to a registry accessible from your cluster, then update the StatefulSet <code>image</code> field.</p><h4 id=32-register-the-bot-phone-number>3.2 Register the Bot Phone Number</h4><p>Exec into the pod and register:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl <span class=nb>exec</span> -n apps-restricted -it openclaw-0 -- sh
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Register the bot number (may require captcha)</span>
+</span></span><span class=line><span class=cl>signal-cli -a +&lt;BOT_PHONE_NUMBER&gt; register
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># If captcha required, visit https://signalcaptchas.org/registration/generate.html</span>
+</span></span><span class=line><span class=cl><span class=c1># then run:</span>
+</span></span><span class=line><span class=cl>signal-cli -a +&lt;BOT_PHONE_NUMBER&gt; register --captcha <span class=s1>&#39;&lt;CAPTCHA_URL&gt;&#39;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Verify with the SMS code</span>
+</span></span><span class=line><span class=cl>signal-cli -a +&lt;BOT_PHONE_NUMBER&gt; verify &lt;CODE&gt;
+</span></span></code></pre></div><h4 id=33-alternatively-link-an-existing-account>3.3 Alternatively: Link an Existing Account</h4><p>If you prefer to link to an existing Signal account (not recommended for production):</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl <span class=nb>exec</span> -n apps-restricted -it openclaw-0 -- signal-cli link -n <span class=s2>&#34;OpenClaw&#34;</span>
+</span></span></code></pre></div><p>Scan the QR code in your Signal app under <strong>Settings</strong> > <strong>Linked Devices</strong>.</p><div class="alert alert-primary" role=alert><div class="h4 alert-heading" role=heading>Registering deauthenticates</div>Registering a phone number with `signal-cli` deauthenticates the main Signal app for that number. Use a **dedicated bot number** to avoid losing access to your personal Signal account.</div><h2 id=step-4-expose-control-ui-via-cloudflare-tunnel>Step 4: Expose Control UI via Cloudflare Tunnel</h2><p>OpenClaw includes a web-based Control UI (dashboard) for managing sessions, viewing logs, and chatting directly. Since the dashboard is an admin surface, we protect it with two layers: <strong>Cloudflare Access</strong> (identity verification) and <strong>gateway token</strong> (application authentication).</p><h3 id=41-add-tunnel-route>4.1 Add Tunnel Route</h3><p>In <strong>Cloudflare Zero Trust</strong> > <strong>Networks</strong> > <strong>Tunnels</strong> > <strong>your tunnel</strong> > <strong>Public Hostnames</strong>, add:</p><table><thead><tr><th>Hostname</th><th>Service</th></tr></thead><tbody><tr><td><code>openclaw.yourdomain.com</code></td><td><code>http://openclaw.apps-restricted.svc.cluster.local:18789</code></td></tr></tbody></table><div class="alert alert-primary" role=alert><div class="h4 alert-heading" role=heading>SSL/TLS settings</div>In Cloudflare dashboard under your domain > **SSL/TLS** > **Overview**, set the mode to **Full** (not "Full (strict)") since the origin (OpenClaw gateway) serves HTTP, not HTTPS. Cloudflare terminates TLS at the edge.</div><h3 id=42-create-cloudflare-access-policy>4.2 Create Cloudflare Access Policy</h3><p>Protect the dashboard route so only authenticated users can reach it:</p><ol><li>Go to <strong>Cloudflare Zero Trust</strong> > <strong>Access</strong> > <strong>Applications</strong></li><li>Click <strong>Add an Application</strong> > <strong>Self-hosted</strong></li><li>Configure:</li></ol><table><thead><tr><th>Field</th><th>Value</th></tr></thead><tbody><tr><td><strong>Application name</strong></td><td>OpenClaw Dashboard</td></tr><tr><td><strong>Session Duration</strong></td><td>24 hours</td></tr><tr><td><strong>Application domain</strong></td><td><code>openclaw.yourdomain.com</code></td></tr></tbody></table><ol start=4><li>Add a <strong>Policy</strong>:</li></ol><table><thead><tr><th>Field</th><th>Value</th></tr></thead><tbody><tr><td><strong>Policy name</strong></td><td>Allowed Users</td></tr><tr><td><strong>Action</strong></td><td>Allow</td></tr><tr><td><strong>Include</strong></td><td>Emails — <code>your-email@example.com</code></td></tr></tbody></table><ol start=5><li>Under <strong>Authentication</strong>, select your identity provider or use <strong>One-time PIN</strong> (sends a verification code to your email — no IdP setup required)</li></ol><div class="alert alert-primary" role=alert><div class="h4 alert-heading" role=heading>Two-layer authentication</div>With this setup, accessing `openclaw.yourdomain.com` requires:
+1. **Cloudflare Access**: Verifies your identity (email + OTP or IdP login)
+2. **Gateway token**: Entered in the Control UI settings panel (the token from [Step 2.2](#22-create-secrets))
+Even if someone bypasses Cloudflare Access, they cannot use the dashboard without the gateway token.</div><h3 id=43-access-the-dashboard>4.3 Access the Dashboard</h3><ol><li>Navigate to <code>https://openclaw.yourdomain.com</code> in your browser</li><li>Authenticate with Cloudflare Access (email OTP or your identity provider)</li><li>The Control UI loads — enter the gateway token when prompted</li><li>The token is stored in your browser&rsquo;s <code>localStorage</code> for future sessions</li></ol><p>The Control UI provides:</p><ul><li><strong>Chat</strong>: Direct conversation with the AI agent</li><li><strong>Sessions</strong>: View and manage active sessions across all channels</li><li><strong>Channels</strong>: Status of connected messaging channels (Telegram, WhatsApp, Signal)</li><li><strong>Logs</strong>: Live gateway log tailing</li><li><strong>Configuration</strong>: Edit settings with concurrent edit protection</li><li><strong>Skills</strong>: Install and manage skills</li></ul><h2 id=step-5-verify--test>Step 5: Verify & Test</h2><h3 id=test-messaging>Test Messaging</h3><ul class="nav nav-tabs" id=tabs-18 role=tablist><li class=nav-item><button class="nav-link active" id=tabs-18-00-tab data-bs-toggle=tab data-bs-target=#tabs-18-00 role=tab aria-controls=tabs-18-00 aria-selected=true>
+Telegram</button></li><li class=nav-item><button class=nav-link id=tabs-18-01-tab data-bs-toggle=tab data-bs-target=#tabs-18-01 role=tab aria-controls=tabs-18-01 aria-selected=false>
+WhatsApp</button></li><li class=nav-item><button class=nav-link id=tabs-18-02-tab data-bs-toggle=tab data-bs-target=#tabs-18-02 role=tab aria-controls=tabs-18-02 aria-selected=false>
+Signal</button></li></ul><div class=tab-content id=tabs-18-content><div class="tab-pane fade show active" id=tabs-18-00 role=tabpanel aria-labelled-by=tabs-18-00-tab tabindex=18><pre tabindex=0><code>1. Find your bot on Telegram
+2. Send any message
+3. OpenClaw should respond (only to your user ID)</code></pre></div><div class="tab-pane fade" id=tabs-18-01 role=tabpanel aria-labelled-by=tabs-18-01-tab tabindex=18><pre tabindex=0><code>1. Send a message to the linked WhatsApp number
+2. OpenClaw should respond (only to numbers in `allowFrom`)</code></pre></div><div class="tab-pane fade" id=tabs-18-02 role=tabpanel aria-labelled-by=tabs-18-02-tab tabindex=18><pre tabindex=0><code>1. Send a message to the bot&#39;s Signal number
+2. OpenClaw should respond (only to numbers in `allowFrom`)</code></pre></div></div><h3 id=test-control-ui>Test Control UI</h3><ol><li>Open <code>https://openclaw.yourdomain.com</code></li><li>Verify Cloudflare Access prompts for authentication</li><li>Enter the gateway token in the UI</li><li>Send a test message in the chat interface</li></ol><h3 id=check-pod-health>Check Pod Health</h3><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># Pod status</span>
+</span></span><span class=line><span class=cl>kubectl get pods -n apps-restricted
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Logs</span>
+</span></span><span class=line><span class=cl>kubectl logs -n apps-restricted -l <span class=nv>app</span><span class=o>=</span>openclaw -f
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># PVC status</span>
+</span></span><span class=line><span class=cl>kubectl get pvc -n apps-restricted
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Exec into pod for diagnostics</span>
+</span></span><span class=line><span class=cl>kubectl <span class=nb>exec</span> -n apps-restricted -it openclaw-0 -- openclaw doctor
+</span></span><span class=line><span class=cl>kubectl <span class=nb>exec</span> -n apps-restricted -it openclaw-0 -- openclaw status
+</span></span></code></pre></div><h2 id=maintenance>Maintenance</h2><h3 id=update-openclaw>Update OpenClaw</h3><p>The pod installs <code>openclaw@latest</code> on every restart, so a simple restart pulls the newest version:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl rollout restart statefulset/openclaw -n apps-restricted
+</span></span></code></pre></div><h3 id=rotate-secrets>Rotate Secrets</h3><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># Generate new gateway token</span>
+</span></span><span class=line><span class=cl><span class=nv>NEW_GATEWAY_TOKEN</span><span class=o>=</span><span class=k>$(</span>openssl rand -hex 32<span class=k>)</span>
+</span></span><span class=line><span class=cl><span class=nb>echo</span> <span class=s2>&#34;New gateway token: </span><span class=nv>$NEW_GATEWAY_TOKEN</span><span class=s2>&#34;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Delete and recreate the secret (adjust for your channel)</span>
+</span></span><span class=line><span class=cl>kubectl delete secret openclaw-secrets -n apps-restricted
+</span></span><span class=line><span class=cl>kubectl create secret generic openclaw-secrets <span class=se>\
+</span></span></span><span class=line><span class=cl>  --namespace apps-restricted <span class=se>\
+</span></span></span><span class=line><span class=cl>  --from-literal<span class=o>=</span><span class=nv>ANTHROPIC_API_KEY</span><span class=o>=</span>&lt;YOUR_KEY&gt; <span class=se>\
+</span></span></span><span class=line><span class=cl>  --from-literal<span class=o>=</span><span class=nv>TELEGRAM_BOT_TOKEN</span><span class=o>=</span>&lt;YOUR_TOKEN&gt; <span class=se>\
+</span></span></span><span class=line><span class=cl>  --from-literal<span class=o>=</span><span class=nv>OPENCLAW_GATEWAY_TOKEN</span><span class=o>=</span><span class=nv>$NEW_GATEWAY_TOKEN</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Restart to pick up new secrets</span>
+</span></span><span class=line><span class=cl>kubectl rollout restart statefulset/openclaw -n apps-restricted
+</span></span></code></pre></div><div class="alert alert-primary" role=alert><div class="h4 alert-heading" role=heading>Update your browser</div>After rotating the gateway token, you'll need to enter the new token in the Control UI settings panel.</div><h3 id=build-a-custom-image-optional>Build a Custom Image (Optional)</h3><p>For faster pod restarts (skipping <code>npm install</code> on every boot), build a custom image:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-dockerfile data-lang=dockerfile><span class=line><span class=cl><span class=k>FROM</span><span class=w> </span><span class=s>node:22-slim</span><span class=err>
+</span></span></span><span class=line><span class=cl><span class=k>RUN</span> npm install -g openclaw@latest<span class=err>
+</span></span></span><span class=line><span class=cl><span class=k>USER</span><span class=w> </span><span class=s>1000</span><span class=err>
+</span></span></span><span class=line><span class=cl><span class=k>WORKDIR</span><span class=w> </span><span class=s>/app</span><span class=err>
+</span></span></span><span class=line><span class=cl><span class=k>CMD</span> <span class=p>[</span><span class=s2>&#34;openclaw&#34;</span><span class=p>,</span> <span class=s2>&#34;gateway&#34;</span><span class=p>,</span> <span class=s2>&#34;--port&#34;</span><span class=p>,</span> <span class=s2>&#34;18789&#34;</span><span class=p>]</span><span class=err>
+</span></span></span></code></pre></div><div class="alert alert-primary" role=alert><div class="h4 alert-heading" role=heading>Pin the version</div>In production, pin to a specific version (`openclaw@1.2.3`) rather than `@latest` to avoid unexpected breaking changes on restart.</div><h3 id=useful-commands>Useful Commands</h3><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># OpenClaw logs</span>
+</span></span><span class=line><span class=cl>kubectl logs -n apps-restricted -l <span class=nv>app</span><span class=o>=</span>openclaw -f
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Restart OpenClaw</span>
+</span></span><span class=line><span class=cl>kubectl rollout restart statefulset/openclaw -n apps-restricted
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Run diagnostics</span>
+</span></span><span class=line><span class=cl>kubectl <span class=nb>exec</span> -n apps-restricted -it openclaw-0 -- openclaw doctor
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Check channel status</span>
+</span></span><span class=line><span class=cl>kubectl <span class=nb>exec</span> -n apps-restricted -it openclaw-0 -- openclaw channels status --probe
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Interactive shell</span>
+</span></span><span class=line><span class=cl>kubectl <span class=nb>exec</span> -n apps-restricted -it openclaw-0 -- sh
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Check Cilium endpoint status (from control node)</span>
+</span></span><span class=line><span class=cl>cilium endpoint list
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Check FQDN cache (from control node)</span>
+</span></span><span class=line><span class=cl>kubectl <span class=nb>exec</span> -n kube-system -it <span class=se>\
+</span></span></span><span class=line><span class=cl>  <span class=k>$(</span>kubectl get pods -n kube-system -l k8s-app<span class=o>=</span>cilium -o name <span class=p>|</span> head -1<span class=k>)</span> <span class=se>\
+</span></span></span><span class=line><span class=cl>  -- cilium fqdn cache list
+</span></span></code></pre></div><h3 id=configuration-changes>Configuration Changes</h3><p>To update the OpenClaw configuration:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># Edit the ConfigMap</span>
+</span></span><span class=line><span class=cl>kubectl edit configmap openclaw-config -n apps-restricted
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Restart to apply</span>
+</span></span><span class=line><span class=cl>kubectl rollout restart statefulset/openclaw -n apps-restricted
+</span></span></code></pre></div><p>Alternatively, update the YAML file and reapply:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl apply -f openclaw-config.yaml
+</span></span><span class=line><span class=cl>kubectl rollout restart statefulset/openclaw -n apps-restricted
+</span></span></code></pre></div></div></main></div></div><footer class="td-footer row d-print-none"><div class=container-fluid><div class="row mx-md-2"><div class="td-footer__left col-6 col-sm-4 order-sm-1"><ul class=td-footer__links-list><li class=td-footer__links-item data-bs-toggle=tooltip title=GitHub aria-label=GitHub><a href=https://github.com/projectious-work/kubeclaw aria-label=GitHub target=_blank rel=noopener><i class="fa-brands fa-github"></i></a></li></ul></div><div class="td-footer__right col-6 col-sm-4 order-sm-3"></div><div class="td-footer__center col-12 col-sm-4 py-2 order-sm-2"><span class=td-footer__copyright>&copy;
+2026&ndash;2026
+<span class=td-footer__authors>Projectious</span></span><span class=td-footer__all_rights_reserved>All Rights Reserved</span></div></div></div></footer></div><script src=/kubeclaw/js/main.min.65d702cee0bf35691ed701b78b7b713d03be4a9f1f184f95e8049d065c07bc57.js integrity="sha256-ZdcCzuC/NWke1wG3i3txPQO+Sp8fGE+V6ASdBlwHvFc=" crossorigin=anonymous></script><script defer src=/kubeclaw/js/click-to-copy.min.24576ff9fe9f85bb1948ecae52ce227cafce53757a3ad52301f2a79260f6b97d.js integrity="sha256-JFdv+f6fhbsZSOyuUs4ifK/OU3V6OtUjAfKnkmD2uX0=" crossorigin=anonymous></script><script src=/kubeclaw/js/tabpane-persist.js></script></body></html>

@@ -1,0 +1,1432 @@
+<!doctype html><html itemscope itemtype=http://schema.org/WebPage lang=en class=no-js data-theme-init><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><meta name=color-scheme content="light dark"><meta name=theme-color media="(prefers-color-scheme: light)" content="#ffffff"><meta name=theme-color media="(prefers-color-scheme: dark)" content="#000000"><style>html{background:Canvas;color:CanvasText}@media(prefers-color-scheme:dark){html{background:#0b0d12;color:#e6e6e6}}html[data-theme-init] *{transition:none!important}</style><script>(function(){const t="td-color-theme",n=localStorage.getItem(t);let e=n||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");e==="auto"&&(e=window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"),document.documentElement.setAttribute("data-bs-theme",e)})()</script><link rel=canonical type=text/html href=https://projectious-work.github.io/kubeclaw/docs/guide/><link rel=alternate type=application/rss+xml href=https://projectious-work.github.io/kubeclaw/docs/guide/index.xml><link rel=alternate type=text/markdown href=https://projectious-work.github.io/kubeclaw/docs/guide/index.md><meta name=robots content="noindex, nofollow"><link rel="shortcut icon" href=/kubeclaw/favicons/favicon.ico><link rel=apple-touch-icon href=/kubeclaw/favicons/apple-touch-icon-180x180.png sizes=180x180><link rel=icon type=image/png href=/kubeclaw/favicons/favicon-16x16.png sizes=16x16><link rel=icon type=image/png href=/kubeclaw/favicons/favicon-32x32.png sizes=32x32><link rel=icon type=image/png href=/kubeclaw/favicons/android-36x36.png sizes=36x36><link rel=icon type=image/png href=/kubeclaw/favicons/android-48x48.png sizes=48x48><link rel=icon type=image/png href=/kubeclaw/favicons/android-72x72.png sizes=72x72><link rel=icon type=image/png href=/kubeclaw/favicons/android-96x96.png sizes=96x96><link rel=icon type=image/png href=/kubeclaw/favicons/android-144x144.png sizes=144x144><link rel=icon type=image/png href=/kubeclaw/favicons/android-192x192.png sizes=192x192><title>Guide | KubeClaw</title><meta name=description content="Deploy and operate the KubeClaw infrastructure step by step."><meta property="og:url" content="https://projectious-work.github.io/kubeclaw/docs/guide/"><meta property="og:site_name" content="KubeClaw"><meta property="og:title" content="Guide"><meta property="og:description" content="Deploy and operate the KubeClaw infrastructure step by step."><meta property="og:locale" content="en"><meta property="og:type" content="website"><meta itemprop=name content="Guide"><meta itemprop=description content="Deploy and operate the KubeClaw infrastructure step by step."><meta itemprop=dateModified content="2026-07-24T21:25:23+02:00"><meta itemprop=wordCount content="15"><meta name=twitter:card content="summary"><meta name=twitter:title content="Guide"><meta name=twitter:description content="Deploy and operate the KubeClaw infrastructure step by step."><link rel=preload href=/kubeclaw/scss/main.min.aeabf63efda4cea418039085e6f968fa9ab1b24e389b5f92b732afc5a24a9efa.css as=style integrity="sha256-rqv2Pv2kzqQYA5CF5vlo+pqxsk44m1+StzKvxaJKnvo=" crossorigin=anonymous><link href=/kubeclaw/scss/main.min.aeabf63efda4cea418039085e6f968fa9ab1b24e389b5f92b732afc5a24a9efa.css rel=stylesheet integrity="sha256-rqv2Pv2kzqQYA5CF5vlo+pqxsk44m1+StzKvxaJKnvo=" crossorigin=anonymous><script src=https://code.jquery.com/jquery-3.7.1.min.js integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin=anonymous></script><script defer src=https://unpkg.com/lunr@2.3.9/lunr.min.js integrity=sha384-203J0SNzyqHby3iU6hzvzltrWi/M41wOP5Gu+BiJMz5nwKykbkUx8Kp7iti0Lpli crossorigin=anonymous></script><link rel=preconnect href=https://fonts.googleapis.com><link rel=preconnect href=https://fonts.gstatic.com crossorigin><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel=stylesheet></head><body class=td-section><header><nav class="td-navbar js-navbar-scroll" data-bs-theme=dark><div class="td-navbar-container container-fluid flex-column flex-md-row"><a class=navbar-brand href=/kubeclaw/><span class="navbar-brand__logo navbar-logo"><svg id="Layer_1" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 500 500" style="enable-background:new 0 0 500 500"><g><path style="fill:#fff" d="M116.8525 421.9722c-5.7041.0-10.3442-4.3127-10.3442-9.6129V88.183c0-5.3002 4.6401-9.6117 10.3442-9.6117H320.858c3.0347.0 9.3959.5498 11.7506 2.6302l.3545.3442 58.905 63.2912c2.3101 2.491 2.9202 8.4928 2.9202 11.3184v256.2039c0 5.3002-4.6407 9.6129-10.3436 9.6129H116.8525z"/><g><g><g><path style="fill:#767676" d="M384.4445 423.2066H116.852c-6.3839.0-11.5786-4.8658-11.5786-10.8474V88.1831c0-5.9804 5.1947-10.8461 11.5786-10.8461h204.0062c.377.0 9.2786.0329 12.568 2.9389l.3947.3833 58.9508 63.337c3.2135 3.4652 3.2514 11.7924 3.2514 12.1593v256.2036C396.0231 418.3408 390.8284 423.2066 384.4445 423.2066zM116.5079 411.9189c.0848.0278.1999.0531.3441.0531h267.5925c.1442.0.2581-.0253.3441-.0531V156.1556c-.0076-.9033-.3593-3.7347-.7034-5.0037l-57.6527-61.9416c-1.4651-.3176-4.4533-.6389-5.5742-.6389H116.852c-.143.0-.2594.024-.3441.0531V411.9189zm267.4533-261.149zM327.0321 89.371v.0013V89.371z"/></g></g></g><g><g><path style="fill:#5b7fc0" d="M189.0874 210.1754l.0012-.0012c7.7751.0012 15.0295 4.1862 18.932 10.9234 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3304-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032s-11.328-2.2733-15.458-6.4032-6.4032-9.6186-6.4056-15.4628c.0012-6.025 2.454-11.4897 6.4116-15.4473C177.5953 212.627 183.0601 210.1742 189.0874 210.1754zm7.993 21.8576c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6539 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403S197.0816 234.1722 197.0804 232.033z"/><path style="opacity:.3;fill:#fff" d="M189.0898 210.176c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 212.6276 183.0612 210.176 189.0898 210.176zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 236.239 197.0839 234.2399 197.0839 232.0372z"/><g><defs><path id="SVGID_1_" d="M194.7376 237.6875c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.999 7.9942-7.9942 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.0839 234.2399 196.1861 236.239 194.7376 237.6875z"/></defs><clipPath id="SVGID_2_"><use xlink:href="#SVGID_1_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_2_);fill:#fff" d="M190.0704 225.0237c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 225.7247 191.9774 225.0237 190.0704 225.0237z"/><path style="opacity:.13;clip-path:url(#SVGID_2_);fill:#020202" d="M190.0704 225.0237c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 225.7247 191.9774 225.0237 190.0704 225.0237z"/></g><g><defs><path id="SVGID_3_" d="M189.0898 210.176c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 212.6276 183.0612 210.176 189.0898 210.176zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 236.239 197.0839 234.2399 197.0839 232.0372z"/></defs><clipPath id="SVGID_4_"><use xlink:href="#SVGID_3_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_4_);fill:#5b7fc0" d="M172.6595 215.6045c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8612 12.0547.0024 21.8636-9.797 21.8613-21.8612.0024-3.8475-1.0151-7.6326-2.9353-10.9462-3.8977-6.7324-11.1497-10.9151-18.926-10.9151C182.0806 209.1953 176.6171 211.647 172.6595 215.6045z"/></g></g><rect x="198.8952" y="225.1043" style="fill:#5b7fc0" width="122.6266" height="13.8671"/></g><g><path style="fill:#d95140" d="M189.0874 155.7611l.0012-.0012c7.7751.0012 15.0295 4.1862 18.932 10.9234 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3304-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032s-11.328-2.2733-15.458-6.4032-6.4032-9.6186-6.4056-15.4628c.0012-6.0249 2.454-11.4897 6.4116-15.4473C177.5953 158.2128 183.0601 155.7599 189.0874 155.7611zm7.993 21.8577c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6539 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403C196.2508 181.7667 197.0816 179.758 197.0804 177.6188z"/><path style="opacity:.3;fill:#fff" d="M189.0898 155.7617c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 158.2134 183.0612 155.7617 189.0898 155.7617zm7.9941 21.8613c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 181.8248 197.0839 179.8256 197.0839 177.623z"/><g><defs><path id="SVGID_5_" d="M194.7376 183.2733c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.9989 7.9942-7.9942 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.0839 179.8256 196.1861 181.8248 194.7376 183.2733z"/></defs><clipPath id="SVGID_6_"><use xlink:href="#SVGID_5_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_6_);fill:#fff" d="M190.0704 170.6095c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 171.3104 191.9774 170.6095 190.0704 170.6095z"/><path style="opacity:.13;clip-path:url(#SVGID_6_);fill:#020202" d="M190.0704 170.6095c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 171.3104 191.9774 170.6095 190.0704 170.6095z"/></g><g><defs><path id="SVGID_7_" d="M189.0898 155.7617c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 158.2134 183.0612 155.7617 189.0898 155.7617zm7.9941 21.8613c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 181.8248 197.0839 179.8256 197.0839 177.623z"/></defs><clipPath id="SVGID_8_"><use xlink:href="#SVGID_7_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_8_);fill:#d95140" d="M172.6595 161.1903c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8613 12.0547.0024 21.8636-9.797 21.8613-21.8613.0024-3.8474-1.0151-7.6326-2.9353-10.9462-3.8977-6.7324-11.1497-10.9151-18.926-10.9151C182.0806 154.7811 176.6171 157.2327 172.6595 161.1903z"/></g><rect x="198.8952" y="170.69" style="fill:#d95140" width="122.6266" height="13.8671"/></g><g><g><path style="fill:#56a55c" d="M189.5379 264.6147l.0012-.0012c7.7751.0012 15.0294 4.1862 18.932 10.9235 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3304-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032-5.8394.0-11.3281-2.2733-15.458-6.4032-4.13-4.13-6.4032-9.6186-6.4056-15.4628.0012-6.0249 2.454-11.4897 6.4116-15.4472C178.0458 267.0663 183.5105 264.6135 189.5379 264.6147zm7.993 21.8576c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6538 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403C196.7013 290.6202 197.5321 288.6115 197.5309 286.4723z"/><path style="opacity:.3;fill:#fff" d="M189.5403 264.6153c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8065-21.8612-21.8613.0-6.0285 2.4516-11.492 6.4116-15.452C178.0482 267.0669 183.5117 264.6153 189.5403 264.6153zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.6366 290.6783 197.5344 288.6792 197.5344 286.4765z"/><g><defs><path id="SVGID_9_" d="M195.1881 292.1268c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.9989 7.9942-7.9941 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.5344 288.6792 196.6366 290.6783 195.1881 292.1268z"/></defs><clipPath id="SVGID_10_"><use xlink:href="#SVGID_9_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_10_);fill:#fff" d="M190.5209 279.463c-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7446-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9941 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C194.239 280.164 192.4279 279.463 190.5209 279.463z"/><path style="opacity:.13;clip-path:url(#SVGID_10_);fill:#020202" d="M190.5209 279.463c-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7446-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9941 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C194.239 280.164 192.4279 279.463 190.5209 279.463z"/></g><g><defs><path id="SVGID_11_" d="M189.5403 264.6153c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8065-21.8612-21.8613.0-6.0285 2.4516-11.492 6.4116-15.452C178.0482 267.0669 183.5117 264.6153 189.5403 264.6153zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.6366 290.6783 197.5344 288.6792 197.5344 286.4765z"/></defs><clipPath id="SVGID_12_"><use xlink:href="#SVGID_11_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_12_);fill:#56a55c" d="M173.11 270.0439c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8613 12.0547.0024 21.8636-9.797 21.8613-21.8613.0024-3.8474-1.0151-7.6326-2.9353-10.9462-3.8977-6.7325-11.1497-10.9151-18.926-10.9151C182.5311 263.6346 177.0676 266.0863 173.11 270.0439z"/></g></g><rect x="199.3456" y="279.5436" style="fill:#56a55c" width="122.6266" height="13.8671"/></g><g><g><path style="fill:#f1bc42" d="M189.0874 318.7208l.0012-.0012c7.7751.0012 15.0295 4.1862 18.932 10.9234 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3305-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032s-11.328-2.2733-15.458-6.4032-6.4032-9.6186-6.4056-15.4628c.0012-6.025 2.454-11.4897 6.4116-15.4472C177.5953 321.1724 183.0601 318.7196 189.0874 318.7208zm7.993 21.8576c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6539 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403S197.0816 342.7176 197.0804 340.5784z"/><path style="opacity:.3;fill:#fff" d="M189.0898 318.7214c7.7763.0 15.0283 4.1826 18.926 10.915 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8612-12.0547.0024-21.8636-9.8065-21.8612-21.8612.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 321.173 183.0612 318.7214 189.0898 318.7214zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 344.7844 197.0839 342.7853 197.0839 340.5826z"/><g><defs><path id="SVGID_13_" d="M194.7376 346.2329c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.999 7.9942-7.9942 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.0839 342.7853 196.1861 344.7844 194.7376 346.2329z"/></defs><clipPath id="SVGID_14_"><use xlink:href="#SVGID_13_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_14_);fill:#fff" d="M190.0704 333.5691c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0834 6.1218 2.8788C193.7885 334.2701 191.9774 333.5691 190.0704 333.5691z"/><path style="opacity:.13;clip-path:url(#SVGID_14_);fill:#020202" d="M190.0704 333.5691c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0834 6.1218 2.8788C193.7885 334.2701 191.9774 333.5691 190.0704 333.5691z"/></g><g><defs><path id="SVGID_15_" d="M189.0898 318.7214c7.7763.0 15.0283 4.1826 18.926 10.915 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8612-12.0547.0024-21.8636-9.8065-21.8612-21.8612.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 321.173 183.0612 318.7214 189.0898 318.7214zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 344.7844 197.0839 342.7853 197.0839 340.5826z"/></defs><clipPath id="SVGID_16_"><use xlink:href="#SVGID_15_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_16_);fill:#f1bc42" d="M172.6595 324.15c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8612 12.0547.0024 21.8636-9.797 21.8613-21.8612.0024-3.8474-1.0151-7.6327-2.9353-10.9462-3.8977-6.7324-11.1497-10.9151-18.926-10.9151C182.0806 317.7407 176.6171 320.1924 172.6595 324.15z"/></g></g><rect x="198.8952" y="333.6497" style="fill:#f1bc42" width="122.6266" height="13.8671"/></g></g></svg></span><span class=navbar-brand__name>KubeClaw</span></a><div class="td-navbar__main td-navbar-nav-scroll td-navbar-nav-scroll--indicator" id=main_navbar><div class="scroll-indicator scroll-left"></div><ul class=navbar-nav><li class=nav-item><a class=nav-link href=/kubeclaw/docs/><span>Documentation</span></a></li><li class=nav-item><a class=nav-link href=https://github.com/projectious-work/kubeclaw target=_blank rel=noopener><i class='fa-brands fa-github' aria-hidden=true></i><span>GitHub</span></a></li><li class="nav-item td-navbar__version-menu"><div class="td-version-menu dropdown"><a class="nav-link dropdown-toggle td-version-menu__title" href=# role=button data-bs-toggle=dropdown aria-haspopup=true aria-expanded=false><span class=td-version-menu__title-text>Releases</span></a><ul class=dropdown-menu><li><span class="dropdown-item disabled dropdown-item-text"><strong>Versions</strong></span></li><li><a class="dropdown-item active dropdown-item-latest" aria-current=page href=https://projectious-work.github.io/kubeclaw>main</a></li><li><a class=dropdown-item href=https://projectious-work.github.io/kubeclaw/v0.1>v0.1</a></li></ul></div></li><li class="nav-item td-navbar__light-dark-menu"><div class="td-light-dark-menu dropdown"><svg class="d-none"><symbol id="check2" viewBox="0 0 16 16"><path d="M13.854 3.646a.5.5.0 010 .708l-7 7a.5.5.0 01-.708.0l-3.5-3.5a.5.5.0 11.708-.708L6.5 10.293l6.646-6.647a.5.5.0 01.708.0z"/></symbol><symbol id="circle-half" viewBox="0 0 16 16"><path d="M8 15A7 7 0 108 1v14zm0 1A8 8 0 118 0a8 8 0 010 16z"/></symbol><symbol id="moon-stars-fill" viewBox="0 0 16 16"><path d="M6 .278a.768.768.0 01.08.858 7.208 7.208.0 00-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527.0 1.04-.055 1.533-.16a.787.787.0 01.81.316.733.733.0 01-.031.893A8.349 8.349.0 018.344 16C3.734 16 0 12.286.0 7.71.0 4.266 2.114 1.312 5.124.06A.752.752.0 016 .278z"/><path d="M10.794 3.148a.217.217.0 01.412.0l.387 1.162c.173.518.579.924 1.097 1.097l1.162.387a.217.217.0 010 .412l-1.162.387A1.734 1.734.0 0011.593 7.69l-.387 1.162a.217.217.0 01-.412.0l-.387-1.162A1.734 1.734.0 009.31 6.593l-1.162-.387a.217.217.0 010-.412l1.162-.387a1.734 1.734.0 001.097-1.097l.387-1.162zM13.863.099a.145.145.0 01.274.0l.258.774c.115.346.386.617.732.732l.774.258a.145.145.0 010 .274l-.774.258a1.156 1.156.0 00-.732.732l-.258.774a.145.145.0 01-.274.0l-.258-.774a1.156 1.156.0 00-.732-.732l-.774-.258a.145.145.0 010-.274l.774-.258c.346-.115.617-.386.732-.732L13.863.1z"/></symbol><symbol id="sun-fill" viewBox="0 0 16 16"><path d="M8 12a4 4 0 100-8 4 4 0 000 8zM8 0a.5.5.0 01.5.5v2a.5.5.0 01-1 0v-2A.5.5.0 018 0zm0 13a.5.5.0 01.5.5v2a.5.5.0 01-1 0v-2A.5.5.0 018 13zm8-5a.5.5.0 01-.5.5h-2a.5.5.0 010-1h2a.5.5.0 01.5.5zM3 8a.5.5.0 01-.5.5h-2a.5.5.0 010-1h2A.5.5.0 013 8zm10.657-5.657a.5.5.0 010 .707l-1.414 1.415a.5.5.0 11-.707-.708l1.414-1.414a.5.5.0 01.707.0zm-9.193 9.193a.5.5.0 010 .707L3.05 13.657a.5.5.0 01-.707-.707l1.414-1.414a.5.5.0 01.707.0zm9.193 2.121a.5.5.0 01-.707.0l-1.414-1.414a.5.5.0 01.707-.707l1.414 1.414a.5.5.0 010 .707zM4.464 4.465a.5.5.0 01-.707.0L2.343 3.05a.5.5.0 11.707-.707l1.414 1.414a.5.5.0 010 .708z"/></symbol></svg>
+<button class="btn btn-link nav-link dropdown-toggle d-flex align-items-center" id=bd-theme type=button aria-expanded=false data-bs-toggle=dropdown aria-label="Toggle theme (auto)">
+<svg class="bi my-1 theme-icon-active"><use href="#circle-half"/></svg></button><ul class=dropdown-menu aria-labelledby=bd-theme><li><button type=button class="dropdown-item d-flex align-items-center" data-bs-theme-value=light aria-pressed=false>
+<svg class="bi me-2 opacity-50"><use href="#sun-fill"/></svg>
+Light
+<svg class="bi ms-auto d-none"><use href="#check2"/></svg></button></li><li><button type=button class="dropdown-item d-flex align-items-center" data-bs-theme-value=dark aria-pressed=false>
+<svg class="bi me-2 opacity-50"><use href="#moon-stars-fill"/></svg>
+Dark
+<svg class="bi ms-auto d-none"><use href="#check2"/></svg></button></li><li><button type=button class="dropdown-item d-flex align-items-center active" data-bs-theme-value=auto aria-pressed=true>
+<svg class="bi me-2 opacity-50"><use href="#circle-half"/></svg>
+Auto
+<svg class="bi ms-auto d-none"><use href="#check2"/></svg></button></li></ul></div></li></ul><div class="scroll-indicator scroll-right"></div></div><div class="td-navbar__search d-none d-lg-block"><div class="td-search td-search--offline"><div class=td-search__icon></div><input type=search name=q class="td-search__input form-control" placeholder='Search this site…' aria-label='Search this site…' autocomplete=off data-offline-search-index-json-src=/kubeclaw/offline-search-index.8cf64d88ce7ebc51050a17b062c3d022.json data-offline-search-base-href=/ data-offline-search-max-results=25></div></div></div></nav></header><div class="container-fluid td-outer"><div class=td-main><div class="row flex-xl-nowrap"><main class="col-12 col-md-9 col-xl-8 ps-md-5" role=main><div class=td-content><div class="pageinfo pageinfo-primary d-print-none"><p>This is the multi-page printable view of this section.
+<a href=# onclick="return print(),!1">Click here to print</a>.</p><p><a href=/kubeclaw/docs/guide/>Return to the regular view of this page</a>.</p></div><h1 class=title>Guide</h1><div class=lead>Deploy and operate the KubeClaw infrastructure step by step.</div><ul><li>1: <a href=#pg-a87aa657daf66509180dd2e0a1808139>Cloudflare Tunnel Setup</a></li><li>2: <a href=#pg-f5075ebd8919d581cf4eb3edf3eacf1c>Dev Container</a></li><li>3: <a href=#pg-0e11103792a12fcdd8fc694b0108fea1>Infrastructure (OpenTofu)</a></li><li>4: <a href=#pg-e014d99b8b8b3831f4b2af42b582a2a8>Kubernetes (kubeadm)</a></li><li>5: <a href=#pg-c65eb9d03e673afea03338c62b4519cd>OpenClaw Deployment</a></li><li>6: <a href=#pg-7431d89e13f76f59e8e8f123e4572b74>Server Management (Ansible)</a></li></ul><div class=content><p>Follow these guides to provision the infrastructure, configure the nodes, and
+deploy OpenClaw on Kubernetes.</p></div></div><div class=td-content><h1 id=pg-a87aa657daf66509180dd2e0a1808139>1 - Cloudflare Tunnel Setup</h1><p>This guide walks through creating and configuring a Cloudflare Tunnel that provides secure SSH access to your KubeClaw cluster. The tunnel replaces the temporary admin node as the permanent access path &ndash; no open ports, no public SSH, outbound-only connectivity.</p><h2 id=why-cloudflare-tunnel>Why Cloudflare Tunnel?</h2><p>KubeClaw nodes have no public IPv4 and no inbound SSH ports. Access works through one of two paths:</p><table><thead><tr><th>Path</th><th>When to use</th><th>How it works</th></tr></thead><tbody><tr><td><strong>Admin node</strong> (temporary)</td><td>Initial setup, before tunnel is ready</td><td>Jump host with public IPv6; SSH via <code>ProxyJump</code></td></tr><tr><td><strong>Cloudflare Tunnel</strong> (permanent)</td><td>After tunnel is configured</td><td><code>cloudflared</code> on the master node connects outbound to Cloudflare&rsquo;s edge; SSH proxied via <code>ProxyCommand cloudflared access ssh</code> on your local machine</td></tr></tbody></table><p>After the tunnel is working, you disable the admin node (<code>enable_admin_node = false</code> in <code>terraform.tfvars</code>) and all SSH flows through Cloudflare.</p><div class="alert alert-primary" role=alert><div class="h4 alert-heading" role=heading>cloudflared on both sides</div>`cloudflared` runs in two places, because there is no direct SSH path to the cluster. The hostname `console.yourdomain.org` points to Cloudflare's edge servers, which only speak HTTPS -- a plain `ssh console.yourdomain.org` on port 22 would be refused. Instead, the SSH byte stream is wrapped inside HTTPS and carried through the tunnel:
+1. **Your machine / Dev Container** (client side): The SSH config uses `ProxyCommand cloudflared access ssh --hostname %h`. Instead of opening a TCP connection, SSH pipes its traffic through this subprocess. `cloudflared` connects to Cloudflare's edge over HTTPS (port 443), handles Cloudflare Access authentication (browser-based, if configured), and forwards the SSH bytes.
+2. **Cloudflare edge**: Validates the Access JWT, looks up which tunnel serves the hostname, and forwards the traffic to the matching tunnel connector.
+3. **Master control node** (server side): The server-side `cloudflared` maintains a persistent outbound connection to Cloudflare's edge. It receives the forwarded traffic and proxies it to `localhost:22`, where sshd handles normal key-based authentication.
+The full chain: `ssh` ↔ `cloudflared (local)` ↔ `Cloudflare edge (HTTPS)` ↔ `cloudflared (server)` ↔ `sshd`.
+The Dev Container includes cloudflared. On macOS, install it with `brew install cloudflared`.</div><h2 id=prerequisites>Prerequisites</h2><ul><li>A Cloudflare account (free tier is sufficient)</li><li>A domain added to Cloudflare (Cloudflare must be the DNS provider)</li><li>Infrastructure provisioned with <code>tofu apply</code> (the master control node must be running)</li></ul><h2 id=step-1-open-zero-trust-dashboard>Step 1: Open Zero Trust Dashboard</h2><p>Go to <a href=https://one.dash.cloudflare.com>https://one.dash.cloudflare.com</a> and log in. This opens the <strong>Cloudflare Zero Trust</strong> dashboard (formerly Cloudflare for Teams).</p><pre tabindex=0><code>┌──────────────────────────────────────────────────────────────────┐
+│  Cloudflare | Zero Trust                                         │
+├──────────────┬───────────────────────────────────────────────────┤
+│              │                                                   │
+│  Home        │   Zero Trust Overview                             │
+│  Analytics   │                                                   │
+│  Risk Score  │   ┌──────────┐  ┌──────────┐  ┌──────────┐      │
+│              │   │ Users    │  │ Tunnels  │  │ Policies │      │
+│  Access ►    │   │ 0        │  │ 0        │  │ 0        │      │
+│  Gateway     │   └──────────┘  └──────────┘  └──────────┘      │
+│  Networks ►  │                                                   │
+│  ...         │                                                   │
+│              │                                                   │
+└──────────────┴───────────────────────────────────────────────────┘
+</code></pre><h2 id=step-2-create-a-tunnel>Step 2: Create a Tunnel</h2><ol><li>In the left sidebar, navigate to <strong>Networks</strong> > <strong>Tunnels</strong></li><li>Click <strong>Create a tunnel</strong></li></ol><pre tabindex=0><code>┌──────────────────────────────────────────────────────────────────┐
+│  Networks &gt; Tunnels                                              │
+│                                                                  │
+│  ┌────────────────────────────────────────────────────────────┐  │
+│  │                   Create a tunnel                          │  │
+│  │                                                            │  │
+│  │  Select your tunnel type:                                  │  │
+│  │                                                            │  │
+│  │  ┌─────────────────────┐   ┌─────────────────────┐       │  │
+│  │  │ ● Cloudflared       │   │ ○ WARP Connector     │       │  │
+│  │  │   (recommended)     │   │                      │       │  │
+│  │  └─────────────────────┘   └─────────────────────┘       │  │
+│  │                                                  [ Next ] │  │
+│  └────────────────────────────────────────────────────────────┘  │
+└──────────────────────────────────────────────────────────────────┘
+</code></pre><ol start=3><li>Select <strong>Cloudflared</strong> and click <strong>Next</strong></li><li>Enter a tunnel name, e.g. <code>kubeclaw</code> or <code>hetzner-cluster</code></li></ol><pre tabindex=0><code>┌──────────────────────────────────────────────────────────────────┐
+│  Name your tunnel                                                │
+│                                                                  │
+│  Tunnel name:  ┌──────────────────────────────┐                 │
+│                │ kubeclaw                      │                 │
+│                └──────────────────────────────┘                 │
+│                                                                  │
+│                                               [ Save tunnel ]   │
+└──────────────────────────────────────────────────────────────────┘
+</code></pre><ol start=5><li>Click <strong>Save tunnel</strong></li></ol><h2 id=step-3-copy-the-tunnel-token>Step 3: Copy the Tunnel Token</h2><p>After saving, Cloudflare shows the connector installation instructions. The page displays install commands for various platforms. You need the <strong>token</strong> value from the install command.</p><pre tabindex=0><code>┌──────────────────────────────────────────────────────────────────┐
+│  Install and run a connector                                     │
+│                                                                  │
+│  Choose your environment:                                        │
+│  [ Debian ] [ Docker ] [ macOS ] [ Windows ]                    │
+│                                                                  │
+│  Install and run a connector:                                    │
+│  ┌────────────────────────────────────────────────────────────┐  │
+│  │ sudo cloudflared service install eyJhIjoiY2Y...long-token │  │
+│  └────────────────────────────────────────────────────────────┘  │
+│                                                           📋     │
+│                                                                  │
+│  The token is: eyJhIjoiY2Y...                                   │
+│                                                                  │
+│                                                    [ Next ]      │
+└──────────────────────────────────────────────────────────────────┘
+</code></pre><p>Copy the token (the <code>eyJ...</code> string). You will need it in two places:</p><ul><li><strong><code>terraform.tfvars</code></strong> — so <code>cloud-init</code> auto-installs the tunnel on the master node</li><li><strong>Manual install</strong> — if the infrastructure is already running</li></ul><p><div class="alert alert-primary" role=alert><div class="h4 alert-heading" role=heading>Save the token securely</div>The tunnel token is a long-lived credential. Store it in your password manager alongside the Hetzner API token.</div>Click <strong>Next</strong> to proceed to the hostname configuration.</p><h2 id=step-4-add-a-public-hostname-for-ssh>Step 4: Add a Public Hostname for SSH</h2><p>This step maps a subdomain to the SSH service on your master control node.</p><ol><li>You should now be on the <strong>Route tunnel</strong> screen, or navigate to your tunnel&rsquo;s <strong>Public Hostname</strong> tab</li><li>Click <strong>Add a public hostname</strong></li><li>Fill in the hostname configuration:</li></ol><pre tabindex=0><code>┌──────────────────────────────────────────────────────────────────┐
+│  Public Hostnames &gt; Add a public hostname                        │
+│                                                                  │
+│  Public hostname                                                 │
+│  ┌──────────────┐   ┌─────────────────────────┐                 │
+│  │ console      │ . │ yourdomain.org       ▼  │                 │
+│  │ (subdomain)  │   │ (domain)                │                 │
+│  └──────────────┘   └─────────────────────────┘                 │
+│                                                                  │
+│  Path (optional):  ┌──────────────────────────┐                 │
+│                    │                          │                 │
+│                    └──────────────────────────┘                 │
+│                                                                  │
+│  Service                                                         │
+│  ┌──────────────┐   ┌─────────────────────────┐                 │
+│  │ SSH       ▼  │   │ localhost:22            │                 │
+│  │ (type)       │   │ (URL)                   │                 │
+│  └──────────────┘   └─────────────────────────┘                 │
+│                                                                  │
+│                                              [ Save hostname ]  │
+└──────────────────────────────────────────────────────────────────┘
+</code></pre><table><thead><tr><th>Field</th><th>Value</th><th>Notes</th></tr></thead><tbody><tr><td><strong>Subdomain</strong></td><td><code>console</code></td><td>Or any name you prefer (e.g. <code>ssh</code>, <code>cluster</code>)</td></tr><tr><td><strong>Domain</strong></td><td>Your Cloudflare-managed domain</td><td>Must be a domain with Cloudflare DNS</td></tr><tr><td><strong>Path</strong></td><td><em>(leave empty)</em></td><td>Not used for SSH</td></tr><tr><td><strong>Type</strong></td><td><code>SSH</code></td><td>From the dropdown</td></tr><tr><td><strong>URL</strong></td><td><code>localhost:22</code></td><td>The tunnel connector runs on the master node, so SSH is on localhost</td></tr></tbody></table><ol start=4><li>Click <strong>Save hostname</strong></li></ol><p>The resulting hostname (e.g. <code>console.yourdomain.org</code>) is what you&rsquo;ll use as <code>cloudflare_tunnel_domain</code> in <code>terraform.tfvars</code> and as the SSH Host in your SSH config.</p><h2 id=step-5-create-an-access-application-optional-but-recommended>Step 5: Create an Access Application (Optional but Recommended)</h2><p>Cloudflare Access adds browser-based authentication before the SSH connection is established. Without it, anyone who knows your tunnel hostname can attempt SSH connections (still protected by SSH keys, but Access adds a second layer).</p><ol><li>In the left sidebar, go to <strong>Access</strong> > <strong>Applications</strong></li><li>Click <strong>Add an application</strong></li><li>Select <strong>Self-hosted</strong></li></ol><pre tabindex=0><code>┌──────────────────────────────────────────────────────────────────┐
+│  Access &gt; Applications &gt; Add an application                      │
+│                                                                  │
+│  Application Configuration                                       │
+│                                                                  │
+│  Application name:  ┌─────────────────────────┐                 │
+│                     │ KubeClaw SSH Console     │                 │
+│                     └─────────────────────────┘                 │
+│                                                                  │
+│  Session Duration:  ┌─────────────────────────┐                 │
+│                     │ 24 hours             ▼  │                 │
+│                     └─────────────────────────┘                 │
+│                                                                  │
+│  Application domain:                                             │
+│  ┌──────────────┐   ┌─────────────────────────┐                 │
+│  │ console      │ . │ yourdomain.org       ▼  │                 │
+│  └──────────────┘   └─────────────────────────┘                 │
+│                                                                  │
+│                                                    [ Next ]      │
+└──────────────────────────────────────────────────────────────────┘
+</code></pre><ol start=4><li>Click <strong>Next</strong> to configure a policy</li><li>Create an <strong>Allow</strong> policy:</li></ol><pre tabindex=0><code>┌──────────────────────────────────────────────────────────────────┐
+│  Add Policies                                                    │
+│                                                                  │
+│  Policy name:  ┌──────────────────────────┐                     │
+│                │ Allow Admin              │                     │
+│                └──────────────────────────┘                     │
+│                                                                  │
+│  Action:  ┌──────────────────────────┐                          │
+│           │ Allow                 ▼  │                          │
+│           └──────────────────────────┘                          │
+│                                                                  │
+│  Configure rules:                                                │
+│  ┌────────────────────────────────────────────────────────────┐  │
+│  │  Include                                                   │  │
+│  │  Selector:  ┌─────────────────┐  Value: ┌───────────────┐ │  │
+│  │             │ Emails       ▼  │         │ you@email.com │ │  │
+│  │             └─────────────────┘         └───────────────┘ │  │
+│  └────────────────────────────────────────────────────────────┘  │
+│                                                                  │
+│                                                    [ Next ]      │
+└──────────────────────────────────────────────────────────────────┘
+</code></pre><table><thead><tr><th>Field</th><th>Value</th></tr></thead><tbody><tr><td><strong>Policy name</strong></td><td><code>Allow Admin</code></td></tr><tr><td><strong>Action</strong></td><td><code>Allow</code></td></tr><tr><td><strong>Include selector</strong></td><td><code>Emails</code></td></tr><tr><td><strong>Include value</strong></td><td>Your email address</td></tr></tbody></table><ol start=6><li>Click <strong>Next</strong>, review, and <strong>Save</strong></li></ol><p><div class="alert alert-primary" role=alert><div class="h4 alert-heading" role=heading>Authentication flow</div>On first SSH connection, `cloudflared access ssh` opens a browser window. You authenticate via Cloudflare Access (email OTP, or your configured identity provider). After authentication, SSH proceeds normally with key-based auth. The browser session lasts for the configured session duration.</div>After completing the Cloudflare setup, continue with <a href=/kubeclaw/docs/guide/infrastructure/>Infrastructure (OpenTofu)</a> to configure the tunnel token and domain in <code>terraform.tfvars</code>, provision the cluster, and verify connectivity.</p><h2 id=how-ssh-routing-works>How SSH Routing Works</h2><p>After the tunnel is active and the admin node is disabled:</p><pre tabindex=0><code>┌──────────────┐     ┌──────────────┐     ┌──────────────────────┐
+│  Your        │     │  Cloudflare  │     │  Master Control Node │
+│  machine     │────►│  Edge        │────►│  (cloudflared →      │
+│  (cloudflared│     │  Network     │     │   localhost:22)      │
+│   access ssh)│     │              │     │                      │
+└──────────────┘     └──────────────┘     └──────────┬───────────┘
+                                                     │ ProxyJump
+                                          ┌──────────▼───────────┐
+                                          │  Replicas / Workers  │
+                                          │  (10.0.0.3+)         │
+                                          └──────────────────────┘
+</code></pre><table><thead><tr><th>Target</th><th>SSH command</th><th>Route</th></tr></thead><tbody><tr><td>Master control node</td><td><code>ssh console.yourdomain.org</code></td><td>ProxyCommand → Cloudflare → cloudflared → localhost:22</td></tr><tr><td>Replica control node</td><td><code>ssh control-02</code></td><td>ProxyCommand → Cloudflare → master → ProxyJump → 10.0.0.3</td></tr><tr><td>Worker node</td><td><code>ssh worker-01</code></td><td>ProxyCommand → Cloudflare → master → ProxyJump → 10.0.0.x</td></tr></tbody></table><h2 id=troubleshooting>Troubleshooting</h2><h3 id=tunnel-shows-inactive-or-down>Tunnel shows &ldquo;Inactive&rdquo; or &ldquo;Down&rdquo;</h3><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># On the master control node:</span>
+</span></span><span class=line><span class=cl>sudo systemctl status cloudflared
+</span></span><span class=line><span class=cl>sudo journalctl -u cloudflared --no-pager -n <span class=m>50</span>
+</span></span></code></pre></div><p>Common causes:</p><ul><li>Token expired or revoked &ndash; create a new tunnel and update <code>terraform.tfvars</code></li><li>DNS64/NAT64 not working &ndash; cloudflared needs outbound connectivity; check with <code>curl -6 https://cloudflare.com</code></li></ul><h3 id=browser-authentication-loop>Browser authentication loop</h3><p>If <code>ssh console.yourdomain.org</code> keeps opening the browser without connecting:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># Clear cached credentials</span>
+</span></span><span class=line><span class=cl>cloudflared access login --reset console.yourdomain.org
+</span></span></code></pre></div><h3 id=connection-refused-after-authentication>&ldquo;connection refused&rdquo; after authentication</h3><p>The SSH service on the master node may not be listening on localhost:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># On the master node, verify SSH listens on 127.0.0.1</span>
+</span></span><span class=line><span class=cl>sudo ss -tlnp <span class=p>|</span> grep <span class=m>22</span>
+</span></span></code></pre></div><p>The cloud-init template configures UFW to allow SSH from localhost for exactly this reason.</p><h2 id=next-steps>Next Steps</h2><ul><li><a href=/kubeclaw/docs/guide/infrastructure/>Infrastructure (OpenTofu)</a> &ndash; provision the cluster (if not done yet)</li><li><a href=/kubeclaw/docs/guide/ansible/>Server Management (Ansible)</a> &ndash; apply updates and hardening</li><li><a href=/kubeclaw/docs/guide/kubernetes/>Kubernetes (kubeadm)</a> &ndash; deploy the cluster</li></ul></div><div class=td-content style=page-break-before:always><h1 id=pg-f5075ebd8919d581cf4eb3edf3eacf1c>2 - Dev Container</h1><p>The project uses an aibox-generated Dev Container (Debian Trixie) as a
+self-contained, reproducible environment. Nothing needs to be set up on the
+host machine beyond Docker and an IDE with Dev Container support.</p><h2 id=what-the-dev-container-provides>What the Dev Container Provides</h2><ul><li><strong>OpenTofu</strong> &ndash; infrastructure provisioning (Terraform-compatible)</li><li><strong>Ansible</strong> &ndash; server management (runs inside the container, no host install needed)</li><li><strong>cloudflared</strong> &ndash; SSH ProxyCommand via Cloudflare Tunnel</li><li><strong>ssh-agent</strong> &ndash; start inside the container to use passphrase-protected keys with Ansible</li><li><strong>AI CLI tools</strong> &ndash; Codex and the aibox toolchain</li><li><strong>Hugo + Docsy</strong> &ndash; documentation site (<code>./scripts/serve-docs.sh</code> at port 1313)</li><li><strong>Persistence</strong> &ndash; <code>.aibox-home/.ssh/</code> is bind-mounted read-write by this
+project, so <code>setup-ssh.sh</code> output, SSH config, and exported keys survive
+container rebuilds</li></ul><h2 id=step-1-prepare-persistent-directories>Step 1: Prepare Persistent Directories</h2><p>Create the persistent directories before opening the Dev Container:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>git clone &lt;repo-url&gt;
+</span></span><span class=line><span class=cl><span class=nb>cd</span> kubeclaw
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Create the persistent SSH directory mounted at /home/aibox/.ssh.</span>
+</span></span><span class=line><span class=cl>mkdir -p .aibox-home/.ssh
+</span></span><span class=line><span class=cl>chmod <span class=m>700</span> .aibox-home/.ssh
+</span></span></code></pre></div><p>The <code>.aibox-home/</code> directory is gitignored. Its <code>.ssh/</code> subdirectory holds
+your private keys, SSH configuration, and <code>known_hosts</code> without risking a
+commit of secrets.</p><h2 id=step-2-open-in-dev-container>Step 2: Open in Dev Container</h2><p><ul class="nav nav-tabs" id=tabs-0 role=tablist><li class=nav-item><button class="nav-link active" id=tabs-00-00-tab data-bs-toggle=tab data-bs-target=#tabs-00-00 role=tab aria-controls=tabs-00-00 aria-selected=true>
+VS Code (recommended)</button></li></ul><div class=tab-content id=tabs-0-content><div class="tab-pane fade show active" id=tabs-00-00 role=tabpanel aria-labelled-by=tabs-00-00-tab tabindex=0><pre tabindex=0><code>1. Install the [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension
+2. Open the project folder in VS Code
+3. Click **&#34;Reopen in Container&#34;** when prompted, or press ++cmd+shift+p++ and select **Dev Containers: Reopen in Container**</code></pre></div></div>The generated setup uses Docker Compose. Use your editor&rsquo;s Dev Container
+command rather than <code>docker build</code> directly so the generated Compose mounts,
+including the persistent aibox home directory, are applied.</p><h2 id=step-3-start-ssh-agent>Step 3: Start SSH Agent</h2><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=nb>source</span> ./scripts/ssh-agent-setup.sh
+</span></span></code></pre></div><p><div class="alert alert-primary" role=alert><div class="h4 alert-heading" role=heading>Note</div>No SSH keys exist yet at this point -- they are created later during [Infrastructure provisioning](/kubeclaw/docs/guide/infrastructure/). This step starts the ssh-agent and fixes SSH directory permissions, preparing the environment for later steps.</div><div class="alert alert-primary" role=alert><div class="h4 alert-heading" role=heading>Important</div>The `source` command is required -- running the script without `source` starts the agent in a subprocess that terminates immediately.</div><div class="alert alert-primary" role=alert><div class="h4 alert-heading" role=heading>SSH persistence</div>Docker bind mounts from macOS may not preserve Unix permissions. The
+`ssh-agent-setup.sh` script automatically fixes SSH directory permissions on
+every run.
+The `.aibox-home/.ssh/` directory stores SSH private keys, SSH config, and
+`known_hosts` -- all exported or generated by `setup-ssh.sh`. Everything
+survives container rebuilds.</div></p><h2 id=step-4-verify-setup>Step 4: Verify Setup</h2><p>Confirm that the essential tools are available:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>tofu --version
+</span></span><span class=line><span class=cl>ansible --version
+</span></span><span class=line><span class=cl>hugo version
+</span></span><span class=line><span class=cl>npm --version
+</span></span></code></pre></div><p>Preview the documentation:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>./scripts/serve-docs.sh
+</span></span><span class=line><span class=cl><span class=c1># Open http://localhost:1313 in your browser</span>
+</span></span></code></pre></div></div><div class=td-content style=page-break-before:always><h1 id=pg-0e11103792a12fcdd8fc694b0108fea1>3 - Infrastructure (OpenTofu)</h1><p>KubeClaw uses OpenTofu (Terraform-compatible) to provision all infrastructure on Hetzner Cloud. This page walks through the provisioning workflow step by step. See <a href=/kubeclaw/docs/reference/variables/>Variables Reference</a> for all configurable options.</p><h2 id=step-1-configure-terraformtfvars>Step 1: Configure terraform.tfvars</h2><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>cp terraform.tfvars.example terraform.tfvars
+</span></span></code></pre></div><p>Edit <code>terraform.tfvars</code> with your settings:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-hcl data-lang=hcl><span class=line><span class=cl><span class=n>hcloud_token</span>    <span class=o>=</span> <span class=s2>&#34;your-hcloud-api-token&#34;</span>
+</span></span><span class=line><span class=cl><span class=n>root_password</span>   <span class=o>=</span> <span class=s2>&#34;a-strong-root-password&#34;</span>
+</span></span><span class=line><span class=cl><span class=n>cluster_name</span>    <span class=o>=</span> <span class=s2>&#34;k8s-cluster&#34;</span><span class=c1>
+</span></span></span><span class=line><span class=cl><span class=c1>
+</span></span></span><span class=line><span class=cl><span class=c1># Optional: auto-configure Cloudflare Tunnel on the master control node
+</span></span></span><span class=line><span class=cl><span class=c1># cloudflare_tunnel_token = &#34;eyJ...&#34;
+</span></span></span></code></pre></div><h3 id=ssh-key-options>SSH key options</h3><ul class="nav nav-tabs" id=tabs-1 role=tablist><li class=nav-item><button class="nav-link active" id=tabs-01-00-tab data-bs-toggle=tab data-bs-target=#tabs-01-00 role=tab aria-controls=tabs-01-00 aria-selected=true>
+Option A: Auto-generated keys (default)</button></li><li class=nav-item><button class=nav-link id=tabs-01-01-tab data-bs-toggle=tab data-bs-target=#tabs-01-01 role=tab aria-controls=tabs-01-01 aria-selected=false>
+Option B: Custom keys</button></li></ul><div class=tab-content id=tabs-1-content><div class="tab-pane fade show active" id=tabs-01-00 role=tabpanel aria-labelled-by=tabs-01-00-tab tabindex=1><pre tabindex=0><code>No configuration needed. OpenTofu generates ED25519 keys and stores them in the state file.
+
+| Advantage | Disadvantage |
+|-----------|--------------|
+| No manual key creation | State file contains private keys |
+| Works out of the box | Keys lost if state is lost |</code></pre></div><div class="tab-pane fade" id=tabs-01-01 role=tabpanel aria-labelled-by=tabs-01-01-tab tabindex=1><pre tabindex=0><code>Create your own keys and reference them in `terraform.tfvars`:
+
+```bash
+ssh-keygen -t ed25519 -f ~/.ssh/k8s-cluster_control-node_key -C &#34;control-node&#34;
+ssh-keygen -t ed25519 -f ~/.ssh/k8s-cluster_worker-node_key -C &#34;worker-node&#34;
+```
+
+```hcl
+control_node_public_key = &#34;ssh-ed25519 AAAA... control-node&#34;
+worker_node_public_key  = &#34;ssh-ed25519 AAAA... worker-node&#34;
+```
+
+| Advantage | Disadvantage |
+|-----------|--------------|
+| Full control over key storage | Manual key management |
+| State has no private keys | Must create keys before provisioning |
+| Easy password manager integration | |</code></pre></div></div><h2 id=step-2-provision-infrastructure>Step 2: Provision Infrastructure</h2><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>tofu init    <span class=c1># First time only</span>
+</span></span><span class=line><span class=cl>tofu apply
+</span></span></code></pre></div><p>This creates:</p><ul><li>Private network (10.0.0.0/24)</li><li>Role-specific firewalls (control node, worker node, admin node)</li><li>SSH keys (uploaded to Hetzner)</li><li>Admin node at 10.0.0.254 (if <code>enable_admin_node = true</code>)</li><li>Master control node at 10.0.0.2 (with cloudflared if tunnel token is set)</li><li>Replica control nodes and workers (if configured)</li></ul><h2 id=step-3-set-up-ssh-access>Step 3: Set Up SSH Access</h2><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>./scripts/setup-ssh.sh
+</span></span></code></pre></div><p>This exports SSH private keys from OpenTofu state and generates <code>~/.ssh/config</code> entries. Test the connection:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>ssh control-node
+</span></span></code></pre></div><div class="alert alert-primary" role=alert><div class="h4 alert-heading" role=heading>Tip</div>If you used `cloudflare_tunnel_token`, SSH routes through Cloudflare Tunnel automatically. Otherwise, the admin node serves as a jump host during initial setup.</div><h2 id=next-steps>Next Steps</h2><ul><li><a href=/kubeclaw/docs/guide/ansible/>Server Management (Ansible)</a> &ndash; generate the Ansible inventory, apply system updates and security hardening</li><li><a href=/kubeclaw/docs/guide/kubernetes/>Kubernetes (kubeadm)</a> &ndash; deploy the cluster</li></ul><h2 id=related>Related</h2><ul><li><a href=/kubeclaw/docs/how-to/ssh-keys-with-passphrase/>SSH Keys with Passphrase</a> &ndash; add passphrase protection to SSH keys</li><li><a href=/kubeclaw/docs/how-to/store-ssh-keys-in-password-manager/>Store SSH Keys in Password Manager</a> &ndash; backup keys securely</li><li><a href=/kubeclaw/docs/operations/ssh-key-rotation/>SSH Key Rotation</a> &ndash; rotate keys periodically or after compromise</li><li><a href=/kubeclaw/docs/operations/scale-up-down/>Scale Up/Down</a> &ndash; add or remove nodes</li><li><a href=/kubeclaw/docs/reference/os-images/>OS Images</a> &ndash; available Hetzner Cloud images</li></ul></div><div class=td-content style=page-break-before:always><h1 id=pg-e014d99b8b8b3831f4b2af42b582a2a8>4 - Kubernetes (kubeadm)</h1><p>After provisioning the infrastructure with OpenTofu and configuring SSH access, deploy a standard Kubernetes cluster using <a href=https://kubernetes.io/docs/reference/setup-tools/kubeadm/>kubeadm</a> with <a href=https://cilium.io/>Cilium</a> as the CNI.</p><h2 id=why-kubeadm--cilium>Why kubeadm + Cilium?</h2><ul><li><strong>kubeadm</strong>: The official Kubernetes bootstrapper. Produces a standard, upstream cluster &ndash; exactly what the CKA exam expects. Full control over every component (etcd, kube-apiserver, kube-scheduler, kube-controller-manager).</li><li><strong>Cilium</strong>: eBPF-based CNI providing advanced network policies with FQDN-based egress filtering &ndash; critical for restricting outbound traffic per namespace.</li></ul><h2 id=step-1-initialize-the-control-plane-dual-stack>Step 1: Initialize the Control Plane (Dual-Stack)</h2><p>SSH into the master control node. Prerequisites (containerd, kubeadm, kubelet, kubectl) are already installed via cloud-init when <code>enable_k8s_prereqs = true</code> (default).</p><p>First, determine the master&rsquo;s private IP (default: <code>10.0.0.2</code>, depends on <code>subnet_ip_range</code>):</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># From the Dev Container:</span>
+</span></span><span class=line><span class=cl>tofu output -raw master_control_node_private_ip
+</span></span></code></pre></div><p>The commands below use <code>$MASTER_IP</code>. Set it on the master node before proceeding:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=nv>MASTER_IP</span><span class=o>=</span>10.0.0.2
+</span></span></code></pre></div><div class="alert alert-primary" role=alert><div class="h4 alert-heading" role=heading>Do not use `hostname -I`</div>`hostname -I` may return Hetzner's CGNAT address (`100.64.x.x`) as the first IP instead of the private network IP. Always set `MASTER_IP` explicitly to the private network address from your `subnet_ip_range` (default: `10.0.0.2`).</div><h3 id=11-verify-prerequisites>1.1 Verify prerequisites</h3><p><strong>IPv6 forwarding</strong></p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>sudo sysctl net.ipv6.conf.all.forwarding
+</span></span></code></pre></div><p>Expected output: <code>net.ipv6.conf.all.forwarding = 1</code></p><p>If not set, enable it:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=nb>echo</span> <span class=s2>&#34;net.ipv6.conf.all.forwarding = 1&#34;</span> <span class=p>|</span> sudo tee -a /etc/sysctl.d/k8s.conf
+</span></span><span class=line><span class=cl>sudo sysctl --system
+</span></span></code></pre></div><p><strong>Kernel modules</strong></p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>lsmod <span class=p>|</span> grep -E <span class=s1>&#39;overlay|br_netfilter&#39;</span>
+</span></span></code></pre></div><p>Expected output (both modules present):</p><pre tabindex=0><code>br_netfilter           ...
+overlay                ...
+</code></pre><p><strong>Sysctl parameters</strong></p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>sudo sysctl net.bridge.bridge-nf-call-iptables net.bridge.bridge-nf-call-ip6tables net.ipv4.ip_forward
+</span></span></code></pre></div><p>Expected output:</p><pre tabindex=0><code>net.bridge.bridge-nf-call-iptables = 1
+net.bridge.bridge-nf-call-ip6tables = 1
+net.ipv4.ip_forward = 1
+</code></pre><p><strong>Container runtime</strong></p><p><ul class="nav nav-tabs" id=tabs-1 role=tablist><li class=nav-item><button class="nav-link active" id=tabs-01-00-tab data-bs-toggle=tab data-bs-target=#tabs-01-00 role=tab aria-controls=tabs-01-00 aria-selected=true>
+containerd (default)</button></li><li class=nav-item><button class=nav-link id=tabs-01-01-tab data-bs-toggle=tab data-bs-target=#tabs-01-01 role=tab aria-controls=tabs-01-01 aria-selected=false>
+CRI-O</button></li></ul><div class=tab-content id=tabs-1-content><div class="tab-pane fade show active" id=tabs-01-00 role=tabpanel aria-labelled-by=tabs-01-00-tab tabindex=1><pre tabindex=0><code>```bash
+systemctl is-active containerd
+```
+
+Expected output: `active`</code></pre></div><div class="tab-pane fade" id=tabs-01-01 role=tabpanel aria-labelled-by=tabs-01-01-tab tabindex=1><pre tabindex=0><code>```bash
+systemctl is-active crio
+```
+
+Expected output: `active`
+
+&lt;div class=&#34;alert alert-primary&#34; role=&#34;alert&#34;&gt;&lt;div class=&#34;h4 alert-heading&#34; role=&#34;heading&#34;&gt;CRI-O CNI path&lt;/div&gt;
+
+
+CRI-O uses `/opt/cni/bin` for CNI binaries (the upstream default), unlike Debian&#39;s containerd which uses `/usr/lib/cni`. When installing Cilium with CRI-O, use `--set cni.binPath=/opt/cni/bin` (or omit the flag, since `/opt/cni/bin` is Cilium&#39;s default).
+
+&lt;/div&gt;</code></pre></div></div><strong>kubeadm</strong></p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubeadm version -o yaml
+</span></span></code></pre></div><p>Expected output (version numbers will vary):</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=nt>clientVersion</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>gitVersion</span><span class=p>:</span><span class=w> </span><span class=l>v1.32.x</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>platform</span><span class=p>:</span><span class=w> </span><span class=l>linux/amd64</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=l>...</span><span class=w>
+</span></span></span></code></pre></div><h3 id=12-determine-the-nodes-ipv6-address>1.2 Determine the node&rsquo;s IPv6 address</h3><p>Each node needs both an IPv4 and IPv6 address for dual-stack. The IPv4 is the private network IP (<code>10.0.0.2</code>). For IPv6, use the node&rsquo;s public IPv6 address:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=nv>NODE_IPV6</span><span class=o>=</span><span class=k>$(</span>ip -6 addr show scope global <span class=p>|</span> grep -oP <span class=s1>&#39;(?&lt;=inet6\s)[\da-f:]+&#39;</span> <span class=p>|</span> head -1<span class=k>)</span>
+</span></span><span class=line><span class=cl><span class=nb>echo</span> <span class=nv>$NODE_IPV6</span>
+</span></span></code></pre></div><p>This should print a public IPv6 address like <code>2a01:4f8:xxxx:xxxx::1</code>. Save this &ndash; you&rsquo;ll need it for kubelet configuration.</p><h3 id=13-initialize-with-kubeadm-dual-stack>1.3 Initialize with kubeadm (dual-stack)</h3><div class="alert alert-primary" role=alert><div class="h4 alert-heading" role=heading>Verify MASTER_IP before proceeding</div>Run `echo $MASTER_IP` -- it **must** print `10.0.0.2` (or your custom subnet IP). If it's empty, go back and set it. Running `kubeadm init` with an empty or wrong `--apiserver-advertise-address` will bind the API server to the wrong interface and generate TLS certificates with incorrect SANs. Fixing this requires a full `kubeadm reset` and re-init.</div><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>sudo kubeadm init <span class=se>\
+</span></span></span><span class=line><span class=cl>  --apiserver-advertise-address<span class=o>=</span><span class=nv>$MASTER_IP</span> <span class=se>\
+</span></span></span><span class=line><span class=cl>  --pod-network-cidr<span class=o>=</span>10.244.0.0/16,fd00:10:244::/48 <span class=se>\
+</span></span></span><span class=line><span class=cl>  --service-cidr<span class=o>=</span>10.96.0.0/12,fd00:10:96::/108 <span class=se>\
+</span></span></span><span class=line><span class=cl>  --skip-phases<span class=o>=</span>addon/kube-proxy
+</span></span></code></pre></div><p>Flags explained:</p><ul><li><code>--apiserver-advertise-address=$MASTER_IP</code> &ndash; Bind the API server to the private network IP (single address, not dual-stack)</li><li><code>--pod-network-cidr=10.244.0.0/16,fd00:10:244::/48</code> &ndash; <strong>Dual-stack pod CIDRs</strong>: IPv4 for internal cluster communication + IPv6 for external connectivity via DNS64/NAT64</li><li><code>--service-cidr=10.96.0.0/12,fd00:10:96::/108</code> &ndash; <strong>Dual-stack service CIDRs</strong>: existing IPv4 services continue to work; new services can opt into dual-stack</li><li><code>--skip-phases=addon/kube-proxy</code> &ndash; Cilium replaces kube-proxy with eBPF datapath</li></ul><p><div class="alert alert-primary" role=alert><div class="h4 alert-heading" role=heading>CKA note</div>The CKA exam typically uses kube-proxy. This cluster skips it because Cilium provides a more efficient replacement. On the exam, omit `--skip-phases=addon/kube-proxy`.</div><div class="alert alert-primary" role=alert><div class="h4 alert-heading" role=heading>Why dual-stack?</div>The nodes are IPv6-only with NAT64/DNS64 for IPv4 reachability. By giving pods IPv6 addresses alongside IPv4, they can reach external services via DNS64/NAT64 natively -- no `hostNetwork` workarounds needed. This means Cilium's FQDN-based egress policies apply to **all** pods, including CoreDNS, the CSI controller, and application workloads like OpenClaw.</div><div class="alert alert-primary" role=alert><div class="h4 alert-heading" role=heading>CIDRs cannot be changed after init</div>kubeadm does not support modifying pod or service CIDRs after initialization. If you need different ranges, you must `kubeadm reset` and re-init.</div>Expected output (abbreviated, IPs and hashes will differ):</p><pre tabindex=0><code>[init] Using Kubernetes version: v1.32.x
+[preflight] Running pre-flight checks
+...
+[addons] Applied essential addon: CoreDNS
+
+Your Kubernetes control-plane has initialized successfully!
+
+To start using your cluster, you need to run the following as a regular user:
+
+  mkdir -p $HOME/.kube
+  sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+  sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+Then you can join any number of worker nodes by running the following on each as root:
+
+kubeadm join &lt;MASTER_IP&gt;:6443 --token &lt;TOKEN&gt; \
+        --discovery-token-ca-cert-hash sha256:&lt;HASH&gt;
+</code></pre><p><div class="alert alert-primary" role=alert><div class="h4 alert-heading" role=heading>Expected warnings</div>**"remote version is much newer"** -- This is normal when pinning `kubernetes_version` (e.g., `1.32`). kubeadm detects a newer stable release exists but correctly falls back to the pinned version. No action needed.
+**"sandbox image is inconsistent"** -- The containerd default config ships `pause:3.8` but kubeadm 1.32 expects `pause:3.10`. The cloud-init and Ansible prerequisites already fix this. If you see this warning, update the sandbox image manually: `sudo sed -i 's|registry.k8s.io/pause:3.8|registry.k8s.io/pause:3.10|' /etc/containerd/config.toml && sudo systemctl restart containerd`</div><strong>What <code>kubeadm init</code> does behind the scenes:</strong></p><ol><li>Generates PKI certificates (CA, API server, kubelet, etc.) in <code>/etc/kubernetes/pki/</code></li><li>Writes static pod manifests for etcd, kube-apiserver, kube-controller-manager, kube-scheduler in <code>/etc/kubernetes/manifests/</code></li><li>Bootstraps etcd and starts the API server</li><li>Configures RBAC and creates bootstrap tokens</li><li>Generates <code>admin.conf</code> kubeconfig for cluster administration</li></ol><h3 id=14-set-up-kubeconfig>1.4 Set up kubeconfig</h3><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>mkdir -p <span class=nv>$HOME</span>/.kube
+</span></span><span class=line><span class=cl>sudo cp -i /etc/kubernetes/admin.conf <span class=nv>$HOME</span>/.kube/config
+</span></span><span class=line><span class=cl>sudo chown <span class=k>$(</span>id -u<span class=k>)</span>:<span class=k>$(</span>id -g<span class=k>)</span> <span class=nv>$HOME</span>/.kube/config
+</span></span></code></pre></div><h3 id=15-configure-kubelet-for-dual-stack>1.5 Configure kubelet for dual-stack</h3><p>Set the kubelet&rsquo;s <code>--node-ip</code> to both the IPv4 private network address and the node&rsquo;s IPv6 address. This ensures endpoints are registered with both addresses:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>sudo sed -i <span class=s2>&#34;s/KUBELET_KUBEADM_ARGS=\&#34;/KUBELET_KUBEADM_ARGS=\&#34;--node-ip=</span><span class=nv>$MASTER_IP</span><span class=s2>,</span><span class=nv>$NODE_IPV6</span><span class=s2> /&#34;</span> /var/lib/kubelet/kubeadm-flags.env
+</span></span><span class=line><span class=cl>sudo systemctl restart kubelet
+</span></span></code></pre></div><p>Verify:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl get nodes -o wide
+</span></span></code></pre></div><p>The <code>INTERNAL-IP</code> column should show the IPv4 address. Check that both addresses are registered:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl get nodes -o <span class=nv>jsonpath</span><span class=o>=</span><span class=s1>&#39;{.items[0].status.addresses}&#39;</span> <span class=p>|</span> python3 -m json.tool
+</span></span></code></pre></div><p>You should see both <code>InternalIP</code> entries (IPv4 and IPv6).</p><h3 id=16-save-join-command>1.6 Save join command</h3><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># Print the join command (token valid for 24h)</span>
+</span></span><span class=line><span class=cl>kubeadm token create --print-join-command
+</span></span></code></pre></div><p>Save this output &ndash; you&rsquo;ll need it for worker nodes.</p><h3 id=17-verify>1.7 Verify</h3><p><strong>Node status</strong></p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl get nodes
+</span></span></code></pre></div><p>The node shows <code>NotReady</code> until the CNI (Cilium) is installed in Step 3:</p><pre tabindex=0><code>NAME                      STATUS     ROLES           AGE   VERSION
+&lt;cluster&gt;-control-01      NotReady   control-plane   XXm   v1.32.x
+</code></pre><p><strong>System pods</strong></p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl get pods -n kube-system
+</span></span></code></pre></div><p>Core control plane pods should be <code>Running</code>. CoreDNS pods remain <code>Pending</code> until the CNI is installed:</p><pre tabindex=0><code>NAME                                          READY   STATUS    RESTARTS   AGE
+coredns-xxxxxxxxxx-xxxxx                      0/1     Pending   0          XXm
+coredns-xxxxxxxxxx-xxxxx                      0/1     Pending   0          XXm
+etcd-&lt;cluster&gt;-control-01                     1/1     Running   0          XXm
+kube-apiserver-&lt;cluster&gt;-control-01           1/1     Running   0          XXm
+kube-controller-manager-&lt;cluster&gt;-control-01  1/1     Running   0          XXm
+kube-scheduler-&lt;cluster&gt;-control-01           1/1     Running   0          XXm
+</code></pre><h2 id=step-2-join-worker-nodes-and-further-control-nodes>Step 2: Join Worker Nodes and Further Control Nodes</h2><p><strong>Worker Nodes</strong></p><p>SSH into each worker node and run the join command from Step 1.6. Before joining, configure the kubelet for dual-stack on the worker:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># On the worker node, determine its IPs</span>
+</span></span><span class=line><span class=cl><span class=nv>WORKER_IPV4</span><span class=o>=</span>10.0.0.X   <span class=c1># Replace with the worker&#39;s private IP</span>
+</span></span><span class=line><span class=cl><span class=nv>WORKER_IPV6</span><span class=o>=</span><span class=k>$(</span>ip -6 addr show scope global <span class=p>|</span> grep -oP <span class=s1>&#39;(?&lt;=inet6\s)[\da-f:]+&#39;</span> <span class=p>|</span> head -1<span class=k>)</span>
+</span></span></code></pre></div><p>Then join:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>sudo kubeadm join &lt;MASTER_IP&gt;:6443 --token &lt;TOKEN&gt; <span class=se>\
+</span></span></span><span class=line><span class=cl>  --discovery-token-ca-cert-hash sha256:&lt;HASH&gt;
+</span></span></code></pre></div><p>After joining, set the worker&rsquo;s dual-stack node IP:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>sudo sed -i <span class=s2>&#34;s/KUBELET_KUBEADM_ARGS=\&#34;/KUBELET_KUBEADM_ARGS=\&#34;--node-ip=</span><span class=nv>$WORKER_IPV4</span><span class=s2>,</span><span class=nv>$WORKER_IPV6</span><span class=s2> /&#34;</span> /var/lib/kubelet/kubeadm-flags.env
+</span></span><span class=line><span class=cl>sudo systemctl restart kubelet
+</span></span></code></pre></div><p><div class="alert alert-primary" role=alert><div class="h4 alert-heading" role=heading>CKA explainer -- TLS bootstrap</div>The worker uses the bootstrap token to authenticate with the API server, then requests a kubelet client certificate. The API server validates the token, signs the certificate, and the kubelet starts using it for all subsequent communication. This is the TLS bootstrap process.</div><strong>For HA control plane (replica control nodes):</strong></p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>sudo kubeadm join &lt;MASTER_IP&gt;:6443 --token &lt;TOKEN&gt; <span class=se>\
+</span></span></span><span class=line><span class=cl>  --discovery-token-ca-cert-hash sha256:&lt;HASH&gt; <span class=se>\
+</span></span></span><span class=line><span class=cl>  --control-plane --certificate-key &lt;CERT_KEY&gt;
+</span></span></code></pre></div><p>Generate the certificate key on the master: <code>sudo kubeadm init phase upload-certs --upload-certs</code></p><p>Then configure <code>--node-ip</code> the same way as for workers.</p><h2 id=step-3-install-cilium-cni-dual-stack>Step 3: Install Cilium CNI (Dual-Stack)</h2><h3 id=31-install-helm>3.1 Install Helm</h3><p>On the control node, install Helm via the official install script:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 <span class=p>|</span> bash
+</span></span></code></pre></div><div class="alert alert-primary" role=alert><div class="h4 alert-heading" role=heading>NAT64 and GitHub</div>The install script downloads from GitHub via NAT64. This generally works but connections can be flaky. If the download times out, simply retry the command.</div><h3 id=32-install-cilium-via-helm>3.2 Install Cilium via Helm</h3><p>Add the Cilium Helm repository and install. Make sure <code>$MASTER_IP</code> is still set (<code>echo $MASTER_IP</code>) &ndash; if not, re-export it (see Step 1):</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>helm repo add cilium https://helm.cilium.io/
+</span></span><span class=line><span class=cl>helm repo update
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>helm install cilium cilium/cilium <span class=se>\
+</span></span></span><span class=line><span class=cl>  --version 1.16.5 <span class=se>\
+</span></span></span><span class=line><span class=cl>  --namespace kube-system <span class=se>\
+</span></span></span><span class=line><span class=cl>  --set <span class=nv>kubeProxyReplacement</span><span class=o>=</span><span class=nb>true</span> <span class=se>\
+</span></span></span><span class=line><span class=cl>  --set <span class=nv>k8sServiceHost</span><span class=o>=</span><span class=nv>$MASTER_IP</span> <span class=se>\
+</span></span></span><span class=line><span class=cl>  --set <span class=nv>k8sServicePort</span><span class=o>=</span><span class=m>6443</span> <span class=se>\
+</span></span></span><span class=line><span class=cl>  --set ipam.mode<span class=o>=</span>kubernetes <span class=se>\
+</span></span></span><span class=line><span class=cl>  --set ipv4.enabled<span class=o>=</span><span class=nb>true</span> <span class=se>\
+</span></span></span><span class=line><span class=cl>  --set ipv6.enabled<span class=o>=</span><span class=nb>true</span> <span class=se>\
+</span></span></span><span class=line><span class=cl>  --set <span class=nv>enableIPv6Masquerade</span><span class=o>=</span><span class=nb>true</span> <span class=se>\
+</span></span></span><span class=line><span class=cl>  --set operator.replicas<span class=o>=</span><span class=m>1</span> <span class=se>\
+</span></span></span><span class=line><span class=cl>  --set cni.binPath<span class=o>=</span>/usr/lib/cni
+</span></span></code></pre></div><p>Flags explained:</p><ul><li><code>--version 1.16.5</code> &ndash; Pin the Cilium version for reproducibility</li><li><code>--set kubeProxyReplacement=true</code> &ndash; Replace kube-proxy with Cilium&rsquo;s eBPF datapath (matches <code>--skip-phases=addon/kube-proxy</code> from Step 1)</li><li><code>--set k8sServiceHost</code> / <code>k8sServicePort</code> &ndash; Required when kube-proxy is skipped, so Cilium knows how to reach the API server</li><li><code>--set ipam.mode=kubernetes</code> &ndash; Use the Kubernetes host-scope IPAM. Without this, Cilium defaults to its own <code>cluster-pool</code> allocator with CIDRs <code>10.0.0.0/8</code> and <code>fd00::/104</code>, ignoring kubeadm&rsquo;s <code>--pod-network-cidr</code>. This causes pod IPs to overlap with the Hetzner private network (<code>10.0.0.0/24</code>)</li><li><code>--set ipv4.enabled=true</code> &ndash; Enable IPv4 pod networking (cluster-internal communication)</li><li><code>--set ipv6.enabled=true</code> &ndash; Enable IPv6 pod networking (external access via DNS64/NAT64)</li><li><code>--set enableIPv6Masquerade=true</code> &ndash; Masquerade pod IPv6 traffic to the node&rsquo;s public IPv6 when leaving the cluster. This is what allows pods to reach external services via NAT64</li><li><code>--set operator.replicas=1</code> &ndash; Cilium defaults to 2 operator replicas, but since the operator uses a host port, only one can run per node. Set to 1 for single-node clusters; increase when adding worker nodes</li><li><code>--set cni.binPath=/usr/lib/cni</code> &ndash; Debian&rsquo;s containerd package looks for CNI binaries in <code>/usr/lib/cni</code> instead of the default <code>/opt/cni/bin/</code>. Without this, kubelet reports <code>cni plugin not initialized</code>. If using CRI-O, omit this flag (CRI-O uses the default <code>/opt/cni/bin</code>)</li></ul><div class="alert alert-primary" role=alert><div class="h4 alert-heading" role=heading>Restart containerd after Cilium install</div>After Cilium deploys the CNI plugin, containerd may have cached the "not initialized" state. Restart it to pick up the new CNI:
+```bash
+sudo systemctl restart containerd
+```
+Wait a few seconds, then verify the node becomes `Ready` with `kubectl get nodes`.</div><h3 id=33-wait-and-verify>3.3 Wait and verify</h3><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># Wait for the Cilium DaemonSet to roll out</span>
+</span></span><span class=line><span class=cl>kubectl -n kube-system rollout status daemonset/cilium --timeout<span class=o>=</span>120s
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Verify Cilium pods are running</span>
+</span></span><span class=line><span class=cl>kubectl get pods -n kube-system -l k8s-app<span class=o>=</span>cilium
+</span></span></code></pre></div><p>After containerd restarts and Cilium is ready, all nodes should show <code>Ready</code>:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl get nodes
+</span></span></code></pre></div><div class="alert alert-primary" role=alert><div class="h4 alert-heading" role=heading>Single-node cluster: removing the control-plane taint</div>By default, kubeadm applies a `NoSchedule` taint to control-plane nodes. This prevents regular workloads from running on nodes dedicated to the Kubernetes control plane (API server, etcd, scheduler), reserving their resources for cluster management. On a multi-node cluster this is the correct behavior.
+On a single control-plane node without workers, this taint prevents **all** pod scheduling (including CoreDNS), so it must be removed:
+```bash
+kubectl taint nodes --all node-role.kubernetes.io/control-plane:NoSchedule-
+```
+If you later add worker nodes and want to restore the taint to keep workloads off the control plane:
+```bash
+kubectl taint nodes <control-node-name>node-role.kubernetes.io/control-plane:NoSchedule
+```</div><h3 id=34-verify-dual-stack-pod-connectivity>3.4 Verify dual-stack pod connectivity</h3><p>Once CoreDNS is running, verify that pods have both IPv4 and IPv6 addresses:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl get pods -n kube-system -l k8s-app<span class=o>=</span>kube-dns -o wide
+</span></span></code></pre></div><p>Check the pod&rsquo;s IP addresses:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl get pods -n kube-system -l k8s-app<span class=o>=</span>kube-dns -o <span class=nv>jsonpath</span><span class=o>=</span><span class=s1>&#39;{range .items[*]}{.metadata.name}: {.status.podIPs}{&#34;\n&#34;}{end}&#39;</span>
+</span></span></code></pre></div><p>Each pod should have two IPs &ndash; one from <code>10.244.0.0/16</code> (IPv4) and one from <code>fd00:10:244::/48</code> (IPv6).</p><h2 id=step-4-configure-coredns-for-dns64>Step 4: Configure CoreDNS for DNS64</h2><p>With dual-stack pods, CoreDNS has IPv6 connectivity and can reach external DNS servers directly &ndash; no <code>hostNetwork</code> needed. However, CoreDNS must forward to <strong>DNS64 resolvers</strong> (not regular DNS) so that IPv4-only domains get synthesized AAAA records that pods can route to via NAT64.</p><h3 id=41-update-coredns-configmap>4.1 Update CoreDNS ConfigMap</h3><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl -n kube-system edit configmap coredns
+</span></span></code></pre></div><p>Replace the <code>forward</code> line. Change:</p><pre tabindex=0><code>forward . /etc/resolv.conf
+</code></pre><p>To:</p><pre tabindex=0><code>forward . 2001:67c:2b0::4 2001:67c:2b0::6
+</code></pre><p>These are public DNS64 resolvers from <a href=https://nat64.net/public-providers>nat64.net</a> (Nuremberg and Helsinki &ndash; close to Hetzner&rsquo;s datacenters). They synthesize AAAA records with the <code>64:ff9b::/96</code> prefix for IPv4-only domains.</p><div class="alert alert-primary" role=alert><div class="h4 alert-heading" role=heading>Why DNS64 resolvers?</div>When a pod queries `api.anthropic.com`, CoreDNS forwards to the DNS64 resolver. If `api.anthropic.com` only has an A record (IPv4), the DNS64 resolver synthesizes an AAAA record like `64:ff9b::6812:0000`. The pod then sends IPv6 traffic to this address, Cilium masquerades it to the node's public IPv6, and the NAT64 gateway translates it to IPv4. This is how pods reach IPv4-only services without `hostNetwork`.</div><h3 id=42-restart-coredns>4.2 Restart CoreDNS</h3><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl -n kube-system rollout restart deployment coredns
+</span></span><span class=line><span class=cl>kubectl -n kube-system rollout status deployment coredns --timeout<span class=o>=</span>60s
+</span></span></code></pre></div><h3 id=43-verify-dns-resolution>4.3 Verify DNS resolution</h3><p>Create a long-running test pod (the <code>--rm -it</code> pattern tends to hang on IPv6-only clusters):</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl run <span class=nb>test</span> --image<span class=o>=</span>alpine --restart<span class=o>=</span>Never -- sleep <span class=m>3600</span>
+</span></span></code></pre></div><p>Test DNS and connectivity:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># Test internal DNS (cluster service name)</span>
+</span></span><span class=line><span class=cl>kubectl <span class=nb>exec</span> <span class=nb>test</span> -- nslookup kubernetes.default.svc.cluster.local
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Test external DNS (should return a synthesized AAAA from the DNS64 resolver)</span>
+</span></span><span class=line><span class=cl>kubectl <span class=nb>exec</span> <span class=nb>test</span> -- nslookup github.com
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Install curl and test end-to-end NAT64 connectivity</span>
+</span></span><span class=line><span class=cl>kubectl <span class=nb>exec</span> <span class=nb>test</span> -- apk add --no-cache curl
+</span></span><span class=line><span class=cl>kubectl <span class=nb>exec</span> <span class=nb>test</span> -- curl -6 -s --max-time <span class=m>10</span> -o /dev/null -w <span class=s2>&#34;%{http_code}\n&#34;</span> https://github.com
+</span></span></code></pre></div><p>Expected results: <code>nslookup github.com</code> returns both a synthesized AAAA (e.g. <code>2001:67c:2b0:db32:...</code>) and a real A record. The <code>curl -6</code> command forces IPv6 and should return <code>200</code> (or <code>301</code> for domains that redirect, like <code>google.com</code>).</p><p><div class="alert alert-primary" role=alert><div class="h4 alert-heading" role=heading>BusyBox wget prefers IPv4</div>Alpine's BusyBox wget tries IPv4 first and has no `-6` flag. Since pods have no IPv4 internet route, `wget https://github.com` will fail with "Network unreachable". Use `curl -6` for testing, or note that glibc-based images (like `node:lts`) prefer IPv6 by default per RFC 6724.</div>Clean up:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl delete pod <span class=nb>test</span>
+</span></span></code></pre></div><div class="alert alert-primary" role=alert><div class="h4 alert-heading" role=heading>Debugging DNS</div>If DNS resolution fails, check the CoreDNS logs:
+```bash
+kubectl logs -n kube-system -l k8s-app=kube-dns -f
+```
+Verify that CoreDNS pods have IPv6 connectivity to the DNS64 resolvers:
+```bash
+kubectl run test --image=alpine --restart=Never -- sleep 300
+kubectl exec test -- ping6 -c 3 -W 3 2001:67c:2b0::4
+kubectl delete pod test
+```</div><h2 id=step-5-install-hetzner-csi-driver>Step 5: Install Hetzner CSI Driver</h2><p>The Hetzner CSI driver enables persistent storage via Hetzner Block Volumes. With dual-stack networking, the CSI controller can reach <code>api.hetzner.cloud</code> through its pod IPv6 address and NAT64 &ndash; no <code>hostNetwork</code> patch needed.</p><h3 id=51-create-a-dedicated-api-token>5.1 Create a dedicated API token</h3><p>In the Hetzner Cloud Console: <strong>Security</strong> > <strong>API Tokens</strong> > <strong>Generate API Token</strong> (Read & Write). Name it <code>k8s-csi</code>.</p><h3 id=52-deploy-the-csi-driver>5.2 Deploy the CSI driver</h3><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># Create secret with API token</span>
+</span></span><span class=line><span class=cl>kubectl create secret generic hcloud <span class=se>\
+</span></span></span><span class=line><span class=cl>  --namespace kube-system <span class=se>\
+</span></span></span><span class=line><span class=cl>  --from-literal<span class=o>=</span><span class=nv>token</span><span class=o>=</span>&lt;YOUR_HETZNER_CSI_API_TOKEN&gt;
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Deploy CSI driver</span>
+</span></span><span class=line><span class=cl>kubectl apply -f https://raw.githubusercontent.com/hetznercloud/csi-driver/main/deploy/kubernetes/hcloud-csi.yml
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Set hcloud-volumes as default storage class</span>
+</span></span><span class=line><span class=cl>kubectl patch storageclass hcloud-volumes <span class=se>\
+</span></span></span><span class=line><span class=cl>  -p <span class=s1>&#39;{&#34;metadata&#34;: {&#34;annotations&#34;:{&#34;storageclass.kubernetes.io/is-default-class&#34;:&#34;true&#34;}}}&#39;</span>
+</span></span></code></pre></div><h3 id=53-verify>5.3 Verify</h3><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl get storageclass
+</span></span><span class=line><span class=cl>kubectl get pods -n kube-system <span class=p>|</span> grep hcloud
+</span></span><span class=line><span class=cl><span class=c1># hcloud-csi-controller should show 5/5 Running</span>
+</span></span><span class=line><span class=cl><span class=c1># hcloud-csi-node should show 3/3 Running</span>
+</span></span></code></pre></div><p>If the CSI controller fails to start with connection errors to <code>api.hetzner.cloud</code>, verify that:</p><ol><li>CoreDNS is forwarding to DNS64 resolvers (Step 4)</li><li>The pod has an IPv6 address (<code>kubectl get pods -n kube-system -o wide | grep hcloud-csi-controller</code>)</li><li>The NAT64 route exists on the node (<code>ip -6 route | grep 64:ff9b</code>)</li></ol><h2 id=step-6-namespace-isolation-and-network-policies>Step 6: Namespace Isolation and Network Policies</h2><p>Use namespaces with Cilium network policies to isolate workloads and control egress traffic. With dual-stack networking, Cilium&rsquo;s FQDN-based egress rules work for all pods &ndash; the DNS proxy intercepts DNS64-synthesized AAAA responses and allows traffic to those addresses.</p><h3 id=61-create-namespaces>6.1 Create namespaces</h3><div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=c># namespaces.yaml</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>v1</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>Namespace</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>system-unrestricted</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>labels</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>egress-policy</span><span class=p>:</span><span class=w> </span><span class=l>unrestricted</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nn>---</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>v1</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>Namespace</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>apps-restricted</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>labels</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>egress-policy</span><span class=p>:</span><span class=w> </span><span class=l>restricted</span><span class=w>
+</span></span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl apply -f namespaces.yaml
+</span></span></code></pre></div><ul><li><strong>system-unrestricted</strong>: For infrastructure services (cloudflared, monitoring) that need full network access.</li><li><strong>apps-restricted</strong>: For application workloads with egress locked down to specific destinations.</li></ul><h3 id=62-default-deny-egress-for-restricted-namespace>6.2 Default deny egress for restricted namespace</h3><div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=c># default-deny-egress.yaml</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>networking.k8s.io/v1</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>NetworkPolicy</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>default-deny-egress</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>namespace</span><span class=p>:</span><span class=w> </span><span class=l>apps-restricted</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>podSelector</span><span class=p>:</span><span class=w> </span>{}<span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>policyTypes</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span>- <span class=l>Egress</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>egress</span><span class=p>:</span><span class=w> </span><span class=p>[]</span><span class=w>
+</span></span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl apply -f default-deny-egress.yaml
+</span></span></code></pre></div><h3 id=63-whitelist-specific-egress-with-cilium-optional>6.3 Whitelist specific egress with Cilium (optional)</h3><p>This step is a reference example — apply it when deploying applications that need specific egress rules (see the <a href=/kubeclaw/docs/guide/openclaw/>OpenClaw guide</a> for a real-world example).</p><p>Cilium supports FQDN-based egress rules, allowing fine-grained control over which external services an application can reach. With dual-stack, the DNS proxy intercepts DNS64-synthesized AAAA records and maps them to the FQDN, so <code>toFQDNs</code> rules work transparently with NAT64:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=c># example-app-egress.yaml</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>cilium.io/v2</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>CiliumNetworkPolicy</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>example-app-egress</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>namespace</span><span class=p>:</span><span class=w> </span><span class=l>apps-restricted</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>endpointSelector</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>matchLabels</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>app</span><span class=p>:</span><span class=w> </span><span class=l>my-app</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>egress</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c># DNS resolution (required for FQDN rules)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span>- <span class=nt>toEndpoints</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span>- <span class=nt>matchLabels</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=nt>io.kubernetes.pod.namespace</span><span class=p>:</span><span class=w> </span><span class=l>kube-system</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=nt>k8s-app</span><span class=p>:</span><span class=w> </span><span class=l>kube-dns</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>toPorts</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span>- <span class=nt>ports</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span>- <span class=nt>port</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;53&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>              </span><span class=nt>protocol</span><span class=p>:</span><span class=w> </span><span class=l>UDP</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span>- <span class=nt>port</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;53&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>              </span><span class=nt>protocol</span><span class=p>:</span><span class=w> </span><span class=l>TCP</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c># Allow internal cluster communication</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span>- <span class=nt>toEntities</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span>- <span class=l>cluster</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c># Allow specific external API (example)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span>- <span class=nt>toFQDNs</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span>- <span class=nt>matchName</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;api.example.com&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>toPorts</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span>- <span class=nt>ports</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span>- <span class=nt>port</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;443&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>              </span><span class=nt>protocol</span><span class=p>:</span><span class=w> </span><span class=l>TCP</span><span class=w>
+</span></span></span></code></pre></div><div class="alert alert-primary" role=alert><div class="h4 alert-heading" role=heading>How FQDN rules work with DNS64/NAT64</div>When a pod queries `api.example.com`, Cilium's DNS proxy intercepts the response. If the DNS64 resolver returns a synthesized AAAA record (`64:ff9b::xxxx`), the proxy records the mapping `api.example.com → 64:ff9b::xxxx`. The `toFQDNs` rule then allows traffic to that synthesized address. From Cilium's perspective, a DNS64-synthesized AAAA record is just a regular AAAA record.</div><h3 id=64-unrestricted-egress-for-system-namespace>6.4 Unrestricted egress for system namespace</h3><div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=c># system-unrestricted-egress.yaml</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>cilium.io/v2</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>CiliumNetworkPolicy</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>allow-all-egress</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>namespace</span><span class=p>:</span><span class=w> </span><span class=l>system-unrestricted</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>endpointSelector</span><span class=p>:</span><span class=w> </span>{}<span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>egress</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span>- <span class=nt>toEntities</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span>- <span class=l>all</span><span class=w>
+</span></span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl apply -f system-unrestricted-egress.yaml
+</span></span></code></pre></div><h3 id=65-verify-network-policies>6.5 Verify network policies</h3><p>Use <code>wget</code> (included in Alpine by default) to verify that the default-deny policy blocks all egress, including DNS resolution:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># Start a test pod in the restricted namespace</span>
+</span></span><span class=line><span class=cl>kubectl run <span class=nb>test</span> --namespace apps-restricted --rm -it --image<span class=o>=</span>alpine -- sh
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Inside the pod -- both should FAIL with DNS or connection errors:</span>
+</span></span><span class=line><span class=cl>wget -qO- https://google.com
+</span></span><span class=line><span class=cl>ping -c1 8.8.8.8
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Exit test pod</span>
+</span></span><span class=line><span class=cl><span class=nb>exit</span>
+</span></span></code></pre></div><p><div class="alert alert-primary" role=alert><div class="h4 alert-heading" role=heading>Why not `curl`?</div>You might think to `apk add curl` first, but that itself requires DNS resolution and network access to reach the Alpine package mirror -- which is exactly what the default-deny egress policy blocks. The fact that `apk` fails is already proof that the policy works. Alpine ships with `wget`, so no package installation is needed.</div>Then verify that the <strong>unrestricted</strong> namespace allows full egress:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl run <span class=nb>test</span> --namespace system-unrestricted --image<span class=o>=</span>alpine --restart<span class=o>=</span>Never -- sleep <span class=m>3600</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Install curl and test (BusyBox wget lacks -6 and prefers IPv4 which is unreachable)</span>
+</span></span><span class=line><span class=cl>kubectl <span class=nb>exec</span> --namespace system-unrestricted <span class=nb>test</span> -- apk add --no-cache curl
+</span></span><span class=line><span class=cl>kubectl <span class=nb>exec</span> --namespace system-unrestricted <span class=nb>test</span> -- curl -6 -s --max-time <span class=m>10</span> -o /dev/null -w <span class=s2>&#34;%{http_code}\n&#34;</span> https://google.com
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Clean up</span>
+</span></span><span class=line><span class=cl>kubectl delete pod --namespace system-unrestricted <span class=nb>test</span>
+</span></span></code></pre></div><p>The <code>curl -6</code> command should return <code>301</code> (Google redirects to <code>www.google.com</code>), confirming full IPv6 egress works.</p><h2 id=step-7-expose-services-via-cloudflare-tunnel>Step 7: Expose Services via Cloudflare Tunnel</h2><p>The Cloudflare Tunnel (installed as a system service on the master control node via cloud-init) can route external traffic to Kubernetes services. This step deploys a test service in the <strong>restricted</strong> namespace to verify the full chain: Internet → Cloudflare → Tunnel → Kubernetes Service → Pod &ndash; with network policies enforced.</p><h3 id=71-deploy-a-test-service>7.1 Deploy a test service</h3><p>Apply the following manifest. It creates an Nginx deployment, a ClusterIP service, and a CiliumNetworkPolicy in the <code>apps-restricted</code> namespace. The network policy only allows DNS egress (which Nginx doesn&rsquo;t strictly need, but demonstrates the pattern every real application requires):</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=c># nginx-test.yaml</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>apps/v1</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>Deployment</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>nginx-test</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>namespace</span><span class=p>:</span><span class=w> </span><span class=l>apps-restricted</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>replicas</span><span class=p>:</span><span class=w> </span><span class=m>1</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>selector</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>matchLabels</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>app</span><span class=p>:</span><span class=w> </span><span class=l>nginx-test</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>template</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>labels</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>app</span><span class=p>:</span><span class=w> </span><span class=l>nginx-test</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>containers</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>nginx</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>image</span><span class=p>:</span><span class=w> </span><span class=l>nginx:alpine</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>ports</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span>- <span class=nt>containerPort</span><span class=p>:</span><span class=w> </span><span class=m>80</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>resources</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=nt>requests</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>              </span><span class=nt>memory</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;32Mi&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>              </span><span class=nt>cpu</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;10m&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=nt>limits</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>              </span><span class=nt>memory</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;64Mi&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>              </span><span class=nt>cpu</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;100m&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nn>---</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>v1</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>Service</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>nginx-test</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>namespace</span><span class=p>:</span><span class=w> </span><span class=l>apps-restricted</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>selector</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>app</span><span class=p>:</span><span class=w> </span><span class=l>nginx-test</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>ports</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span>- <span class=nt>port</span><span class=p>:</span><span class=w> </span><span class=m>80</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>targetPort</span><span class=p>:</span><span class=w> </span><span class=m>80</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nn>---</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>cilium.io/v2</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>CiliumNetworkPolicy</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>nginx-test-egress</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>namespace</span><span class=p>:</span><span class=w> </span><span class=l>apps-restricted</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>endpointSelector</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>matchLabels</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>app</span><span class=p>:</span><span class=w> </span><span class=l>nginx-test</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>egress</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c># DNS resolution (required for most real applications)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span>- <span class=nt>toEndpoints</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span>- <span class=nt>matchLabels</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=nt>io.kubernetes.pod.namespace</span><span class=p>:</span><span class=w> </span><span class=l>kube-system</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=nt>k8s-app</span><span class=p>:</span><span class=w> </span><span class=l>kube-dns</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>toPorts</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span>- <span class=nt>ports</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span>- <span class=nt>port</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;53&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>              </span><span class=nt>protocol</span><span class=p>:</span><span class=w> </span><span class=l>UDP</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span>- <span class=nt>port</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;53&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>              </span><span class=nt>protocol</span><span class=p>:</span><span class=w> </span><span class=l>TCP</span><span class=w>
+</span></span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl apply -f nginx-test.yaml
+</span></span></code></pre></div><p>Verify it&rsquo;s running:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl get pods -n apps-restricted -l <span class=nv>app</span><span class=o>=</span>nginx-test
+</span></span><span class=line><span class=cl>kubectl get svc nginx-test -n apps-restricted
+</span></span></code></pre></div><h3 id=72-enable-cluster-dns-on-the-host>7.2 Enable cluster DNS on the host</h3><p>The <code>cloudflared</code> system service runs on the host, not inside the cluster. By default, it cannot resolve Kubernetes service names like <code>nginx-test.apps-restricted.svc.cluster.local</code> because the host uses Hetzner&rsquo;s DNS servers, not CoreDNS.</p><p>Add CoreDNS as a nameserver on the host. CoreDNS listens on its pod IP (a ClusterIP or node-local address routable via Cilium):</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># Find the CoreDNS ClusterIP</span>
+</span></span><span class=line><span class=cl><span class=nv>COREDNS_IP</span><span class=o>=</span><span class=k>$(</span>kubectl get svc kube-dns -n kube-system -o <span class=nv>jsonpath</span><span class=o>=</span><span class=s1>&#39;{.spec.clusterIP}&#39;</span><span class=k>)</span>
+</span></span><span class=line><span class=cl><span class=nb>echo</span> <span class=s2>&#34;CoreDNS ClusterIP: </span><span class=nv>$COREDNS_IP</span><span class=s2>&#34;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>sudo sed -i <span class=s2>&#34;1s/^/nameserver </span><span class=nv>$COREDNS_IP</span><span class=s2>\n/&#34;</span> /etc/resolv.conf
+</span></span></code></pre></div><p><div class="alert alert-primary" role=alert><div class="h4 alert-heading" role=heading>resolv.conf is managed by resolvconf</div>The `/etc/resolv.conf` file is auto-generated and may be overwritten on reboot or network changes. To make this permanent, add the nameserver to `/etc/resolvconf/resolv.conf.d/head`:
+```bash
+echo "nameserver $COREDNS_IP" | sudo tee /etc/resolvconf/resolv.conf.d/head
+sudo resolvconf -u
+```</div>Verify the host can resolve cluster service names:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>curl http://nginx-test.apps-restricted.svc.cluster.local
+</span></span></code></pre></div><p>You should see the Nginx welcome page.</p><h3 id=73-configure-the-tunnel-hostname>7.3 Configure the tunnel hostname</h3><p>In the Cloudflare dashboard:</p><ol><li>Go to <strong>Zero Trust</strong> > <strong>Networks</strong> > <strong>Tunnels</strong> > your tunnel > <strong>Public Hostnames</strong></li><li>Add a new public hostname:</li></ol><table><thead><tr><th>Hostname</th><th>Service</th></tr></thead><tbody><tr><td><code>test.yourdomain.com</code></td><td><code>http://nginx-test.apps-restricted.svc.cluster.local:80</code></td></tr></tbody></table><div class="alert alert-primary" role=alert><div class="h4 alert-heading" role=heading>SSL/TLS mode</div>In the Cloudflare dashboard under **yourdomain.com** > **SSL/TLS** > **Overview**, set the encryption mode to **Full** (not **Full (strict)**). The tunnel terminates TLS at Cloudflare and connects to the origin (Nginx) over plain HTTP.</div><h3 id=74-test-access>7.4 Test access</h3><p>From your local machine (or anywhere on the internet):</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>curl https://test.yourdomain.com
+</span></span></code></pre></div><p>You should see the Nginx welcome page. This confirms the full chain works:</p><pre tabindex=0><code>Internet → Cloudflare (TLS termination)
+  → Tunnel → cloudflared (system service on host)
+    → CoreDNS resolves service name → ClusterIP
+      → Nginx pod (apps-restricted namespace, egress restricted by Cilium)
+</code></pre><div class="alert alert-primary" role=alert><div class="h4 alert-heading" role=heading>Ingress is allowed by default</div>The default-deny policy from Step 6.2 only restricts **egress**. Ingress to pods in `apps-restricted` is allowed, so cloudflared can reach Nginx without an additional ingress rule. For production workloads, consider adding explicit ingress policies as well.</div><h3 id=75-clean-up>7.5 Clean up</h3><p>Remove the test resources and the Cloudflare public hostname:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl delete -f nginx-test.yaml
+</span></span></code></pre></div><p>Then in the Cloudflare dashboard: <strong>Zero Trust</strong> > <strong>Networks</strong> > <strong>Tunnels</strong> > your tunnel > <strong>Public Hostnames</strong> > delete the <code>test.yourdomain.com</code> entry.</p><div class="alert alert-primary" role=alert><div class="h4 alert-heading" role=heading>Authentication</div>At this point, the tunnel exposes services without authentication. Adding Cloudflare Access policies (Zero Trust > Access > Applications) to control who can reach your services is covered in the [OpenClaw deployment guide](/kubeclaw/docs/guide/openclaw/).</div><h3 id=76-optional-run-cloudflared-as-a-kubernetes-workload>7.6 Optional: Run cloudflared as a Kubernetes workload</h3><p>The system-level <code>cloudflared</code> installed via cloud-init is sufficient for most setups. If you prefer to manage the tunnel as a Kubernetes deployment (for HA with multiple replicas, resource limits, and Kubernetes-native lifecycle management), you can migrate it:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=c># cloudflared.yaml</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>v1</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>Secret</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>cloudflared-token</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>namespace</span><span class=p>:</span><span class=w> </span><span class=l>system-unrestricted</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nt>type</span><span class=p>:</span><span class=w> </span><span class=l>Opaque</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nt>stringData</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>token</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;&lt;YOUR_CLOUDFLARE_TUNNEL_TOKEN&gt;&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nn>---</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>apps/v1</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>Deployment</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>cloudflared</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>namespace</span><span class=p>:</span><span class=w> </span><span class=l>system-unrestricted</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>replicas</span><span class=p>:</span><span class=w> </span><span class=m>2</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>selector</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>matchLabels</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>app</span><span class=p>:</span><span class=w> </span><span class=l>cloudflared</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>template</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>labels</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>app</span><span class=p>:</span><span class=w> </span><span class=l>cloudflared</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>containers</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>cloudflared</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>image</span><span class=p>:</span><span class=w> </span><span class=l>cloudflare/cloudflared:latest</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>args</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span>- <span class=l>tunnel</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span>- --<span class=kc>no</span>-<span class=l>autoupdate</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span>- <span class=l>run</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span>- --<span class=l>token</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span>- <span class=l>$(TUNNEL_TOKEN)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>env</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>TUNNEL_TOKEN</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>              </span><span class=nt>valueFrom</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                </span><span class=nt>secretKeyRef</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>cloudflared-token</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>                  </span><span class=nt>key</span><span class=p>:</span><span class=w> </span><span class=l>token</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>resources</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=nt>requests</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>              </span><span class=nt>memory</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;64Mi&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>              </span><span class=nt>cpu</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;50m&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=nt>limits</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>              </span><span class=nt>memory</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;128Mi&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>              </span><span class=nt>cpu</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;200m&#34;</span><span class=w>
+</span></span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl apply -f cloudflared.yaml
+</span></span></code></pre></div><p>Then disable the system-level service:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>ssh control-node sudo systemctl stop cloudflared
+</span></span><span class=line><span class=cl>ssh control-node sudo systemctl disable cloudflared
+</span></span></code></pre></div><h2 id=next-steps>Next Steps</h2><p>For upgrade procedures and operational kubectl commands, see <a href=/kubeclaw/docs/operations/kubernetes-maintenance/>Kubernetes Maintenance</a>.</p></div><div class=td-content style=page-break-before:always><h1 id=pg-c65eb9d03e673afea03338c62b4519cd>5 - OpenClaw Deployment</h1><p>A step-by-step guide to deploying OpenClaw as an isolated AI assistant on the KubeClaw cluster, accessible via Telegram, WhatsApp, or Signal, with a web-based Control UI exposed through Cloudflare Tunnel.</p><h2 id=architecture-overview>Architecture Overview</h2><pre tabindex=0><code>┌─────────────────────────────────────────────────────────────────────┐
+│                    Hetzner Private Network                          │
+│                        (10.0.0.0/24)                                │
+│                                                                     │
+│  ┌────────────────────────────────────────────────────────────┐    │
+│  │            Kubernetes Cluster (kubeadm) + Cilium             │    │
+│  │                                                             │    │
+│  │   ┌─────────────────┐       ┌─────────────────┐            │    │
+│  │   │   control-01    │       │   worker-01     │            │    │
+│  │   │  (control plane)│◄─────►│  (worker node)  │            │    │
+│  │   │   10.0.0.2      │       │   10.0.0.3      │            │    │
+│  │   │                 │       │                 │            │    │
+│  │   │  ┌───────────┐  │       │  ┌───────────┐  │            │    │
+│  │   │  │Block Vol  │  │       │  │Block Vol  │  │            │    │
+│  │   │  │  10 GB    │  │       │  │  10 GB    │  │            │    │
+│  │   │  └───────────┘  │       │  └───────────┘  │            │    │
+│  │   └────────┬────────┘       └─────────────────┘            │    │
+│  │            │                                                │    │
+│  │   system-unrestricted namespace:                           │    │
+│  │     └─ cloudflared (egress: ANY)                           │    │
+│  │                                                             │    │
+│  │   apps-restricted namespace:                                │    │
+│  │     └─ OpenClaw (Cilium FQDN egress whitelist)             │    │
+│  │          ├─ Telegram / WhatsApp / Signal                   │    │
+│  │          └─ Control UI (:18789)                            │    │
+│  │                                                             │    │
+│  └─────────────────────────────────────────────────────────────┘    │
+│                              │                                      │
+│                      cloudflared                                    │
+│                    (outbound only)                                  │
+└──────────────────────────────┼──────────────────────────────────────┘
+                               │
+                               ▼
+                    ┌───────────────────┐
+                    │    Cloudflare     │
+                    │  Edge + Access    │
+                    └─────────┬─────────┘
+                              │
+                    ┌─────────┼─────────┐
+                    │         │         │
+                    ▼         ▼         ▼
+               [Telegram] [WhatsApp] [Signal]
+                    │
+                    ▼
+             [Control UI]
+          (browser dashboard)
+</code></pre><h2 id=prerequisites>Prerequisites</h2><ul><li>A running KubeClaw cluster (see <a href=/kubeclaw/docs/guide/kubernetes/>Kubernetes guide</a>)</li><li>Anthropic API key (<a href=https://console.anthropic.com>console.anthropic.com</a>)</li><li>At least one messaging channel:</li></ul><table><thead><tr><th>Channel</th><th>What You Need</th></tr></thead><tbody><tr><td><strong>Telegram</strong></td><td>Bot Token from <a href=https://t.me/BotFather>@BotFather</a>, your Telegram User ID</td></tr><tr><td><strong>WhatsApp</strong></td><td>A phone number with WhatsApp, access to scan a QR code</td></tr><tr><td><strong>Signal</strong></td><td>A dedicated phone number, <code>signal-cli</code> installed in the container</td></tr></tbody></table><div class="alert alert-primary" role=alert><div class="h4 alert-heading" role=heading>Start with Telegram</div>Telegram is the simplest channel to set up — it only requires a bot token and user ID, with no interactive pairing or additional dependencies.</div><h2 id=step-1-infrastructure-setup>Step 1: Infrastructure Setup</h2><p>If you haven&rsquo;t already set up the Hetzner Cloud infrastructure, follow the <a href=/kubeclaw/docs/quick-start/>Quick Start</a> and <a href=/kubeclaw/docs/guide/kubernetes/>Kubernetes guide</a>.</p><p>This guide assumes you have:</p><ul><li>A running Kubernetes cluster with Cilium CNI</li><li>Hetzner CSI driver installed</li><li>Namespaces created (<code>system-unrestricted</code>, <code>apps-restricted</code>)</li><li>CoreDNS forwarding to DNS64 resolvers (see <a href=/kubeclaw/docs/guide/kubernetes/>Kubernetes guide, Step 4</a>)</li><li>Cloudflare Tunnel configured on the master control node</li></ul><h2 id=step-2-deploy-openclaw>Step 2: Deploy OpenClaw</h2><h3 id=21-create-openclaw-configuration>2.1 Create OpenClaw Configuration</h3><p>OpenClaw uses <a href=https://json5.org/>JSON5</a> configuration (supports comments and trailing commas). Create a ConfigMap with the base configuration:</p><p><ul class="nav nav-tabs" id=tabs-5 role=tablist><li class=nav-item><button class="nav-link active" id=tabs-05-00-tab data-bs-toggle=tab data-bs-target=#tabs-05-00 role=tab aria-controls=tabs-05-00 aria-selected=true>
+Telegram</button></li><li class=nav-item><button class=nav-link id=tabs-05-01-tab data-bs-toggle=tab data-bs-target=#tabs-05-01 role=tab aria-controls=tabs-05-01 aria-selected=false>
+WhatsApp</button></li><li class=nav-item><button class=nav-link id=tabs-05-02-tab data-bs-toggle=tab data-bs-target=#tabs-05-02 role=tab aria-controls=tabs-05-02 aria-selected=false>
+Signal</button></li></ul><div class=tab-content id=tabs-5-content><div class="tab-pane fade show active" id=tabs-05-00 role=tabpanel aria-labelled-by=tabs-05-00-tab tabindex=5><pre tabindex=0><code>```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: openclaw-config
+  namespace: apps-restricted
+data:
+  openclaw.json: |
+    {
+      // Model configuration
+      &#34;agents&#34;: {
+        &#34;defaults&#34;: {
+          &#34;model&#34;: {
+            // Primary model for conversations
+            &#34;primary&#34;: &#34;anthropic/claude-sonnet-4-5-20250929&#34;,
+            // Fallback chain: tried in order if the primary fails
+            // (rate limit, auth error, timeout, outage)
+            &#34;fallbacks&#34;: [
+              &#34;anthropic/claude-haiku-4-5-20251001&#34;
+            ]
+          },
+          // Aliases appear in the Control UI model selector
+          &#34;models&#34;: {
+            &#34;anthropic/claude-sonnet-4-5-20250929&#34;: { &#34;alias&#34;: &#34;Sonnet&#34; },
+            &#34;anthropic/claude-haiku-4-5-20251001&#34;: { &#34;alias&#34;: &#34;Haiku&#34; },
+            &#34;anthropic/claude-opus-4-6&#34;: { &#34;alias&#34;: &#34;Opus&#34; }
+          }
+        }
+      },
+
+      // Provider credentials
+      &#34;models&#34;: {
+        &#34;providers&#34;: {
+          &#34;anthropic&#34;: { &#34;apiKey&#34;: &#34;$ANTHROPIC_API_KEY&#34; }
+        }
+      },
+
+      // Messaging channel
+      &#34;channels&#34;: {
+        &#34;telegram&#34;: {
+          &#34;enabled&#34;: true,
+          &#34;dmPolicy&#34;: &#34;allowlist&#34;,
+          &#34;allowFrom&#34;: [&#34;&lt;YOUR_TELEGRAM_USER_ID&gt;&#34;]
+        }
+      },
+
+      // Gateway authentication (required for Control UI)
+      &#34;gateway&#34;: {
+        &#34;port&#34;: 18789,
+        &#34;bind&#34;: &#34;lan&#34;,
+        &#34;auth&#34;: {
+          &#34;mode&#34;: &#34;token&#34;
+        },
+        &#34;controlUi&#34;: {
+          &#34;enabled&#34;: true
+        }
+      }
+    }
+```</code></pre></div><div class="tab-pane fade" id=tabs-05-01 role=tabpanel aria-labelled-by=tabs-05-01-tab tabindex=5><pre tabindex=0><code>```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: openclaw-config
+  namespace: apps-restricted
+data:
+  openclaw.json: |
+    {
+      &#34;agents&#34;: {
+        &#34;defaults&#34;: {
+          &#34;model&#34;: {
+            &#34;primary&#34;: &#34;anthropic/claude-sonnet-4-5-20250929&#34;,
+            &#34;fallbacks&#34;: [
+              &#34;anthropic/claude-haiku-4-5-20251001&#34;
+            ]
+          },
+          &#34;models&#34;: {
+            &#34;anthropic/claude-sonnet-4-5-20250929&#34;: { &#34;alias&#34;: &#34;Sonnet&#34; },
+            &#34;anthropic/claude-haiku-4-5-20251001&#34;: { &#34;alias&#34;: &#34;Haiku&#34; },
+            &#34;anthropic/claude-opus-4-6&#34;: { &#34;alias&#34;: &#34;Opus&#34; }
+          }
+        }
+      },
+
+      &#34;models&#34;: {
+        &#34;providers&#34;: {
+          &#34;anthropic&#34;: { &#34;apiKey&#34;: &#34;$ANTHROPIC_API_KEY&#34; }
+        }
+      },
+
+      &#34;channels&#34;: {
+        &#34;whatsapp&#34;: {
+          &#34;enabled&#34;: true,
+          &#34;dmPolicy&#34;: &#34;allowlist&#34;,
+          &#34;allowFrom&#34;: [&#34;&lt;YOUR_PHONE_E164&gt;&#34;]
+        }
+      },
+
+      &#34;gateway&#34;: {
+        &#34;port&#34;: 18789,
+        &#34;bind&#34;: &#34;lan&#34;,
+        &#34;auth&#34;: {
+          &#34;mode&#34;: &#34;token&#34;
+        },
+        &#34;controlUi&#34;: {
+          &#34;enabled&#34;: true
+        }
+      }
+    }
+```
+
+&lt;div class=&#34;alert alert-primary&#34; role=&#34;alert&#34;&gt;&lt;div class=&#34;h4 alert-heading&#34; role=&#34;heading&#34;&gt;Phone number format&lt;/div&gt;
+
+
+Use E.164 format for `allowFrom`, e.g. `&#34;+15551234567&#34;` (with country code, no spaces).
+
+&lt;/div&gt;</code></pre></div><div class="tab-pane fade" id=tabs-05-02 role=tabpanel aria-labelled-by=tabs-05-02-tab tabindex=5><pre tabindex=0><code>```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: openclaw-config
+  namespace: apps-restricted
+data:
+  openclaw.json: |
+    {
+      &#34;agents&#34;: {
+        &#34;defaults&#34;: {
+          &#34;model&#34;: {
+            &#34;primary&#34;: &#34;anthropic/claude-sonnet-4-5-20250929&#34;,
+            &#34;fallbacks&#34;: [
+              &#34;anthropic/claude-haiku-4-5-20251001&#34;
+            ]
+          },
+          &#34;models&#34;: {
+            &#34;anthropic/claude-sonnet-4-5-20250929&#34;: { &#34;alias&#34;: &#34;Sonnet&#34; },
+            &#34;anthropic/claude-haiku-4-5-20251001&#34;: { &#34;alias&#34;: &#34;Haiku&#34; },
+            &#34;anthropic/claude-opus-4-6&#34;: { &#34;alias&#34;: &#34;Opus&#34; }
+          }
+        }
+      },
+
+      &#34;models&#34;: {
+        &#34;providers&#34;: {
+          &#34;anthropic&#34;: { &#34;apiKey&#34;: &#34;$ANTHROPIC_API_KEY&#34; }
+        }
+      },
+
+      &#34;channels&#34;: {
+        &#34;signal&#34;: {
+          &#34;enabled&#34;: true,
+          &#34;account&#34;: &#34;&lt;BOT_PHONE_E164&gt;&#34;,
+          &#34;cliPath&#34;: &#34;signal-cli&#34;,
+          &#34;dmPolicy&#34;: &#34;allowlist&#34;,
+          &#34;allowFrom&#34;: [&#34;&lt;YOUR_PHONE_E164&gt;&#34;]
+        }
+      },
+
+      &#34;gateway&#34;: {
+        &#34;port&#34;: 18789,
+        &#34;bind&#34;: &#34;lan&#34;,
+        &#34;auth&#34;: {
+          &#34;mode&#34;: &#34;token&#34;
+        },
+        &#34;controlUi&#34;: {
+          &#34;enabled&#34;: true
+        }
+      }
+    }
+```
+
+&lt;div class=&#34;alert alert-primary&#34; role=&#34;alert&#34;&gt;&lt;div class=&#34;h4 alert-heading&#34; role=&#34;heading&#34;&gt;Signal requires a custom container image&lt;/div&gt;
+
+
+Signal integration requires `signal-cli` (a Java application) installed in the container. See [Step 3: Signal Setup](#signal-setup) for details.
+
+&lt;/div&gt;</code></pre></div></div>Replace placeholders:</p><ul><li><code>&lt;YOUR_TELEGRAM_USER_ID></code> — your numeric Telegram user ID (see <a href=#telegram-setup>Step 3: Telegram Setup</a>)</li><li><code>&lt;YOUR_PHONE_E164></code> — your phone number in E.164 format (e.g. <code>+15551234567</code>)</li><li><code>&lt;BOT_PHONE_E164></code> — dedicated phone number for the Signal bot</li></ul><div class="alert alert-primary" role=alert><div class="h4 alert-heading" role=heading>Model configuration</div>The config above uses Sonnet as the primary model with Haiku as a fallback. OpenClaw automatically fails over when the primary model hits rate limits, auth errors, or timeouts.
+**Customizing models:**
+- **`model.primary`** — the default model for all conversations
+- **`model.fallbacks`** — ordered list of backup models, tried in sequence on failure
+- **`models`** — allowlist with aliases that appear in the Control UI model selector. You can switch models from the UI during a conversation
+- **`models.providers`** — provider credentials. Supports Anthropic, OpenAI, Google Gemini, OpenRouter, and local models (Ollama). Add multiple providers to mix models:
+```json5
+"models": {
+"providers": {
+"anthropic": { "apiKey": "$ANTHROPIC_API_KEY" },
+"openai": { "apiKey": "$OPENAI_API_KEY" }
+}
+}
+```
+- **Per-agent overrides** — individual agents in `agents.list[]` can override the default model. See the [OpenClaw model docs](https://docs.openclaw.ai/concepts/models) for details.</div><h3 id=22-create-secrets>2.2 Create Secrets</h3><p>Generate a gateway authentication token and create the Kubernetes secret:</p><p><ul class="nav nav-tabs" id=tabs-7 role=tablist><li class=nav-item><button class="nav-link active" id=tabs-07-00-tab data-bs-toggle=tab data-bs-target=#tabs-07-00 role=tab aria-controls=tabs-07-00 aria-selected=true>
+Telegram</button></li><li class=nav-item><button class=nav-link id=tabs-07-01-tab data-bs-toggle=tab data-bs-target=#tabs-07-01 role=tab aria-controls=tabs-07-01 aria-selected=false>
+WhatsApp</button></li><li class=nav-item><button class=nav-link id=tabs-07-02-tab data-bs-toggle=tab data-bs-target=#tabs-07-02 role=tab aria-controls=tabs-07-02 aria-selected=false>
+Signal</button></li></ul><div class=tab-content id=tabs-7-content><div class="tab-pane fade show active" id=tabs-07-00 role=tabpanel aria-labelled-by=tabs-07-00-tab tabindex=7><pre tabindex=0><code>```bash
+# Generate a strong gateway token
+GATEWAY_TOKEN=$(openssl rand -hex 32)
+echo &#34;Save this token for Control UI access: $GATEWAY_TOKEN&#34;
+
+kubectl create secret generic openclaw-secrets \
+  --namespace apps-restricted \
+  --from-literal=ANTHROPIC_API_KEY=&lt;YOUR_ANTHROPIC_API_KEY&gt; \
+  --from-literal=TELEGRAM_BOT_TOKEN=&lt;YOUR_TELEGRAM_BOT_TOKEN&gt; \
+  --from-literal=OPENCLAW_GATEWAY_TOKEN=$GATEWAY_TOKEN
+```</code></pre></div><div class="tab-pane fade" id=tabs-07-01 role=tabpanel aria-labelled-by=tabs-07-01-tab tabindex=7><pre tabindex=0><code>```bash
+GATEWAY_TOKEN=$(openssl rand -hex 32)
+echo &#34;Save this token for Control UI access: $GATEWAY_TOKEN&#34;
+
+kubectl create secret generic openclaw-secrets \
+  --namespace apps-restricted \
+  --from-literal=ANTHROPIC_API_KEY=&lt;YOUR_ANTHROPIC_API_KEY&gt; \
+  --from-literal=OPENCLAW_GATEWAY_TOKEN=$GATEWAY_TOKEN
+```
+
+&lt;div class=&#34;alert alert-primary&#34; role=&#34;alert&#34;&gt;&lt;div class=&#34;h4 alert-heading&#34; role=&#34;heading&#34;&gt;No API token needed&lt;/div&gt;
+
+
+WhatsApp uses QR-code based linking — no API keys or tokens required. You&#39;ll pair your account interactively in [Step 3](#whatsapp-setup).
+
+&lt;/div&gt;</code></pre></div><div class="tab-pane fade" id=tabs-07-02 role=tabpanel aria-labelled-by=tabs-07-02-tab tabindex=7><pre tabindex=0><code>```bash
+GATEWAY_TOKEN=$(openssl rand -hex 32)
+echo &#34;Save this token for Control UI access: $GATEWAY_TOKEN&#34;
+
+kubectl create secret generic openclaw-secrets \
+  --namespace apps-restricted \
+  --from-literal=ANTHROPIC_API_KEY=&lt;YOUR_ANTHROPIC_API_KEY&gt; \
+  --from-literal=OPENCLAW_GATEWAY_TOKEN=$GATEWAY_TOKEN
+```</code></pre></div></div><div class="alert alert-primary" role=alert><div class="h4 alert-heading" role=heading>Save the gateway token</div>The `GATEWAY_TOKEN` is required to access the Control UI dashboard. Save it securely — you'll need it when logging into the web interface.</div></p><h3 id=23-deploy-openclaw-statefulset>2.3 Deploy OpenClaw StatefulSet</h3><p>Create file <code>openclaw.yaml</code>:</p><p><ul class="nav nav-tabs" id=tabs-9 role=tablist><li class=nav-item><button class="nav-link active" id=tabs-09-00-tab data-bs-toggle=tab data-bs-target=#tabs-09-00 role=tab aria-controls=tabs-09-00 aria-selected=true>
+Telegram</button></li><li class=nav-item><button class=nav-link id=tabs-09-01-tab data-bs-toggle=tab data-bs-target=#tabs-09-01 role=tab aria-controls=tabs-09-01 aria-selected=false>
+WhatsApp</button></li><li class=nav-item><button class=nav-link id=tabs-09-02-tab data-bs-toggle=tab data-bs-target=#tabs-09-02 role=tab aria-controls=tabs-09-02 aria-selected=false>
+Signal</button></li></ul><div class=tab-content id=tabs-9-content><div class="tab-pane fade show active" id=tabs-09-00 role=tabpanel aria-labelled-by=tabs-09-00-tab tabindex=9><pre tabindex=0><code>```yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: openclaw
+  namespace: apps-restricted
+spec:
+  serviceName: openclaw
+  replicas: 1
+  selector:
+    matchLabels:
+      app: openclaw
+  template:
+    metadata:
+      labels:
+        app: openclaw
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      containers:
+        - name: openclaw
+          image: node:22-slim
+          workingDir: /app
+          command:
+            - /bin/sh
+            - -c
+            - |
+              npm install -g openclaw@latest &amp;&amp;
+              openclaw gateway --port 18789
+          env:
+            - name: ANTHROPIC_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: openclaw-secrets
+                  key: ANTHROPIC_API_KEY
+            - name: TELEGRAM_BOT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: openclaw-secrets
+                  key: TELEGRAM_BOT_TOKEN
+            - name: OPENCLAW_GATEWAY_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: openclaw-secrets
+                  key: OPENCLAW_GATEWAY_TOKEN
+            - name: OPENCLAW_CONFIG_PATH
+              value: /etc/openclaw/openclaw.json
+            - name: OPENCLAW_STATE_DIR
+              value: /home/node/.openclaw
+          ports:
+            - containerPort: 18789
+              name: gateway
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [&#34;ALL&#34;]
+          resources:
+            requests:
+              memory: &#34;512Mi&#34;
+              cpu: &#34;250m&#34;
+            limits:
+              memory: &#34;2Gi&#34;
+              cpu: &#34;2000m&#34;
+          volumeMounts:
+            - name: config
+              mountPath: /etc/openclaw/openclaw.json
+              subPath: openclaw.json
+              readOnly: true
+            - name: data
+              mountPath: /home/node/.openclaw
+      volumes:
+        - name: config
+          configMap:
+            name: openclaw-config
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: hcloud-volumes
+        resources:
+          requests:
+            storage: 10Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: openclaw
+  namespace: apps-restricted
+spec:
+  selector:
+    app: openclaw
+  ports:
+    - port: 18789
+      targetPort: 18789
+      name: gateway
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: openclaw-egress
+  namespace: apps-restricted
+spec:
+  endpointSelector:
+    matchLabels:
+      app: openclaw
+  egress:
+    # DNS resolution (required for FQDN rules)
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: &#34;53&#34;
+              protocol: UDP
+            - port: &#34;53&#34;
+              protocol: TCP
+
+    # Allow internal cluster communication
+    - toEntities:
+        - cluster
+
+    # Anthropic API
+    - toFQDNs:
+        - matchName: &#34;api.anthropic.com&#34;
+      toPorts:
+        - ports:
+            - port: &#34;443&#34;
+              protocol: TCP
+
+    # Telegram API
+    - toFQDNs:
+        - matchName: &#34;api.telegram.org&#34;
+      toPorts:
+        - ports:
+            - port: &#34;443&#34;
+              protocol: TCP
+```</code></pre></div><div class="tab-pane fade" id=tabs-09-01 role=tabpanel aria-labelled-by=tabs-09-01-tab tabindex=9><pre tabindex=0><code>```yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: openclaw
+  namespace: apps-restricted
+spec:
+  serviceName: openclaw
+  replicas: 1
+  selector:
+    matchLabels:
+      app: openclaw
+  template:
+    metadata:
+      labels:
+        app: openclaw
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      containers:
+        - name: openclaw
+          image: node:22-slim
+          workingDir: /app
+          command:
+            - /bin/sh
+            - -c
+            - |
+              npm install -g openclaw@latest &amp;&amp;
+              openclaw gateway --port 18789
+          env:
+            - name: ANTHROPIC_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: openclaw-secrets
+                  key: ANTHROPIC_API_KEY
+            - name: OPENCLAW_GATEWAY_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: openclaw-secrets
+                  key: OPENCLAW_GATEWAY_TOKEN
+            - name: OPENCLAW_CONFIG_PATH
+              value: /etc/openclaw/openclaw.json
+            - name: OPENCLAW_STATE_DIR
+              value: /home/node/.openclaw
+          ports:
+            - containerPort: 18789
+              name: gateway
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [&#34;ALL&#34;]
+          resources:
+            requests:
+              memory: &#34;512Mi&#34;
+              cpu: &#34;250m&#34;
+            limits:
+              memory: &#34;2Gi&#34;
+              cpu: &#34;2000m&#34;
+          volumeMounts:
+            - name: config
+              mountPath: /etc/openclaw/openclaw.json
+              subPath: openclaw.json
+              readOnly: true
+            - name: data
+              mountPath: /home/node/.openclaw
+      volumes:
+        - name: config
+          configMap:
+            name: openclaw-config
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: hcloud-volumes
+        resources:
+          requests:
+            storage: 10Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: openclaw
+  namespace: apps-restricted
+spec:
+  selector:
+    app: openclaw
+  ports:
+    - port: 18789
+      targetPort: 18789
+      name: gateway
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: openclaw-egress
+  namespace: apps-restricted
+spec:
+  endpointSelector:
+    matchLabels:
+      app: openclaw
+  egress:
+    # DNS resolution (required for FQDN rules)
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: &#34;53&#34;
+              protocol: UDP
+            - port: &#34;53&#34;
+              protocol: TCP
+
+    # Allow internal cluster communication
+    - toEntities:
+        - cluster
+
+    # Anthropic API
+    - toFQDNs:
+        - matchName: &#34;api.anthropic.com&#34;
+      toPorts:
+        - ports:
+            - port: &#34;443&#34;
+              protocol: TCP
+
+    # WhatsApp servers
+    - toFQDNs:
+        - matchName: &#34;web.whatsapp.com&#34;
+        - matchPattern: &#34;*.whatsapp.net&#34;
+        - matchPattern: &#34;*.whatsapp.com&#34;
+      toPorts:
+        - ports:
+            - port: &#34;443&#34;
+              protocol: TCP
+            - port: &#34;5222&#34;
+              protocol: TCP
+```</code></pre></div><div class="tab-pane fade" id=tabs-09-02 role=tabpanel aria-labelled-by=tabs-09-02-tab tabindex=9><pre tabindex=0><code>```yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: openclaw
+  namespace: apps-restricted
+spec:
+  serviceName: openclaw
+  replicas: 1
+  selector:
+    matchLabels:
+      app: openclaw
+  template:
+    metadata:
+      labels:
+        app: openclaw
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      containers:
+        - name: openclaw
+          image: your-registry/openclaw-signal:latest  # Custom image with signal-cli
+          env:
+            - name: ANTHROPIC_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: openclaw-secrets
+                  key: ANTHROPIC_API_KEY
+            - name: OPENCLAW_GATEWAY_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: openclaw-secrets
+                  key: OPENCLAW_GATEWAY_TOKEN
+            - name: OPENCLAW_CONFIG_PATH
+              value: /etc/openclaw/openclaw.json
+            - name: OPENCLAW_STATE_DIR
+              value: /home/node/.openclaw
+          ports:
+            - containerPort: 18789
+              name: gateway
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [&#34;ALL&#34;]
+          resources:
+            requests:
+              memory: &#34;512Mi&#34;
+              cpu: &#34;250m&#34;
+            limits:
+              memory: &#34;2Gi&#34;
+              cpu: &#34;2000m&#34;
+          volumeMounts:
+            - name: config
+              mountPath: /etc/openclaw/openclaw.json
+              subPath: openclaw.json
+              readOnly: true
+            - name: data
+              mountPath: /home/node/.openclaw
+      volumes:
+        - name: config
+          configMap:
+            name: openclaw-config
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: hcloud-volumes
+        resources:
+          requests:
+            storage: 10Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: openclaw
+  namespace: apps-restricted
+spec:
+  selector:
+    app: openclaw
+  ports:
+    - port: 18789
+      targetPort: 18789
+      name: gateway
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: openclaw-egress
+  namespace: apps-restricted
+spec:
+  endpointSelector:
+    matchLabels:
+      app: openclaw
+  egress:
+    # DNS resolution (required for FQDN rules)
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: &#34;53&#34;
+              protocol: UDP
+            - port: &#34;53&#34;
+              protocol: TCP
+
+    # Allow internal cluster communication
+    - toEntities:
+        - cluster
+
+    # Anthropic API
+    - toFQDNs:
+        - matchName: &#34;api.anthropic.com&#34;
+      toPorts:
+        - ports:
+            - port: &#34;443&#34;
+              protocol: TCP
+
+    # Signal servers
+    - toFQDNs:
+        - matchName: &#34;chat.signal.org&#34;
+        - matchName: &#34;storage.signal.org&#34;
+        - matchName: &#34;cdn.signal.org&#34;
+        - matchName: &#34;cdn2.signal.org&#34;
+        - matchName: &#34;contentproxy.signal.org&#34;
+      toPorts:
+        - ports:
+            - port: &#34;443&#34;
+              protocol: TCP
+```</code></pre></div></div><div class="alert alert-primary" role=alert><div class="h4 alert-heading" role=heading>Cilium FQDN egress whitelist</div>Each manifest includes a `CiliumNetworkPolicy` that restricts OpenClaw's outbound traffic to only the Anthropic API and the messaging provider's servers. Combined with the namespace-level default-deny policy from the [Kubernetes guide](/kubeclaw/docs/guide/kubernetes/), this means OpenClaw **cannot** reach any other external service. Cilium's DNS proxy intercepts DNS64-synthesized AAAA responses and maps them to the FQDN, so these rules work transparently with NAT64.</div><div class="alert alert-primary" role=alert><div class="h4 alert-heading" role=heading>Startup time</div>The pod installs OpenClaw via `npm install -g` on every restart, which takes 1–2 minutes. For faster restarts, build a custom Docker image with OpenClaw baked in (see [Maintenance](#build-a-custom-image-optional)).</div>Apply:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl apply -f openclaw-config.yaml
+</span></span><span class=line><span class=cl>kubectl apply -f openclaw.yaml
+</span></span></code></pre></div><h3 id=24-verify-deployment>2.4 Verify Deployment</h3><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># Watch pod status (wait for Running)</span>
+</span></span><span class=line><span class=cl>kubectl get pods -n apps-restricted -w
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Check logs (wait for &#34;gateway listening&#34; message)</span>
+</span></span><span class=line><span class=cl>kubectl logs -n apps-restricted -l <span class=nv>app</span><span class=o>=</span>openclaw -f
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Check persistent volume</span>
+</span></span><span class=line><span class=cl>kubectl get pvc -n apps-restricted
+</span></span></code></pre></div><p>The gateway is ready when you see output like:</p><pre tabindex=0><code>gateway listening on 0.0.0.0:18789
+</code></pre><h2 id=step-3-configure-messaging-channel>Step 3: Configure Messaging Channel</h2><h3 id=telegram-setup>Telegram Setup</h3><h4 id=31-create-a-bot>3.1 Create a Bot</h4><ol><li>Open Telegram and message <a href=https://t.me/BotFather>@BotFather</a></li><li>Send <code>/newbot</code> and follow the prompts</li><li>Save the bot token (format: <code>123456789:ABCdefGHI...</code>)</li></ol><h4 id=32-find-your-user-id>3.2 Find Your User ID</h4><p>The safest way (no third-party bots required):</p><ol><li>Message your new bot (send any message)</li><li>Check the OpenClaw logs:</li></ol><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl logs -n apps-restricted -l <span class=nv>app</span><span class=o>=</span>openclaw -f
+</span></span></code></pre></div><ol start=3><li>Look for your numeric ID in the <code>from.id</code> field of the incoming message log</li></ol><p>Alternatively, query the Telegram Bot API directly:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>curl <span class=s2>&#34;https://api.telegram.org/bot&lt;BOT_TOKEN&gt;/getUpdates&#34;</span>
+</span></span></code></pre></div><h4 id=33-update-configuration>3.3 Update Configuration</h4><p>Edit the ConfigMap with your actual user ID:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl edit configmap openclaw-config -n apps-restricted
+</span></span></code></pre></div><p>Replace <code>&lt;YOUR_TELEGRAM_USER_ID></code> with your numeric ID, then restart:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl rollout restart statefulset/openclaw -n apps-restricted
+</span></span></code></pre></div><h4 id=34-test>3.4 Test</h4><ol><li>Open Telegram and find your bot</li><li>Send any message</li><li>If using <code>dmPolicy: "pairing"</code>, approve the pairing request:</li></ol><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl <span class=nb>exec</span> -n apps-restricted -it openclaw-0 -- openclaw pairing list telegram
+</span></span><span class=line><span class=cl>kubectl <span class=nb>exec</span> -n apps-restricted -it openclaw-0 -- openclaw pairing approve telegram &lt;CODE&gt;
+</span></span></code></pre></div><p>If using <code>dmPolicy: "allowlist"</code> (recommended), your user ID is pre-approved and the bot responds immediately.</p><hr><h3 id=whatsapp-setup>WhatsApp Setup</h3><h4 id=31-link-your-whatsapp-account>3.1 Link Your WhatsApp Account</h4><p>WhatsApp uses QR-code based pairing — no API keys needed. Exec into the pod and run the login command:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl <span class=nb>exec</span> -n apps-restricted -it openclaw-0 -- openclaw channels login --channel whatsapp
+</span></span></code></pre></div><p>This displays a QR code in the terminal. Scan it with your WhatsApp app:</p><ol><li>Open WhatsApp on your phone</li><li>Go to <strong>Settings</strong> > <strong>Linked Devices</strong> > <strong>Link a Device</strong></li><li>Scan the QR code</li></ol><div class="alert alert-primary" role=alert><div class="h4 alert-heading" role=heading>Dedicated number recommended</div>Using a separate WhatsApp number (not your personal one) provides cleaner access boundaries and avoids self-chat confusion. If using your personal number, add `"selfChatMode": true` to the WhatsApp channel configuration.</div><h4 id=32-verify-connection>3.2 Verify Connection</h4><p>After linking, restart the gateway to pick up the stored credentials:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl rollout restart statefulset/openclaw -n apps-restricted
+</span></span></code></pre></div><p>Check logs for WhatsApp connection:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl logs -n apps-restricted -l <span class=nv>app</span><span class=o>=</span>openclaw -f
+</span></span></code></pre></div><h4 id=33-network-policy-considerations>3.3 Network Policy Considerations</h4><p>WhatsApp (via the Baileys library) connects to multiple WhatsApp servers. The key domains include:</p><ul><li><code>web.whatsapp.com</code></li><li><code>*.whatsapp.net</code> (messaging, media)</li></ul><h2 id=hahahugoshortcode28s13hbhb><div class="alert alert-primary" role=alert><div class="h4 alert-heading" role=heading>WhatsApp credentials persist</div>WhatsApp credentials are stored at `~/.openclaw/credentials/whatsapp/` on the persistent volume. They survive pod restarts — you only need to scan the QR code once.</div></h2><h3 id=signal-setup>Signal Setup</h3><div class="alert alert-primary" role=alert><div class="h4 alert-heading" role=heading>Advanced setup</div>Signal requires `signal-cli`, a Java-based application, installed in the container. This section requires building a custom Docker image.</div><h4 id=31-build-a-custom-image-with-signal-cli>3.1 Build a Custom Image with signal-cli</h4><p>Create a <code>Dockerfile.openclaw-signal</code>:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-dockerfile data-lang=dockerfile><span class=line><span class=cl><span class=k>FROM</span><span class=w> </span><span class=s>node:22-slim</span><span class=err>
+</span></span></span><span class=line><span class=cl><span class=err>
+</span></span></span><span class=line><span class=cl><span class=c># Install signal-cli native build</span><span class=err>
+</span></span></span><span class=line><span class=cl><span class=k>RUN</span> apt-get update <span class=o>&amp;&amp;</span> apt-get install -y curl <span class=o>&amp;&amp;</span> <span class=se>\
+</span></span></span><span class=line><span class=cl>    <span class=nv>VERSION</span><span class=o>=</span><span class=k>$(</span>curl -Ls -o /dev/null -w <span class=s1>&#39;%{url_effective}&#39;</span> <span class=se>\
+</span></span></span><span class=line><span class=cl>      https://github.com/AsamK/signal-cli/releases/latest <span class=p>|</span> <span class=se>\
+</span></span></span><span class=line><span class=cl>      sed -e <span class=s1>&#39;s/^.*\/v//&#39;</span><span class=k>)</span> <span class=o>&amp;&amp;</span> <span class=se>\
+</span></span></span><span class=line><span class=cl>    curl -L -O <span class=s2>&#34;https://github.com/AsamK/signal-cli/releases/download/v</span><span class=si>${</span><span class=nv>VERSION</span><span class=si>}</span><span class=s2>/signal-cli-</span><span class=si>${</span><span class=nv>VERSION</span><span class=si>}</span><span class=s2>-Linux-native.tar.gz&#34;</span> <span class=o>&amp;&amp;</span> <span class=se>\
+</span></span></span><span class=line><span class=cl>    tar xf <span class=s2>&#34;signal-cli-</span><span class=si>${</span><span class=nv>VERSION</span><span class=si>}</span><span class=s2>-Linux-native.tar.gz&#34;</span> -C /opt <span class=o>&amp;&amp;</span> <span class=se>\
+</span></span></span><span class=line><span class=cl>    ln -sf /opt/signal-cli /usr/local/bin/signal-cli <span class=o>&amp;&amp;</span> <span class=se>\
+</span></span></span><span class=line><span class=cl>    rm -f <span class=s2>&#34;signal-cli-</span><span class=si>${</span><span class=nv>VERSION</span><span class=si>}</span><span class=s2>-Linux-native.tar.gz&#34;</span> <span class=o>&amp;&amp;</span> <span class=se>\
+</span></span></span><span class=line><span class=cl>    apt-get remove -y curl <span class=o>&amp;&amp;</span> apt-get autoremove -y <span class=o>&amp;&amp;</span> <span class=se>\
+</span></span></span><span class=line><span class=cl>    rm -rf /var/lib/apt/lists/*<span class=err>
+</span></span></span><span class=line><span class=cl><span class=err>
+</span></span></span><span class=line><span class=cl><span class=c># Install OpenClaw globally</span><span class=err>
+</span></span></span><span class=line><span class=cl><span class=k>RUN</span> npm install -g openclaw@latest<span class=err>
+</span></span></span><span class=line><span class=cl><span class=err>
+</span></span></span><span class=line><span class=cl><span class=k>USER</span><span class=w> </span><span class=s>1000</span><span class=err>
+</span></span></span><span class=line><span class=cl><span class=k>WORKDIR</span><span class=w> </span><span class=s>/app</span><span class=err>
+</span></span></span><span class=line><span class=cl><span class=err>
+</span></span></span><span class=line><span class=cl><span class=k>CMD</span> <span class=p>[</span><span class=s2>&#34;openclaw&#34;</span><span class=p>,</span> <span class=s2>&#34;gateway&#34;</span><span class=p>,</span> <span class=s2>&#34;--port&#34;</span><span class=p>,</span> <span class=s2>&#34;18789&#34;</span><span class=p>]</span><span class=err>
+</span></span></span></code></pre></div><p>Build and push to a registry accessible from your cluster, then update the StatefulSet <code>image</code> field.</p><h4 id=32-register-the-bot-phone-number>3.2 Register the Bot Phone Number</h4><p>Exec into the pod and register:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl <span class=nb>exec</span> -n apps-restricted -it openclaw-0 -- sh
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Register the bot number (may require captcha)</span>
+</span></span><span class=line><span class=cl>signal-cli -a +&lt;BOT_PHONE_NUMBER&gt; register
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># If captcha required, visit https://signalcaptchas.org/registration/generate.html</span>
+</span></span><span class=line><span class=cl><span class=c1># then run:</span>
+</span></span><span class=line><span class=cl>signal-cli -a +&lt;BOT_PHONE_NUMBER&gt; register --captcha <span class=s1>&#39;&lt;CAPTCHA_URL&gt;&#39;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Verify with the SMS code</span>
+</span></span><span class=line><span class=cl>signal-cli -a +&lt;BOT_PHONE_NUMBER&gt; verify &lt;CODE&gt;
+</span></span></code></pre></div><h4 id=33-alternatively-link-an-existing-account>3.3 Alternatively: Link an Existing Account</h4><p>If you prefer to link to an existing Signal account (not recommended for production):</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl <span class=nb>exec</span> -n apps-restricted -it openclaw-0 -- signal-cli link -n <span class=s2>&#34;OpenClaw&#34;</span>
+</span></span></code></pre></div><p>Scan the QR code in your Signal app under <strong>Settings</strong> > <strong>Linked Devices</strong>.</p><div class="alert alert-primary" role=alert><div class="h4 alert-heading" role=heading>Registering deauthenticates</div>Registering a phone number with `signal-cli` deauthenticates the main Signal app for that number. Use a **dedicated bot number** to avoid losing access to your personal Signal account.</div><h2 id=step-4-expose-control-ui-via-cloudflare-tunnel>Step 4: Expose Control UI via Cloudflare Tunnel</h2><p>OpenClaw includes a web-based Control UI (dashboard) for managing sessions, viewing logs, and chatting directly. Since the dashboard is an admin surface, we protect it with two layers: <strong>Cloudflare Access</strong> (identity verification) and <strong>gateway token</strong> (application authentication).</p><h3 id=41-add-tunnel-route>4.1 Add Tunnel Route</h3><p>In <strong>Cloudflare Zero Trust</strong> > <strong>Networks</strong> > <strong>Tunnels</strong> > <strong>your tunnel</strong> > <strong>Public Hostnames</strong>, add:</p><table><thead><tr><th>Hostname</th><th>Service</th></tr></thead><tbody><tr><td><code>openclaw.yourdomain.com</code></td><td><code>http://openclaw.apps-restricted.svc.cluster.local:18789</code></td></tr></tbody></table><div class="alert alert-primary" role=alert><div class="h4 alert-heading" role=heading>SSL/TLS settings</div>In Cloudflare dashboard under your domain > **SSL/TLS** > **Overview**, set the mode to **Full** (not "Full (strict)") since the origin (OpenClaw gateway) serves HTTP, not HTTPS. Cloudflare terminates TLS at the edge.</div><h3 id=42-create-cloudflare-access-policy>4.2 Create Cloudflare Access Policy</h3><p>Protect the dashboard route so only authenticated users can reach it:</p><ol><li>Go to <strong>Cloudflare Zero Trust</strong> > <strong>Access</strong> > <strong>Applications</strong></li><li>Click <strong>Add an Application</strong> > <strong>Self-hosted</strong></li><li>Configure:</li></ol><table><thead><tr><th>Field</th><th>Value</th></tr></thead><tbody><tr><td><strong>Application name</strong></td><td>OpenClaw Dashboard</td></tr><tr><td><strong>Session Duration</strong></td><td>24 hours</td></tr><tr><td><strong>Application domain</strong></td><td><code>openclaw.yourdomain.com</code></td></tr></tbody></table><ol start=4><li>Add a <strong>Policy</strong>:</li></ol><table><thead><tr><th>Field</th><th>Value</th></tr></thead><tbody><tr><td><strong>Policy name</strong></td><td>Allowed Users</td></tr><tr><td><strong>Action</strong></td><td>Allow</td></tr><tr><td><strong>Include</strong></td><td>Emails — <code>your-email@example.com</code></td></tr></tbody></table><ol start=5><li>Under <strong>Authentication</strong>, select your identity provider or use <strong>One-time PIN</strong> (sends a verification code to your email — no IdP setup required)</li></ol><div class="alert alert-primary" role=alert><div class="h4 alert-heading" role=heading>Two-layer authentication</div>With this setup, accessing `openclaw.yourdomain.com` requires:
+1. **Cloudflare Access**: Verifies your identity (email + OTP or IdP login)
+2. **Gateway token**: Entered in the Control UI settings panel (the token from [Step 2.2](#22-create-secrets))
+Even if someone bypasses Cloudflare Access, they cannot use the dashboard without the gateway token.</div><h3 id=43-access-the-dashboard>4.3 Access the Dashboard</h3><ol><li>Navigate to <code>https://openclaw.yourdomain.com</code> in your browser</li><li>Authenticate with Cloudflare Access (email OTP or your identity provider)</li><li>The Control UI loads — enter the gateway token when prompted</li><li>The token is stored in your browser&rsquo;s <code>localStorage</code> for future sessions</li></ol><p>The Control UI provides:</p><ul><li><strong>Chat</strong>: Direct conversation with the AI agent</li><li><strong>Sessions</strong>: View and manage active sessions across all channels</li><li><strong>Channels</strong>: Status of connected messaging channels (Telegram, WhatsApp, Signal)</li><li><strong>Logs</strong>: Live gateway log tailing</li><li><strong>Configuration</strong>: Edit settings with concurrent edit protection</li><li><strong>Skills</strong>: Install and manage skills</li></ul><h2 id=step-5-verify--test>Step 5: Verify & Test</h2><h3 id=test-messaging>Test Messaging</h3><ul class="nav nav-tabs" id=tabs-18 role=tablist><li class=nav-item><button class="nav-link active" id=tabs-18-00-tab data-bs-toggle=tab data-bs-target=#tabs-18-00 role=tab aria-controls=tabs-18-00 aria-selected=true>
+Telegram</button></li><li class=nav-item><button class=nav-link id=tabs-18-01-tab data-bs-toggle=tab data-bs-target=#tabs-18-01 role=tab aria-controls=tabs-18-01 aria-selected=false>
+WhatsApp</button></li><li class=nav-item><button class=nav-link id=tabs-18-02-tab data-bs-toggle=tab data-bs-target=#tabs-18-02 role=tab aria-controls=tabs-18-02 aria-selected=false>
+Signal</button></li></ul><div class=tab-content id=tabs-18-content><div class="tab-pane fade show active" id=tabs-18-00 role=tabpanel aria-labelled-by=tabs-18-00-tab tabindex=18><pre tabindex=0><code>1. Find your bot on Telegram
+2. Send any message
+3. OpenClaw should respond (only to your user ID)</code></pre></div><div class="tab-pane fade" id=tabs-18-01 role=tabpanel aria-labelled-by=tabs-18-01-tab tabindex=18><pre tabindex=0><code>1. Send a message to the linked WhatsApp number
+2. OpenClaw should respond (only to numbers in `allowFrom`)</code></pre></div><div class="tab-pane fade" id=tabs-18-02 role=tabpanel aria-labelled-by=tabs-18-02-tab tabindex=18><pre tabindex=0><code>1. Send a message to the bot&#39;s Signal number
+2. OpenClaw should respond (only to numbers in `allowFrom`)</code></pre></div></div><h3 id=test-control-ui>Test Control UI</h3><ol><li>Open <code>https://openclaw.yourdomain.com</code></li><li>Verify Cloudflare Access prompts for authentication</li><li>Enter the gateway token in the UI</li><li>Send a test message in the chat interface</li></ol><h3 id=check-pod-health>Check Pod Health</h3><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># Pod status</span>
+</span></span><span class=line><span class=cl>kubectl get pods -n apps-restricted
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Logs</span>
+</span></span><span class=line><span class=cl>kubectl logs -n apps-restricted -l <span class=nv>app</span><span class=o>=</span>openclaw -f
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># PVC status</span>
+</span></span><span class=line><span class=cl>kubectl get pvc -n apps-restricted
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Exec into pod for diagnostics</span>
+</span></span><span class=line><span class=cl>kubectl <span class=nb>exec</span> -n apps-restricted -it openclaw-0 -- openclaw doctor
+</span></span><span class=line><span class=cl>kubectl <span class=nb>exec</span> -n apps-restricted -it openclaw-0 -- openclaw status
+</span></span></code></pre></div><h2 id=maintenance>Maintenance</h2><h3 id=update-openclaw>Update OpenClaw</h3><p>The pod installs <code>openclaw@latest</code> on every restart, so a simple restart pulls the newest version:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl rollout restart statefulset/openclaw -n apps-restricted
+</span></span></code></pre></div><h3 id=rotate-secrets>Rotate Secrets</h3><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># Generate new gateway token</span>
+</span></span><span class=line><span class=cl><span class=nv>NEW_GATEWAY_TOKEN</span><span class=o>=</span><span class=k>$(</span>openssl rand -hex 32<span class=k>)</span>
+</span></span><span class=line><span class=cl><span class=nb>echo</span> <span class=s2>&#34;New gateway token: </span><span class=nv>$NEW_GATEWAY_TOKEN</span><span class=s2>&#34;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Delete and recreate the secret (adjust for your channel)</span>
+</span></span><span class=line><span class=cl>kubectl delete secret openclaw-secrets -n apps-restricted
+</span></span><span class=line><span class=cl>kubectl create secret generic openclaw-secrets <span class=se>\
+</span></span></span><span class=line><span class=cl>  --namespace apps-restricted <span class=se>\
+</span></span></span><span class=line><span class=cl>  --from-literal<span class=o>=</span><span class=nv>ANTHROPIC_API_KEY</span><span class=o>=</span>&lt;YOUR_KEY&gt; <span class=se>\
+</span></span></span><span class=line><span class=cl>  --from-literal<span class=o>=</span><span class=nv>TELEGRAM_BOT_TOKEN</span><span class=o>=</span>&lt;YOUR_TOKEN&gt; <span class=se>\
+</span></span></span><span class=line><span class=cl>  --from-literal<span class=o>=</span><span class=nv>OPENCLAW_GATEWAY_TOKEN</span><span class=o>=</span><span class=nv>$NEW_GATEWAY_TOKEN</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Restart to pick up new secrets</span>
+</span></span><span class=line><span class=cl>kubectl rollout restart statefulset/openclaw -n apps-restricted
+</span></span></code></pre></div><div class="alert alert-primary" role=alert><div class="h4 alert-heading" role=heading>Update your browser</div>After rotating the gateway token, you'll need to enter the new token in the Control UI settings panel.</div><h3 id=build-a-custom-image-optional>Build a Custom Image (Optional)</h3><p>For faster pod restarts (skipping <code>npm install</code> on every boot), build a custom image:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-dockerfile data-lang=dockerfile><span class=line><span class=cl><span class=k>FROM</span><span class=w> </span><span class=s>node:22-slim</span><span class=err>
+</span></span></span><span class=line><span class=cl><span class=k>RUN</span> npm install -g openclaw@latest<span class=err>
+</span></span></span><span class=line><span class=cl><span class=k>USER</span><span class=w> </span><span class=s>1000</span><span class=err>
+</span></span></span><span class=line><span class=cl><span class=k>WORKDIR</span><span class=w> </span><span class=s>/app</span><span class=err>
+</span></span></span><span class=line><span class=cl><span class=k>CMD</span> <span class=p>[</span><span class=s2>&#34;openclaw&#34;</span><span class=p>,</span> <span class=s2>&#34;gateway&#34;</span><span class=p>,</span> <span class=s2>&#34;--port&#34;</span><span class=p>,</span> <span class=s2>&#34;18789&#34;</span><span class=p>]</span><span class=err>
+</span></span></span></code></pre></div><div class="alert alert-primary" role=alert><div class="h4 alert-heading" role=heading>Pin the version</div>In production, pin to a specific version (`openclaw@1.2.3`) rather than `@latest` to avoid unexpected breaking changes on restart.</div><h3 id=useful-commands>Useful Commands</h3><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># OpenClaw logs</span>
+</span></span><span class=line><span class=cl>kubectl logs -n apps-restricted -l <span class=nv>app</span><span class=o>=</span>openclaw -f
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Restart OpenClaw</span>
+</span></span><span class=line><span class=cl>kubectl rollout restart statefulset/openclaw -n apps-restricted
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Run diagnostics</span>
+</span></span><span class=line><span class=cl>kubectl <span class=nb>exec</span> -n apps-restricted -it openclaw-0 -- openclaw doctor
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Check channel status</span>
+</span></span><span class=line><span class=cl>kubectl <span class=nb>exec</span> -n apps-restricted -it openclaw-0 -- openclaw channels status --probe
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Interactive shell</span>
+</span></span><span class=line><span class=cl>kubectl <span class=nb>exec</span> -n apps-restricted -it openclaw-0 -- sh
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Check Cilium endpoint status (from control node)</span>
+</span></span><span class=line><span class=cl>cilium endpoint list
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Check FQDN cache (from control node)</span>
+</span></span><span class=line><span class=cl>kubectl <span class=nb>exec</span> -n kube-system -it <span class=se>\
+</span></span></span><span class=line><span class=cl>  <span class=k>$(</span>kubectl get pods -n kube-system -l k8s-app<span class=o>=</span>cilium -o name <span class=p>|</span> head -1<span class=k>)</span> <span class=se>\
+</span></span></span><span class=line><span class=cl>  -- cilium fqdn cache list
+</span></span></code></pre></div><h3 id=configuration-changes>Configuration Changes</h3><p>To update the OpenClaw configuration:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># Edit the ConfigMap</span>
+</span></span><span class=line><span class=cl>kubectl edit configmap openclaw-config -n apps-restricted
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Restart to apply</span>
+</span></span><span class=line><span class=cl>kubectl rollout restart statefulset/openclaw -n apps-restricted
+</span></span></code></pre></div><p>Alternatively, update the YAML file and reapply:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>kubectl apply -f openclaw-config.yaml
+</span></span><span class=line><span class=cl>kubectl rollout restart statefulset/openclaw -n apps-restricted
+</span></span></code></pre></div></div><div class=td-content style=page-break-before:always><h1 id=pg-7431d89e13f76f59e8e8f123e4572b74>6 - Server Management (Ansible)</h1><p>Ansible handles ongoing server management: system updates, security hardening, NAT64 configuration, and Kubernetes prerequisites. All playbooks run from the Dev Container.</p><h2 id=step-1-set-up-ansible>Step 1: Set Up Ansible</h2><h3 id=11-generate-inventory>1.1 Generate inventory</h3><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>./scripts/generate-ansible-inventory.sh
+</span></span></code></pre></div><p>The inventory (<code>ansible/inventory.ini</code>) is auto-generated. It defines three groups:</p><ul><li><code>control_nodes</code> &ndash; all control plane nodes</li><li><code>worker_nodes</code> &ndash; all worker nodes</li><li><code>k8s_cluster</code> &ndash; union of control and worker nodes</li></ul><div class="alert alert-primary" role=alert><div class="h4 alert-heading" role=heading>Warning</div>Never hand-edit `inventory.ini`. Regenerate after infrastructure changes with `./scripts/generate-ansible-inventory.sh`.</div><h3 id=12-load-ssh-keys>1.2 Load SSH keys</h3><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=nb>source</span> ./scripts/ssh-agent-setup.sh
+</span></span></code></pre></div><div class="alert alert-primary" role=alert><div class="h4 alert-heading" role=heading>Important</div>The ssh-agent must be running with the cluster keys loaded before Ansible can connect. Run `source ./scripts/ssh-agent-setup.sh` in every new terminal session.</div><h3 id=13-test-connectivity>1.3 Test connectivity</h3><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=nb>cd</span> ansible
+</span></span><span class=line><span class=cl>ansible all -m ping
+</span></span></code></pre></div><h2 id=step-2-apply-system-updates>Step 2: Apply System Updates</h2><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>ansible-playbook playbooks/update-system.yml
+</span></span></code></pre></div><p>Target specific node groups or enable automatic reboots:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># Only control nodes</span>
+</span></span><span class=line><span class=cl>ansible-playbook playbooks/update-system.yml --limit control_nodes
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># With reboot if kernel was updated</span>
+</span></span><span class=line><span class=cl>ansible-playbook playbooks/update-system.yml -e <span class=s2>&#34;reboot_after_update=true&#34;</span>
+</span></span></code></pre></div><h2 id=step-3-apply-security-hardening>Step 3: Apply Security Hardening</h2><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>ansible-playbook playbooks/security-hardening.yml
+</span></span></code></pre></div><p>This enables:</p><ul><li>Unattended upgrades (automatic security updates)</li><li>fail2ban monitoring</li><li>Kernel security parameters (sysctl hardening)</li><li>Secure permissions on sensitive files</li><li>Core dump disabling</li></ul><h2 id=step-4-configure-nat64dns64>Step 4: Configure NAT64/DNS64</h2><p>For existing nodes that weren&rsquo;t configured via cloud-init:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>ansible-playbook playbooks/configure-nat64.yml
+</span></span></code></pre></div><p>See <a href=/kubeclaw/docs/introduction/dns-and-nat64/>DNS and NAT64</a> for details.</p><h2 id=step-5-install-kubernetes-prerequisites>Step 5: Install Kubernetes Prerequisites</h2><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>ansible-playbook playbooks/prepare-k8s-nodes.yml
+</span></span></code></pre></div><p>This installs containerd, kubeadm, kubelet, and kubectl on all nodes.</p><h2 id=next-steps>Next Steps</h2><ul><li><a href=/kubeclaw/docs/guide/kubernetes/>Kubernetes (kubeadm)</a> &ndash; deploy the cluster</li><li><a href=/kubeclaw/docs/reference/playbooks/>Ansible Playbooks Reference</a> &ndash; detailed playbook documentation</li></ul></div></main></div></div><footer class="td-footer row d-print-none"><div class=container-fluid><div class="row mx-md-2"><div class="td-footer__left col-6 col-sm-4 order-sm-1"><ul class=td-footer__links-list><li class=td-footer__links-item data-bs-toggle=tooltip title=GitHub aria-label=GitHub><a href=https://github.com/projectious-work/kubeclaw aria-label=GitHub target=_blank rel=noopener><i class="fa-brands fa-github"></i></a></li></ul></div><div class="td-footer__right col-6 col-sm-4 order-sm-3"></div><div class="td-footer__center col-12 col-sm-4 py-2 order-sm-2"><span class=td-footer__copyright>&copy;
+2026&ndash;2026
+<span class=td-footer__authors>Projectious</span></span><span class=td-footer__all_rights_reserved>All Rights Reserved</span></div></div></div></footer></div><script src=/kubeclaw/js/main.min.65d702cee0bf35691ed701b78b7b713d03be4a9f1f184f95e8049d065c07bc57.js integrity="sha256-ZdcCzuC/NWke1wG3i3txPQO+Sp8fGE+V6ASdBlwHvFc=" crossorigin=anonymous></script><script defer src=/kubeclaw/js/click-to-copy.min.24576ff9fe9f85bb1948ecae52ce227cafce53757a3ad52301f2a79260f6b97d.js integrity="sha256-JFdv+f6fhbsZSOyuUs4ifK/OU3V6OtUjAfKnkmD2uX0=" crossorigin=anonymous></script><script src=/kubeclaw/js/tabpane-persist.js></script></body></html>

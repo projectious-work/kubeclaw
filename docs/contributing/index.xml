@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Contributing on KubeClaw</title><link>https://projectious-work.github.io/kubeclaw/docs/contributing/</link><description>Recent content in Contributing on KubeClaw</description><generator>Hugo</generator><language>en</language><atom:link href="https://projectious-work.github.io/kubeclaw/docs/contributing/index.xml" rel="self" type="application/rss+xml"/><item><title>Code of Conduct</title><link>https://projectious-work.github.io/kubeclaw/docs/contributing/code-of-conduct/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/contributing/code-of-conduct/</guid><description>&lt;p&gt;This project follows the &lt;a href="https://www.contributor-covenant.org/version/2/1/code_of_conduct/"&gt;Contributor Covenant v2.1&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Please read the full text at the link above. In summary: be respectful, be constructive, and create a welcoming environment for everyone.&lt;/p&gt;
+&lt;h2 id="reporting"&gt;Reporting&lt;/h2&gt;
+&lt;p&gt;If you experience or witness unacceptable behavior, please contact the project maintainer at &lt;a href="mailto:bnaard@gmx.net"&gt;bnaard@gmx.net&lt;/a&gt;.&lt;/p&gt;</description></item><item><title>Development Setup</title><link>https://projectious-work.github.io/kubeclaw/docs/contributing/development/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/contributing/development/</guid><description>&lt;h2 id="getting-started"&gt;Getting started&lt;/h2&gt;
+&lt;p&gt;Follow the &lt;a href="https://projectious-work.github.io/kubeclaw/docs/guide/dev-container/"&gt;Dev Container guide&lt;/a&gt; to set up your
+development environment. The aibox Dev Container includes OpenTofu, Ansible,
+&lt;code&gt;cloudflared&lt;/code&gt;, Hugo, Node.js, Kubernetes clients, and AI assistants.&lt;/p&gt;
+&lt;h2 id="documentation-development"&gt;Documentation development&lt;/h2&gt;
+&lt;p&gt;Preview the documentation site locally:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;./scripts/serve-docs.sh
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# Open http://localhost:1313&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;When using a remote Dev Container environment, forward port 8000 from your
+editor to view the preview.&lt;/p&gt;
+&lt;p&gt;Build the site:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;./scripts/build-docs.sh
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The build uses Hugo&amp;rsquo;s strict template and content validation. The first run
+installs the pinned Docsy asset dependencies locally and initializes the pinned
+Docsy theme submodule when needed.&lt;/p&gt;</description></item></channel></rss>

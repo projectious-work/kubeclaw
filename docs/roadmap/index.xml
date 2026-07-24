@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Roadmap on KubeClaw</title><link>https://projectious-work.github.io/kubeclaw/docs/roadmap/</link><description>Recent content in Roadmap on KubeClaw</description><generator>Hugo</generator><language>en</language><atom:link href="https://projectious-work.github.io/kubeclaw/docs/roadmap/index.xml" rel="self" type="application/rss+xml"/><item><title>Cilium Dual-Stack Pod Network</title><link>https://projectious-work.github.io/kubeclaw/docs/roadmap/cilium-ipv6/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/roadmap/cilium-ipv6/</guid><description>&lt;div class="alert alert-primary" role="alert"&gt;&lt;div class="h4 alert-heading" role="heading"&gt;Implemented&lt;/div&gt;
+
+
+This feature has been implemented. The [Kubernetes guide](/kubeclaw/docs/guide/kubernetes/) now uses dual-stack `kubeadm init` and Cilium with `ipv6.enabled=true` as the standard configuration.
+
+&lt;/div&gt;
+
+&lt;h2 id="summary"&gt;Summary&lt;/h2&gt;
+&lt;p&gt;The cluster uses &lt;strong&gt;dual-stack networking&lt;/strong&gt; (IPv4 + IPv6) in the Cilium pod network. Every pod gets both an IPv4 address (from &lt;code&gt;10.244.0.0/16&lt;/code&gt;) for internal cluster communication and an IPv6 address (from &lt;code&gt;fd00:10:244::/48&lt;/code&gt;) for external connectivity via DNS64/NAT64.&lt;/p&gt;
+&lt;p&gt;This eliminates the need for &lt;code&gt;hostNetwork: true&lt;/code&gt; on any pod, which means:&lt;/p&gt;</description></item></channel></rss>

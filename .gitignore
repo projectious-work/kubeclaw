@@ -103,6 +103,8 @@ node_modules/
 .devcontainer/docker-compose.yml
 .devcontainer/devcontainer.json
 .aibox-env/
+.aibox/
+.aibox-home/
 .latex-cache/
 .agents/skills/
 .aibox-local.toml
@@ -111,6 +113,7 @@ context/.cache/
 context/.state/
 context/private/
 context/**/private/
+context/
 .mcp.json
 .cursor/mcp.json
 .gemini/settings.json

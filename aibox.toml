@@ -1,0 +1,874 @@
+# =============================================================================
+# aibox.toml — single source of truth for your aibox project.
+# All .devcontainer/ files are generated from this. Edit here, run `aibox apply`.
+# Reference: https://projectious-work.github.io/aibox/docs/reference/configuration
+# =============================================================================
+
+# Object identity. These root keys mirror Kubernetes-style resource files:
+# apiVersion selects the aibox config API; kind is currently always Workspace.
+apiVersion = "aibox.projectious.work/v1"
+kind       = "Workspace"
+
+[aibox]
+project_name = "kubeclaw"           # Human-readable project name; defaults to container.name
+profile      = "human-dev"       # Usage profile. Options: human-dev, headless-runner
+
+# =============================================================================
+# [container] — runtime and build configuration
+# =============================================================================
+[container]
+name     = "kubeclaw"           # Container name used by docker/podman
+hostname = "kubeclaw"           # Hostname visible inside the container
+user     = "aibox"              # User inside the container (controls mount paths)
+
+[container.image]
+release_version = "latest"       # Target base image version. Use "latest" to resolve newest published image on apply.
+base            = "debian"          # Published base image flavor. Options: debian
+
+[container.paths]
+devcontainer_json     = ".devcontainer/devcontainer.json"
+docker_compose        = ".devcontainer/docker-compose.yml"
+docker_compose_override = ".devcontainer/docker-compose.override.yml"
+dockerfile            = ".devcontainer/Dockerfile"
+dockerfile_local      = ".devcontainer/Dockerfile.local"
+local_env             = ".aibox-local.env"  # Generated from .aibox-local.toml for docker compose env_file
+
+# --- Lifecycle ---
+[container.lifecycle]
+# post_create_command = "npm install"  # Shell command run once after container first starts
+# keepalive           = true           # Send periodic DNS keepalive for idle network timeouts
+
+# --- Resource pressure warnings (`aibox doctor`) ---
+# [container.resource_thresholds]
+# memory_mib_warn = 4096       # Optional warning limit for cgroup memory usage in MiB
+# process_count_warn = 400     # Optional warning limit for total live processes; 0 disables
+# processkit_mcp_python_warn = 50  # Optional warning limit for live Python MCP server processes; 0 disables
+# oom_kill_warn = 0            # Optional warning threshold for cgroup OOM kill count
+
+# =============================================================================
+# [audio] — audio and voice feature support
+# =============================================================================
+# Requires host-side setup: run `aibox apply audio` on the host first.
+[audio]
+enabled = false
+backend = "pulseaudio"  # options: pulseaudio
+install = true  # selects the internal audio-voice recipe
+# pulse_server = "tcp:host.docker.internal:4714"  # PulseAudio TCP endpoint (default port: 4714)
+
+# =============================================================================
+# [latex] — reproducible document builds and live PDF preview
+# =============================================================================
+# Configure one or more named documents. Inside the container,
+# `aibox-latex-build` builds all and `aibox-latex-watch <name>` watches one.
+# A Compose sidecar serves every configured PDF from one index page.
+[latex]
+engine = "lualatex"  # Shared engine: lualatex, pdflatex, xelatex, or tectonic (build-only; no watch).
+cache_dir = ".latex-cache"  # Project-local TEXMFVAR/TEXMFCONFIG root; keep this gitignored.
+options = []  # Extra engine/latexmk arguments applied to every document.
+# Repeat this block for every independently built PDF. Names must be unique.
+# [[latex.documents]]
+# name = "overview"                    # CLI name and URL slug: [a-zA-Z0-9_-].
+# source = "docs/overview.tex"         # Main TeX file, relative to the project root.
+# output_dir = ".latex-cache/overview"  # Separate output directory per document.
+
+[latex.preview]
+# `aibox apply` generates a dedicated Compose sidecar and port mapping. The
+# server listens on port 8765 inside that sidecar; bind/port below control only
+# how Compose publishes it on the host. `aibox up` starts the sidecar.
+enabled = false  # Generate and run the shared preview sidecar.
+engine = "embedpdf"  # PDF viewer implementation; currently only embedpdf.
+bind = "127.0.0.1"  # Host publish address: 127.0.0.1 = local only; 0.0.0.0 = network access.
+port = 8765  # Host port; maps to the sidecar's fixed internal port 8765.
+# document = "overview"  # Optional legacy-route default; all configured PDFs are served.
+allow_public = false  # Required for a non-loopback host bind; endpoint has no authentication.
+
+# =============================================================================
+# [integrations.github] — GitHub CLI backed HTTPS git credentials
+# =============================================================================
+# credential_helper: auto enables when git-ui.gh is installed; gh forces it; none removes it.
+# Tokens are never written to git config; Git uses `gh auth git-credential` as the authoritative GitHub HTTPS helper.
+[integrations.github]
+credential_helper = "auto"  # options: auto, gh, none
+
+# =============================================================================
+# [context]
+# =============================================================================
+# mode: processkit installs the project context layer.
+[context]
+mode = "processkit"
+packages = ["product"]
+
+# =============================================================================
+# [skills] — processkit skill catalog
+# =============================================================================
+# Each known skill appears once. Uncomment a line to enable that skill;
+# comment it out (leading `#`) to disable. Core skills are always
+# installed; disabling one only triggers a doctor warning.
+[skills]
+enabled = [
+    "actor-profile", # processkit; Create and maintain Actor entities — humans and AI agents that participate in the project. Use when adding a …
+    "agent-card", # processkit; Project processkit agent-card Artifacts into canonical public agent-card JSON files. Use when publishing an a…
+    "agent-management", # processkit; Orchestrate multi-agent workflows with task decomposition, role assignment, handoff protocols, and per-sessio…
+    "aggregate-mcp", # processkit; Expose the processkit MCP tool surface through a single stdio server. Use for harnesses that eagerly start ev…
+    "ai-fundamentals", # data-ai; Explain and apply core ML/AI concepts — model types, training pipelines, evaluation metrics, and neural archi…
+    "api-design", # engineering; REST API design — resource naming, HTTP methods, status codes, pagination, versioning, OpenAPI. Use when desi…
+    "artifact-management", # processkit; Create, retrieve, query, and update Artifacts — tangible deliverables produced by the project. Use when stori…
+    "auth-patterns", # engineering; Authentication and authorization patterns — OAuth2, JWT, sessions, RBAC/ABAC. Use when implementing login flo…
+    "binding-management", # processkit; Manage Binding entities — scoped, temporal, many-to-many relationships between v2 entity surfaces. Use when a…
+    "board-of-advisors", # product; Simulates a panel of expert advisors who each evaluate a problem from their distinct perspective — surfacing …
+    "category-management", # processkit; Manage Category entities — taxonomies and classification schemes that group other entities by type, area, tie…
+    "changelog", # engineering; Generates and maintains CHANGELOG.md files following Keep a Changelog conventions — from git history, commit …
+    "code-generation", # engineering; Code generation patterns — template engines, AST manipulation, scaffolding, build-step generation. Use when b…
+    "code-review", # engineering; Structured code review with a checklist covering correctness, clarity, tests, security, performance, and styl…
+    "constraint-management", # processkit; Manage Constraint entities — rules and limits the project must respect (budget, latency SLO, team size, compl…
+    "container-orchestration", # devops; Docker Compose patterns for multi-service apps — health checks, networking, volumes, dependencies. Use when w…
+    "context-archiving", # processkit; Plan and execute hot-to-cold processkit context archiving while keeping archived entity metadata queryable th…
+    "context-grooming", # processkit; Review and prune the project context — archive completed work, summarize stale entries, and propose disabling…
+    "cross-reference-management", # processkit; Conventions and helpers for lightweight relationships between entities expressed as frontmatter references (n…
+    "decision-record", # processkit; Record decisions with rationale, alternatives, and consequences — the ADR pattern as a primitive. Use when a …
+    "devils-advocate", # product; Systematically challenges a plan, decision, or proposal — identifying assumptions, failure modes, and stronge…
+    "discussion-management", # processkit; Manage Discussion entities — structured, multi-turn conversations that explore questions and produce decision…
+    "dns-networking", # devops; DNS records, IP addressing, subnetting, common protocols, and diagnostic tools. Use when configuring DNS reco…
+    "dockerfile-review", # devops; Dockerfile best practices — layer optimization, caching, security, image size. Use when writing, reviewing, o…
+    "documentation", # product; Writing effective project documentation — READMEs, API doc comments, and inline comments that explain why. Us…
+    "eval-gate-authoring", # processkit; Turn observed run outputs into eval-spec Artifacts, paired Gates, and policy bindings. Use when creating or c…
+    "event-log", # processkit; Append-only event log — the probabilistic record of everything that happened in the project. Use whenever som…
+    "feature-engineering", # data-ai; Feature engineering for ML — encoding, imputation, scaling, selection, time-series features. Use when prepari…
+    "gate-management", # processkit; Manage Gate entities — validation checkpoints that WorkItems, scopes, or policy applications must pass (code …
+    "git-branching", # engineering; Select, document, and evolve a Git branching strategy for a repository. Use when comparing Gitflow, GitHub Fl…
+    "git-workflow", # engineering; Git workflow conventions — branch naming, conventional commits, PR descriptions, and merge strategy. Use when…
+    "id-management", # processkit; Generate unique entity IDs following the project's configured format. The write-side foundation that every en…
+    "index-management", # processkit; SQLite-backed index over all entity files in the project. The read-side foundation for every other MCP server…
+    "infographics", # documents; Creates data-driven infographics and charts as accessible SVG. Use when visualizing data, choosing a chart ty…
+    "kubernetes-basics", # devops; Kubernetes cluster management — resources, networking, storage, Helm, troubleshooting. Use when writing Kuber…
+    "legal-review", # product; Structures a systematic legal and compliance review of contracts, policies, or technical decisions — identify…
+    "linux-administration", # devops; Linux sysadmin for developers — permissions, processes, systemd, journald, cron, disks. Use when managing Lin…
+    "logging-strategy", # devops; Structured logging strategy — levels, correlation IDs, context propagation, PII avoidance. Use when designing…
+    "logo-design", # design; Creates SVG logos with scalable geometry, color theory, and variant generation. Use when designing logos, ico…
+    "metrics-management", # devops; Manage metric specifications and observations: quantified measures the project cares about (velocity, error r…
+    "metrics-monitoring", # devops; Application metrics with RED/USE methods, Prometheus types, dashboards, and SLO alerting. Use when instrument…
+    "migration-management", # processkit; Manage Migration entities — pending, in-progress, and applied transitions between upstream source versions. U…
+    "model-recommender", # processkit; Recommend the right AI model for a task by scoring candidates across six dimensions (Reasoning, Engineering, …
+    "note-management", # processkit; Captures, reviews, and promotes Note entities — the lightweight knowledge capture primitive in processkit. No…
+    "owner-profiling", # processkit; Build and maintain a structured personal-context portfolio for the project owner — identity, working style, g…
+    "pk-doctor", # processkit; Aggregator health-check for a processkit-managed repository. Runs a fixed suite of checks over the live conte…
+    "postmortem-writing", # devops; Blameless postmortem writing — timeline, root cause analysis, corrective actions. Use when writing an inciden…
+    "process-management", # processkit; Legacy/migration guidance for v1 Process entities — declarative workflow definitions with roles, gates, and a…
+    "processkit-gateway", # processkit; Provider-neutral processkit MCP gateway. Use when a harness should see one processkit MCP surface while proce…
+    "prompt-engineering", # data-ai; Prompt design patterns — few-shot, chain-of-thought, structured output, injection defense. Use when crafting …
+    "python-best-practices", # engineering; Python conventions and patterns — typing, testing, project layout, tooling. Use when writing or reviewing Pyt…
+    "refactoring", # engineering; Systematic refactoring with Fowler's catalog, GoF patterns, and code smell detection. Use when restructuring …
+    "release-audit", # processkit; Detect-only pre-release validation sweep over the processkit content tree. Walks entity files, SKILL.md defin…
+    "retrospective", # processkit; Generates a post-release blameless retrospective from project signals — synthesizing DORA-like metrics, WorkI…
+    "role-management", # processkit; Create and maintain Role entities — named sets of responsibilities that actors can fill. Use when defining a …
+    "runtime-prune", # processkit; Inspect, plan, and invoke safe cleanup for runtime-manager-owned state without binding the workflow to a spec…
+    "rust-conventions", # engineering; Rust conventions — error handling with anyhow/thiserror, module layout, clippy. Use when writing or reviewing…
+    "schedule-management", # processkit; Legacy/migration guidance for v1 Schedule entities. In v2, define recurring cadences as Binding(type=time-win…
+    "scope-management", # processkit; Manage Scope entities — bounded containers grouping related work (sprint, milestone, project, quarter). Use w…
+    "secret-management", # engineering; Handle secrets safely — env vars, .env files, vaults, rotation. Use when dealing with API keys, passwords, to…
+    "secure-coding", # engineering; Secure coding practices grounded in the OWASP Top 10. Use when reviewing code for security issues, implementi…
+    "security-projections", # processkit; Project processkit security policy Artifacts into runtime policy files for Agent-IDS and Tetragon-style enfor…
+    "session-handover", # processkit; Write an end-of-session handover LogEntry capturing current state, open threads, next action, and git context…
+    "skill-builder", # processkit; Author a new processkit skill end-to-end — use-case interview, frontmatter, body sections, Gotchas, and trigg…
+    "skill-finder", # processkit; core; Navigation aid for the processkit skill catalog — maps natural-language cues and task types to the right skil…
+    "skill-gate", # processkit; core; Session-start meta-skill that enforces the 1% rule: before any action on a processkit entity or context/ file…
+    "skill-reviewer", # processkit; Audit an existing processkit skill against the 5 Skill Killers, the Agent Skills standard, and Anthropic's tr…
+    "software-architecture", # engineering; Codebase architecture analysis — patterns, ADRs, structural review, C4 diagrams. Use when evaluating a codeba…
+    "software-modularization", # engineering; Design and evaluate module and package boundaries for maintainability, low coupling, and AI agent context eff…
+    "standup-context", # processkit; Writes a structured standup update as a session.standup LogEntry — capturing what was done, what is in progre…
+    "state-machine-management", # processkit; Legacy/migration guidance for v1 StateMachine entities. In v2, lifecycle rules are implementation contracts o…
+    "status-briefing", # processkit; Generates a concise status briefing after session-start reconciliation — synthesizing current state, open dec…
+    "status-update-writer", # processkit; Generates clear, structured status updates for stakeholders — from project context, backlog state, or a brief…
+    "supply-chain-audit", # processkit; Discover supply-chain manifests, run structured supply-chain audits, and export SBOMs through a dedicated MCP…
+    "system-design", # engineering; System design methodology — requirements, capacity estimation, component design, trade-offs. Use when designi…
+    "task-router", # processkit; core; Route a task description to the right processkit skill, project-specific process override, and MCP tool in a …
+    "team-creator", # processkit; Compose a provider-neutral AI team by tiering accessible models on cost-efficiency, capability, latency, and …
+    "team-manager", # processkit; Create and maintain TeamMember entities — humans and named AI personas that participate in the project with p…
+    "terraform-basics", # devops; Infrastructure-as-code with Terraform/OpenTofu — resources, state, modules, plan/apply. Use when writing `.tf…
+    "workitem-management", # processkit; Create, transition, query, and link WorkItems — tasks, stories, bugs, epics. Use when the user asks to add, u…
+    # "alerting-oncall", # devops; Alert design and on-call practices — severity, runbooks, SLO burn-rate alerting, escalation. Use when designi…
+    # "caching-strategies", # engineering; Caching patterns — cache-aside, write-through, TTL strategies, invalidation, HTTP caching. Use when adding ca…
+    # "ci-cd-setup", # devops; CI/CD pipeline setup — GitHub Actions, testing, linting, deployment. Use when setting up CI from scratch, add…
+    # "concurrency-patterns", # engineering; Concurrency and parallelism patterns — async/await, threads, actors, channels, deadlock prevention. Use when …
+    # "data-pipeline", # data-ai; Data pipeline patterns — ETL/ELT, batch vs streaming, idempotency, orchestration. Use when designing a data p…
+    # "data-quality", # data-ai; Data quality framework — completeness, accuracy, consistency, validation, and contracts. Use when implementin…
+    # "data-science", # data-ai; Data analysis workflow from import through modeling and communication. Use when analyzing a dataset, explorin…
+    # "data-storytelling", # documents; Translates data analysis into clear narratives and recommendations that non-technical audiences can act on. U…
+    # "data-visualization", # documents; Chart selection, color accessibility, annotation, and dashboard design. Use when creating charts, designing d…
+    # "database-migration", # engineering; Schema migration workflows — zero-downtime expand/contract, batched backfills, and rollback strategies. Use w…
+    # "database-modeling", # engineering; Data modeling — ER diagrams, normalization, denormalization trade-offs, relationship patterns, and schema evo…
+    # "debugging", # engineering; Systematic debugging — reproduce, read the error, isolate, hypothesize, fix, verify, document. Use when track…
+    # "dependency-audit", # engineering; Audit project dependencies for vulnerabilities and outdated packages. Use when checking the security posture …
+    # "dependency-management", # engineering; Cross-language dependency management — lockfiles, version pinning, automated updates, security, and licenses.…
+    # "distributed-tracing", # devops; Distributed tracing with OpenTelemetry — spans, context propagation, sampling. Use when instrumenting a distr…
+    # "docx-authoring", # documents; Creating Word documents programmatically with python-docx — headings, styles, tables, lists, images, and sect…
+    # "domain-driven-design", # engineering; Domain-Driven Design strategic and tactical patterns — bounded contexts, aggregates, value objects, context m…
+    # "email-drafter", # product; Drafts clear, professional emails ready to copy and paste — from a brief description of the situation, audien…
+    # "embedding-vectordb", # data-ai; Vector embeddings and vector DB patterns — model choice, similarity metrics, index tuning. Use when choosing …
+    # "error-handling", # engineering; Error handling across languages — Result types, exceptions, retries, circuit breakers, and structured error r…
+    # "estimation-planning", # product; Software estimation and planning — story points, velocity, scope negotiation, technical debt budgeting, and s…
+    # "event-driven-architecture", # engineering; Event-driven systems — pub/sub, event sourcing, CQRS, sagas, broker selection, reliability. Use when designin…
+    # "excalidraw", # design; Generates Excalidraw diagrams programmatically as hand-drawn-style JSON. Use when creating architecture diagr…
+    # "fastapi-patterns", # engineering; FastAPI patterns — dependency injection, Pydantic models, async endpoints, middleware, and testing. Use when …
+    # "flutter-development", # engineering; Flutter and Dart development — widget architecture, state management, navigation, and cross-platform layout. …
+    # "frontend-design", # design; Frontend architecture and UI design — component hierarchies, accessibility, performance, state management. Us…
+    # "go-conventions", # engineering; Go idioms — error wrapping, small interfaces, goroutine lifecycle, table-driven tests. Use when writing or re…
+    # "graphql-patterns", # engineering; GraphQL schema design, resolver patterns, DataLoader, pagination, federation, and schema evolution. Use when …
+    # "grpc-protobuf", # engineering; Protobuf schema design and gRPC service patterns — streaming, error handling, backward compatibility. Use whe…
+    # "incident-response", # devops; Production incident handling — triage, communicate, mitigate, fix, postmortem. Use when production is broken,…
+    # "integration-testing", # engineering; Integration and E2E testing patterns — testcontainers, fixtures, API mocking, snapshots, and CI isolation. Us…
+    # "java-patterns", # engineering; Modern Java 17+ — records, sealed types, pattern matching, streams, Spring Boot. Use when writing or reviewin…
+    # "latex-authoring", # documents; LaTeX authoring with LuaLaTeX — document classes, math, TikZ, BibLaTeX. Use when writing or editing LaTeX doc…
+    # "llm-evaluation", # data-ai; LLM output evaluation — automated metrics, LLM-as-judge, A/B testing, regression testing. Use when measuring …
+    # "load-testing", # engineering; Load testing methodology — test types, scenario design, capacity planning, CI integration. Use when planning …
+    # "microservice-creation", # engineering; Designs and scaffolds new microservices — covering service boundary identification, inter-service communicati…
+    # "ml-pipeline", # data-ai; ML pipeline design — data versioning, experiment tracking, deployment patterns, drift monitoring. Use when bu…
+    # "mobile-app-design", # design; Mobile app UX — touch targets, navigation, platform conventions, accessibility. Use when designing mobile int…
+    # "nosql-patterns", # engineering; NoSQL patterns for document, key-value, wide-column, and graph stores. Access-pattern-driven design and consi…
+    # "onboarding-guide", # product; Generates a structured onboarding guide for a new agent or human joining a project — covering codebase orient…
+    # "pandas-polars", # data-ai; DataFrame operations with pandas and polars — groupby, joins, reshaping, performance. Use when manipulating t…
+    # "pdf-workflow", # documents; Generating and manipulating PDF files — from HTML, DOCX, or raw content using reportlab, weasyprint, or pypdf…
+    # "performance-profiling", # engineering; Performance analysis and profiling for CPU, memory, and I/O — flame graphs, benchmarks, regression detection.…
+    # "pixijs-gamedev", # engineering; PixiJS 2D rendering and game development — sprites, animation loops, interaction, and WebGL/Canvas rendering.…
+    # "pptx-authoring", # documents; Creating PowerPoint presentations programmatically with python-pptx — slides, layouts, text boxes, charts, ta…
+    # "prd-writing", # product; Write a Product Requirements Document structured with problem statement, goals, user stories, scope, and succ…
+    # "project-reconciliation", # processkit; Reconcile a processkit project’s migrations, health findings, and repository collaboration queue. Use when re…
+    # "rag-engineering", # data-ai; Retrieval-Augmented Generation pipelines — ingestion, chunking, embedding, vector stores, retrieval, evaluati…
+    # "reflex-python", # engineering; Reflex Python web framework for full-stack apps in pure Python — components, state, routing, and deployment. …
+    # "release-semver", # devops; Semantic versioning releases — version bumps, changelogs, tags, publishing. Use when preparing a new release:…
+    # "repo-management", # devops; Reconcile repository issues, pull requests, merge requests, local git state, commits, and pushes across GitHu…
+    # "repository-portfolio-review", # processkit; Review one or more GitHub repositories for governance, documentation, licensing, privacy, security, and portf…
+    # "research-with-confidence", # product; Investigates a question systematically before answering — verifying claims through sources, distinguishing kn…
+    # "seo-optimization", # design; SEO — on-page, technical, structured data, Core Web Vitals, and mobile-first indexing. Use when optimizing a …
+    # "shell-scripting", # engineering; Bash scripting — strict mode, quoting, arg parsing, traps, shellcheck compliance. Use when writing or reviewi…
+    # "sprint-retrospective", # product; Facilitates team or project retrospectives — what worked, what didn't, action items. Use at the end of a spri…
+    # "sql-patterns", # engineering; SQL query patterns, schema design, and optimization — joins, CTEs, window functions, indexing, and anti-patte…
+    # "sql-style-guide", # engineering; SQL style — snake_case, singular tables, named constraints, one-clause-per-line formatting. Use when writing …
+    # "tailwind", # engineering; Tailwind CSS v4 — utility-first styling, responsive design, dark mode, and component extraction. Use when bui…
+    # "tdd-workflow", # engineering; Test-driven development workflow — red-green-refactor, naming, doubles, when to apply. Use when writing code …
+    # "testing-strategy", # engineering; Testing approach — unit vs integration vs E2E, coverage goals, organization. Use when deciding what to test, …
+    # "threat-modeling", # engineering; Threat modeling with STRIDE — data flow diagrams, trust boundaries, risk. Use when designing a new system, re…
+    # "typescript-patterns", # engineering; TypeScript patterns — strict mode, discriminated unions, runtime validation, Result types. Use when writing o…
+    # "user-research", # product; Structures user research — planning sessions, synthesizing findings, and translating insights into product de…
+    # "webhook-integration", # engineering; Webhook design and consumption — payload format, HMAC signatures, idempotency, retries, dead-letter queues, s…
+    # "xlsx-modeling", # documents; Creating Excel spreadsheets programmatically with openpyxl — worksheets, data, formulas, charts, formatting, …
+]
+
+# =============================================================================
+# [addons] — language runtimes and tool bundles
+# =============================================================================
+# Each addon installs a tool set into the container at build time.
+# Selected addons land here pre-populated with default-enabled tools at
+# their default versions; edit the version strings to switch.
+#
+# Version strings:
+#   "1.2.3"  — pin to a specific version
+#   "latest" — always install the newest version (skips pinning)
+#   ""       — use the addon's built-in default version
+#
+# Run `aibox get addon` to see all available addons.
+# Run `aibox describe addon <name>` to see every supported tool/version per addon.
+#
+# To add an addon after init, edit this file and re-run `aibox apply`,
+# or use `aibox set addon <name>` (which also pulls in transitive `requires`).
+#
+# Addon catalog — uncomment/comment one block header to enable or remove an addon.
+# Inside an enabled addon, omitted default-enabled tools stay enabled. Uncomment
+# a tool line to pin a version, enable an off-by-default tool, or disable a default-on tool.
+#
+
+# ---- Documentation ------------------------------------------------------------
+
+# Documentation/docs-docusaurus — Docusaurus static docs site (React/MDX); requires node
+[addons.docs-docusaurus.tools]
+docusaurus = { version = "3.10.1" } # React and MDX documentation site generator; default on; options: {}, { enabled = true|false }, { version = "3.7.0" | "3.8" | "3.9.2" | "3.10.1" (default) or "latest" }
+
+# Documentation/docs-hugo — Hugo static site generator (Go)
+[addons.docs-hugo.tools]
+hugo = { version = "0.157.0" } # Fast Go-based static site generator; default off; options: {}, { enabled = true|false }, { version = "x.y.z" or "latest" }
+
+# Documentation/docs-mdbook — mdBook – Rust-powered book builder
+# [addons.docs-mdbook.tools]
+# mdbook = {} # Rust-powered book and documentation builder; default on; options: {}, { enabled = true|false }, { version = "x.y.z" or "latest" }
+
+# Documentation/docs-mkdocs — MkDocs – Python Markdown docs site; requires python
+[addons.docs-mkdocs.tools]
+mkdocs = { enabled = false } # Python Markdown documentation site generator; default on; options: {}, { enabled = true|false }, { version = "1.6.1" (default) or "latest" }
+
+# Documentation/docs-starlight — Starlight – Astro-based docs site; requires node
+# [addons.docs-starlight.tools]
+# starlight = {} # Astro-based documentation site framework; default on; options: {}, { enabled = true|false }, { version = "x.y.z" or "latest" }
+
+# Documentation/docs-zensical — Zensical – Python docs site; requires python
+# [addons.docs-zensical.tools]
+# zensical = {} # Python documentation site generator; default on; options: {}, { enabled = true|false }, { version = "0.0.43" | "0.0.44" | "0.0.47" (default) or "latest" }
+
+# ---- Languages ------------------------------------------------------------
+
+# Languages/go — Go programming language toolchain
+# [addons.go.tools]
+# go = {} # Go compiler, tooling, and module workflow; default on; options: {}, { enabled = true|false }, { version = "1.25" | "1.26" | "1.26.3" | "1.26.4" (default) or "latest" }
+
+# Languages/latex — TeX Live LaTeX typesetting system
+# [addons.latex.tools]
+# texlive-core = {} # Core LaTeX engines and basic TeX Live packages; default on; options: {}, { enabled = true|false }, { version = "x.y.z" or "latest" }
+# texlive-recommended = {} # Commonly used LaTeX packages and utilities; default on; options: {}, { enabled = true|false }, { version = "x.y.z" or "latest" }
+# texlive-fonts = {} # Extra fonts for LaTeX documents; default on; options: {}, { enabled = true|false }, { version = "x.y.z" or "latest" }
+# texlive-biber = {} # BibLaTeX bibliography backend; default on; options: {}, { enabled = true|false }, { version = "x.y.z" or "latest" }
+# texlive-code = {} # LaTeX packages for code listings and syntax highlighting; default on; options: {}, { enabled = true|false }, { version = "x.y.z" or "latest" }
+# texlive-diagrams = {} # LaTeX packages for diagrams, pictures, and graphics; default on; options: {}, { enabled = true|false }, { version = "x.y.z" or "latest" }
+# texlive-math = {} # LaTeX packages for math-heavy documents; default on; options: {}, { enabled = true|false }, { version = "x.y.z" or "latest" }
+# texlive-music = { enabled = true } # LaTeX packages for music notation; default off; options: {}, { enabled = true|false }, { version = "x.y.z" or "latest" }
+# texlive-chemistry = { enabled = true } # LaTeX packages for chemistry notation and diagrams; default off; options: {}, { enabled = true|false }, { version = "x.y.z" or "latest" }
+# texlive-linguistics = { enabled = true } # LaTeX packages for linguistics examples and notation; default off; options: {}, { enabled = true|false }, { version = "x.y.z" or "latest" }
+# svg-inkscape = {} # Inkscape support for SVG inclusion in LaTeX builds; default on; options: {}, { enabled = true|false }, { version = "x.y.z" or "latest" }
+
+# Languages/node — Node.js runtime with pnpm, yarn, or bun
+[addons.node.tools]
+node = { version = "26" } # Node.js JavaScript and TypeScript runtime; default on; options: {}, { enabled = true|false }, { version = "20" | "22" | "24" | "26" (default) or "latest" }
+pnpm = { version = "11.10.0" } # Fast disk-efficient Node package manager; default on; options: {}, { enabled = true|false }, { version = "9" | "10" | "11.1.3" | "11.5.2" | "11.10.0" (default) or "latest" }
+# yarn = { enabled = true } # Yarn Node package manager; default off; options: {}, { enabled = true|false }, { version = "4" | "4.16.0" | "4.17.0" (default) or "latest" }
+# bun = { enabled = true } # Bun JavaScript runtime, package manager, and test runner; default off; options: {}, { enabled = true|false }, { version = "1.2" | "1.3.14" (default) or "latest" }
+
+# Languages/python — Python runtime with uv, poetry, or pdm
+[addons.python.tools]
+python = { version = "3.14" } # Python interpreter runtime for applications and scripts; default on; options: {}, { enabled = true|false }, { version = "3.12" | "3.13" | "3.14" (default) or "latest" }
+uv = { version = "0.11.26" } # Fast Python package manager and virtual environment tool; default on; options: {}, { enabled = true|false }, { version = "0.7" | "0.11.10" | "0.11.11" | "0.11.15" | "0.11.19" | "0.11.26" (default) or "latest" }
+# pip = { enabled = true } # Python package installer for pip-based projects; default off; options: {}, { enabled = true|false }, { version = "x.y.z" or "latest" }
+# poetry = { enabled = true } # Python dependency and packaging workflow manager; default off; options: {}, { enabled = true|false }, { version = "1.8" | "2.0" | "2.4.1" (default) or "latest" }
+# pdm = { enabled = true } # Python project and dependency manager using PEP standards; default off; options: {}, { enabled = true|false }, { version = "2.22" | "2.26.9" | "2.27.0" | "2.28.0" (default) or "latest" }
+
+# Languages/rust — Rust toolchain via rustup
+[addons.rust.tools]
+rustc = { version = "1.96.1" } # Rust compiler toolchain installed via rustup; default on; options: {}, { enabled = true|false }, { version = "1.90" | "1.91" | "1.92" | "1.93" | "1.94" | "1.94.1" | "1.96.0" | "1.96.1" (default) or "latest" }
+clippy = {} # Rust linter for catching common mistakes and style issues; default on; options: {}, { enabled = true|false }, { version = "x.y.z" or "latest" }
+rustfmt = {} # Rust code formatter; default on; options: {}, { enabled = true|false }, { version = "x.y.z" or "latest" }
+cargo-audit = {} # Rust dependency vulnerability scanner; default on; options: {}, { enabled = true|false }, { version = "x.y.z" or "latest" }
+x86_64-cross = {} # Cross-compilation target support for x86_64 Linux; default on; options: {}, { enabled = true|false }, { version = "x.y.z" or "latest" }
+
+# Languages/typst — Typst – modern typesetting system
+# [addons.typst.tools]
+# typst = {} # Typst compiler for modern document typesetting; default on; options: {}, { enabled = true|false }, { version = "0.13.1" | "0.14.2" | "0.15.0" (default) or "latest" }
+
+# ---- Tools ------------------------------------------------------------
+
+# Tools/audio-voice — PulseAudio and Sox tools for interactive voice workflows
+[addons.audio-voice.tools]
+sox = {} # Command-line audio recording, playback, and conversion tools; default on; options: {}, { enabled = true|false }, { version = "x.y.z" or "latest" }
+sox-pulse = {} # PulseAudio support module for SoX; default on; options: {}, { enabled = true|false }, { version = "x.y.z" or "latest" }
+pulseaudio-utils = {} # PulseAudio command-line tools for routing and diagnostics; default on; options: {}, { enabled = true|false }, { version = "x.y.z" or "latest" }
+alsa-pulse = {} # ALSA-to-PulseAudio compatibility layer; default on; options: {}, { enabled = true|false }, { version = "x.y.z" or "latest" }
+
+# Tools/cloud-aws — AWS CLI v2
+# [addons.cloud-aws.tools]
+# aws-cli = {} # AWS command-line client for cloud resources; default on; options: {}, { enabled = true|false }, { version = "x.y.z" or "latest" }
+
+# Tools/cloud-azure — Azure CLI
+# [addons.cloud-azure.tools]
+# azure-cli = {} # Azure command-line client for cloud resources; default on; options: {}, { enabled = true|false }, { version = "x.y.z" or "latest" }
+
+# Tools/cloud-gcp — Google Cloud SDK (gcloud)
+# [addons.cloud-gcp.tools]
+# gcloud-cli = {} # Google Cloud command-line client and SDK; default on; options: {}, { enabled = true|false }, { version = "x.y.z" or "latest" }
+
+# Tools/cloudflare — Cloudflare Tunnel connector (cloudflared)
+[addons.cloudflare.tools]
+cloudflared = {} # Cloudflare Tunnel connector and command-line client; default on; options: {}, { enabled = true|false }, { version = "x.y.z" or "latest" }
+
+# Tools/data-preview — SQLite and tabular data preview tools for Yazi
+# [addons.data-preview.tools]
+# sqlite3 = {} # SQLite shell used to preview database schemas and tables; default on; options: {}, { enabled = true|false }, { version = "x.y.z" or "latest" }
+# csvkit = {} # CSV and TSV inspection utilities for tabular previews; default on; options: {}, { enabled = true|false }, { version = "x.y.z" or "latest" }
+
+# Tools/git-ui — GitHub CLI and lazygit interactive Git UI
+[addons.git-ui.tools]
+gh = {} # GitHub CLI for issues, PRs, releases, and auth; default on; options: {}, { enabled = true|false }, { version = "x.y.z" or "latest" }
+lazygit = {} # Interactive terminal UI for Git status, commits, and branches; default on; options: {}, { enabled = true|false }, { version = "x.y.z" or "latest" }
+
+# Tools/infrastructure — OpenTofu, Ansible, Packer
+[addons.infrastructure.tools]
+opentofu = { version = "1.12.3" } # Open-source Terraform-compatible infrastructure as code CLI; default on; options: {}, { enabled = true|false }, { version = "1.9.0" | "1.12.0" | "1.12.1" | "1.12.3" (default) or "latest" }
+ansible = { version = "14.1.0" } # Configuration management and automation engine; default on; options: {}, { enabled = true|false }, { version = "13.7.0" | "14.0.0" | "14.1.0" (default) or "latest" }
+packer = { version = "1.15.4" } # Machine image build automation tool; default on; options: {}, { enabled = true|false }, { version = "1.11.2" | "1.15.3" | "1.15.4" (default) or "latest" }
+
+# Tools/kubernetes — kubectl, Helm, Kustomize, k9s
+[addons.kubernetes.tools]
+kubectl = { version = "1.36.2" } # Kubernetes command-line client; default on; options: {}, { enabled = true|false }, { version = "1.36.1" | "1.36.2" (default) or "latest" }
+helm = { version = "4.2.2" } # Kubernetes package manager for charts; default on; options: {}, { enabled = true|false }, { version = "3.17.2" | "4.2.0" | "4.2.2" (default) or "latest" }
+kustomize = { version = "5.8.1" } # Kubernetes manifest overlay and patching tool; default on; options: {}, { enabled = true|false }, { version = "5.6.0" | "5.8.1" (default) or "latest" }
+# k9s = { enabled = true } # Interactive terminal UI for Kubernetes clusters; default off; options: {}, { enabled = true|false }, { version = "0.50.18" | "0.51.0" (default) or "latest" }
+
+# Tools/preview-archive — Yazi image/PDF/SVG preview helpers plus archive preview/extraction tools
+[addons.preview-archive.tools]
+chafa = {} # Terminal image renderer used by Yazi image and SVG previews; default on; options: {}, { enabled = true|false }, { version = "x.y.z" or "latest" }
+librsvg = {} # SVG conversion fallback via rsvg-convert; default on; options: {}, { enabled = true|false }, { version = "x.y.z" or "latest" }
+poppler = {} # PDF text and image utilities for preview extraction; default on; options: {}, { enabled = true|false }, { version = "x.y.z" or "latest" }
+timg = {} # Terminal image and PDF thumbnail viewer; default on; options: {}, { enabled = true|false }, { version = "x.y.z" or "latest" }
+mupdf = {} # Lightweight PDF utilities for document previews; default on; options: {}, { enabled = true|false }, { version = "x.y.z" or "latest" }
+entr = {} # File watcher used by live preview helpers; default on; options: {}, { enabled = true|false }, { version = "x.y.z" or "latest" }
+p7zip = {} # Archive listing and extraction support for previews; default on; options: {}, { enabled = true|false }, { version = "x.y.z" or "latest" }
+resvg = { version = "0.47.0" } # High-quality SVG rasterizer for Yazi previews; default on; options: {}, { enabled = true|false }, { version = "0.47.0" (default) or "latest" }
+
+# Tools/preview-enhanced — Rich Markdown rendering, ffmpeg, and Ghostscript; requires preview-archive
+[addons.preview-enhanced.tools]
+ffmpeg = {} # Video and audio metadata plus thumbnail support for previews; default on; options: {}, { enabled = true|false }, { version = "x.y.z" or "latest" }
+ghostscript = {} # PostScript and EPS rendering support for document previews; default on; options: {}, { enabled = true|false }, { version = "x.y.z" or "latest" }
+rich = {} # Markdown, JSON, RST, and notebook terminal rendering for Yazi previews; default on; options: {}, { enabled = true|false }, { version = "x.y.z" or "latest" }
+
+# =============================================================================
+# [ai] — AI agent harnesses and model providers
+# =============================================================================
+# Harnesses: CLI tools installed in the container.
+# Harness (CLI tool)          Config value   Provider (API key)
+# Claude Code                 claude         Anthropic
+# OpenAI Codex                codex          OpenAI
+# Gemini CLI                  gemini         Google
+# Aider                       aider          any (multi-provider)
+# Continue                    continue       any (multi-provider)
+# Cursor                      cursor         any (host-side IDE)
+# GitHub Copilot              copilot        (uses GITHUB_TOKEN)
+# OpenCode                    opencode       any (multi-provider)
+# Hermes                      hermes         any (multi-provider)
+#
+# Harnesses are configured by the ordered `harnesses` list below.
+# The list order is the tmux/layout order: 1st, 2nd, 3rd harness.
+#
+# Model providers (optional): declare which API key/base URL env vars are available.
+# Provider     Config value   API key env         Base URL env
+# Anthropic    anthropic      ANTHROPIC_API_KEY   ANTHROPIC_BASE_URL
+# OpenAI       openai         OPENAI_API_KEY      OPENAI_BASE_URL
+# Google       google         GEMINI_API_KEY      GEMINI_BASE_URL
+# Mistral      mistral        MISTRAL_API_KEY     MISTRAL_BASE_URL
+#
+# Alias used by some tools: OPENAI_API_BASE (OpenAI).
+[ai]
+
+model_providers = [
+#     "anthropic", # env: ANTHROPIC_API_KEY, ANTHROPIC_BASE_URL
+#     "openai", # env: OPENAI_API_KEY, OPENAI_BASE_URL
+#     "google", # env: GEMINI_API_KEY, GEMINI_BASE_URL
+#     "mistral", # env: MISTRAL_API_KEY, MISTRAL_BASE_URL
+]
+
+# Ordered harness list. Supported harness values:
+# claude, codex, gemini, aider, continue, cursor, copilot, opencode, hermes.
+# Each one-line entry is directly uncommentable; list order is tmux/layout order.
+# `enable = true` includes the harness in generated agent/MCP/runtime config.
+# `install = true` installs the matching in-container CLI recipe when one exists.
+# Defaults for both are false when omitted. Cursor has no container CLI, so
+# keep `install = false` for cursor even when `enable = true`.
+# `version` optionally pins the CLI recipe; omit it to use the addon default.
+harnesses = [
+    { harness = "codex", enable = true, install = true },
+#   { harness = "claude", enable = true, install = true },
+#   { harness = "gemini", enable = true, install = true },
+#   { harness = "aider", enable = true, install = true },
+#   { harness = "continue", enable = true, install = true },
+#   { harness = "cursor", enable = true, install = false },
+#   { harness = "copilot", enable = true, install = true },
+#   { harness = "opencode", enable = true, install = true },
+#   { harness = "hermes", enable = true, install = true },
+]
+
+# AI harness execution policy. These are aibox-level intent settings;
+# aibox maps them to each harness where supported.
+# Optional per-harness overrides use `[ai.execution.<harness>]`.
+# filesystem: read-only | workspace-write | container-full
+# approval:   ask | on-request | never
+# network:    deny | ask | allow
+[ai.execution]
+filesystem = "workspace-write"
+approval   = "on-request"
+network    = "ask"
+
+# Per-harness execution overrides. Uncomment a section and only the axes
+# you want to override; omitted axes inherit `[ai.execution]`.
+
+# [ai.execution.codex]
+# filesystem = "workspace-write"
+# approval   = "on-request"
+# network    = "ask"
+
+# [ai.execution.claude]
+# filesystem = "workspace-write"
+# approval   = "on-request"
+# network    = "ask"
+
+# [ai.execution.gemini]
+# filesystem = "workspace-write"
+# approval   = "on-request"
+# network    = "ask"
+
+# [ai.execution.aider]
+# filesystem = "workspace-write"
+# approval   = "on-request"
+# network    = "ask"
+
+# [ai.execution.continue]
+# filesystem = "workspace-write"
+# approval   = "on-request"
+# network    = "ask"
+
+# [ai.execution.cursor]
+# filesystem = "workspace-write"
+# approval   = "on-request"
+# network    = "ask"
+
+# [ai.execution.copilot]
+# filesystem = "workspace-write"
+# approval   = "on-request"
+# network    = "ask"
+
+# [ai.execution.opencode]
+# filesystem = "workspace-write"
+# approval   = "on-request"
+# network    = "ask"
+
+# [ai.execution.hermes]
+# filesystem = "workspace-write"
+# approval   = "on-request"
+# network    = "ask"
+
+[ai.agents]
+canonical     = "AGENTS.md"
+provider_mode = "pointer"  # options: pointer, full
+
+# =============================================================================
+# [ai.mcp] — MCP gateway, permissions, and extra servers
+# =============================================================================
+# Auto-allow / deny MCP tools by glob pattern. See:
+# https://projectious-work.github.io/aibox/docs/reference/configuration#permission-configuration-mcppermissions
+# [ai.mcp.permissions]
+# default_mode   = "ask"
+# allow_patterns = []
+# deny_patterns  = []
+
+# [ai.mcp.gateway] — processkit MCP topology. Options for mode: auto | daemon | stdio | separate
+[ai.mcp.gateway]
+mode = "auto"          # auto uses daemon when processkit-gateway is installed
+lazy_catalog = true    # Use processkit's lazy catalog where supported
+host = "127.0.0.1"     # daemon is always localhost-only
+port = 8765
+path = "/mcp"
+
+# =============================================================================
+# [processkit] — content layer source (skills, primitives, processes)
+# =============================================================================
+# processkit ships the skills and primitives that aibox installs into the
+# project. The default upstream is the canonical projectious-work/processkit
+# repo. Companies can fork processkit and have their projects consume the fork
+# by changing `source` to point at their fork.
+#
+# `version` is the git tag of the processkit source to consume. Special values:
+#   "unset"  — no version pinned yet; processkit content is not installed.
+#   "latest" — resolve to the newest available tag at every `aibox apply`.
+[processkit]
+source   = "https://github.com/projectious-work/processkit.git"
+version  = "latest"
+src_path = "src"
+# branch = "main"   # optional — for tracking a moving branch (discouraged)
+#
+# Optional release-asset URL template for non-GitHub hosts (Gitea, GitLab,
+# self-hosted). When unset, the fetcher uses the GitHub-style default:
+#   {source}/releases/download/{version}/{name}-{version}.tar.gz
+# Placeholders: {source} (.git stripped), {version}, {org}, {name}.
+# release_asset_url_template = "https://gitea.example.com/{org}/{name}/releases/download/{version}/payload.tar.gz"
+
+[processkit.context]
+schema_version = "1.0.0"      # Context schema version — updated automatically by `aibox apply`
+
+# =============================================================================
+# [customization] — color theme, shell prompt, and tmux layout
+# =============================================================================
+# Theme is applied consistently across tmux, Vim, Yazi, lazygit, and bat.
+# Theme families (31 total):
+#   Multi-variant: ayu, catppuccin, dracula, everforest, github, gruvbox,
+#     kanagawa, material, min, night-owl, one-dark, rose-pine, slack,
+#     solarized, tokyo-night, vitesse, vscode
+#   Solo (mode ignored): andromeeda, aurora-x, houston, laserwave,
+#     monokai, moonlight, nord, plastic, poimandres, projectious, red,
+#     snazzy, synthwave-84, vesper
+[customization]
+theme  = "rose-pine"
+# Light/dark variant. `auto` follows host OS appearance when detectable.
+# Solo families (see list above) ignore mode.
+# Options: auto | light | dark
+mode   = "dark"
+# Optional alternate variant override (per family). Default = unset.
+#   ayu: "mirage"           catppuccin: "macchiato" | "frappe"
+#   dracula: "soft"         github: "dimmed" | "high-contrast-dark" | "high-contrast-light"
+#   kanagawa: "dragon"      material: "ocean" | "palenight" | "darker"
+#   rose-pine: "moon"       slack: "ochin"
+#   tokyo-night: "storm"    vitesse: "black"
+variant = "moon"
+# Starship prompt preset.
+# Options: default | plain | minimal | nerd-font | pastel | powerline-pastel | bracketed | arrow
+# ASCII sketches:
+#   default          ~/repo main +2  py3.13  2s
+#                    >
+#   plain            ~/repo main +2
+#                    >
+#   minimal          ~/repo main
+#                    >
+#   nerd-font        [os] ~/repo main +2 py rs js go 2s
+#                    >
+#   pastel           ( ~/repo )>( main +2 )>( py rs js go ) 2s >
+#   powerline-pastel ( ~/repo )>( main +2 )>( py rs js go ) 2s >
+#   bracketed        ~/repo [main] [+2] [py3.13]
+#                    >
+#   arrow            > ~/repo > main +2 > 2s
+#                    >
+prompt = "powerline-pastel"
+# Default tmux layout. Options: dev | focus | cowork | ai
+# Layout sketches, one screen each:
+# +---- ai ----+  +--- dev ----+  +-- focus --+  +-- cowork -+
+# |files|ai1  |  |files|shell|  |  files     |  |files|shell|
+# |     |     |  |-----|     |  +-----------+  |     |     |
+# |     |     |  |ai1  |     |  ai1 ai2 ... |  +-----------+
+# +-----------+  +-----------+  +-----------+  ai1 ai2 ...
+# Extra windows: ai holds additional harnesses; lazygit and shell open when enabled.
+layout = "ai"
+
+# tmux runtime options. `layout` may override [customization].layout for tmux only.
+[customization.tmux]
+prefix = "C-g"
+session_name = "kubeclaw"
+
+# tmux status presentation.
+# - extended: full aibox themed status (legacy alias: powerline)
+# - plain: minimal tmux-native status text
+# - disabled: turn the tmux status line off
+[customization.tmux.status]
+mode = "extended"  # extended | plain | disabled (legacy: powerline -> extended)
+
+[customization.tmux.status.layout]
+# Row lists are ordered. Removing a name disables that status element.
+# Allowed line1-left entries:
+# - session: current tmux session name and prefix/copy-mode state
+# - windows: tmux window list
+#
+# Allowed line1-right / line2-left / line2-right entries:
+# - aibox_log: aibox log health counts
+# - aibox_oom: cgroup OOM kill counters
+# - aibox_proc: live process count versus configured process warning limit
+# - aibox_ai: detected AI-agent/runtime process count
+# - aibox_mcp: processkit/MCP daemon and server process status
+# - aibox_mig: pending processkit migration count
+# - weather: weather segment from tmux-powerkit
+# - uptime: container uptime
+# - datetime: local date/time
+# - git: current repository branch/status
+# - github: GitHub/repository integration status
+# - kubernetes: Kubernetes context/status
+# - terraform: Terraform/OpenTofu workspace/status
+# - cloud: local cloud CLI/context status
+# - cloudstatus: networked public provider status checks; opt-in, not enabled by default
+# - hostname: container hostname
+# - externalip: detected external IP
+# - ssh: SSH agent/key status
+# - netspeed: network throughput
+# - ping: network latency
+# - cpu: CPU usage
+# - loadavg: system load average
+# - memory: memory usage
+# - swap: swap usage
+# - disk: disk usage
+# - gpu: GPU status when available
+# - modelstatus_<provider>: per-provider AI status segment; explicit layout entries render even when model-provider auto-add is off
+line1-left = ["session", "windows"]
+line1-right = ["aibox_log", "aibox_oom", "aibox_proc", "aibox_ai", "aibox_mcp", "aibox_mig", "weather", "uptime", "datetime"]
+line2-left = ["forge", "kubernetes", "terraform", "cloud"]
+line2-right = ["hostname", "externalip", "ssh", "netspeed", "ping", "cpu", "loadavg", "memory", "swap", "disk", "gpu"]
+
+[customization.tmux.status.labels]
+# Visible headers/icons for status segments. Layout controls which segments appear;
+# this section controls how those segments are labeled once rendered.
+# Values may be plain ASCII labels or symbols. ASCII is safest across terminals;
+# Nerd Font / Powerline symbols are compact but require the user's terminal font.
+# Practical symbol candidates from Nerd Fonts. Keep icons distinct across
+# configured PowerKit segments so adjacent status cells remain scannable.
+# aibox-log: aibox log info/warn/error counter header.
+# aibox-oom: cgroup OOM event/kill counter header.
+# aibox-proc: process/thread count header.
+# aibox-ai: active AI-agent process count header.
+# aibox-mcp: processkit/MCP topology header.
+# aibox-mig: pending processkit migration count header.
+# kubernetes: Kubernetes segment icon/header.
+# cloud/cloud-aws/cloud-gcp/cloud-azure/cloud-multi: local cloud context icons.
+# uptime: container uptime icon/header.
+# netspeed/netspeed-download/netspeed-upload: network throughput icons.
+aibox-log = "󱖫"
+aibox-oom = "󰍛󰚌"
+aibox-proc = "󰊚"
+aibox-ai = "󱙺"
+aibox-mcp = "󰌹"
+aibox-mig = "󰚰"
+kubernetes = "󱃾"
+cloud = "󰅣"
+cloud-aws = "󰸏"
+cloud-gcp = "󰬠"
+cloud-azure = "󰠅"
+cloud-multi = "󰅤"
+uptime = ""
+netspeed = ""
+netspeed-download = "󰇚"
+netspeed-upload = "󰕒"
+
+[customization.tmux.status.separators]
+# PowerKit separator style. Options: normal | rounded | slant | slantup | trapezoid | flame | pixel | honeycomb | none
+style = "rounded"
+# Edge separators may use a different style at status boundaries.
+edge-style = "rounded"
+# Spacing between elements. Options: false | true | both | windows | plugins
+elements-spacing = "both"
+
+[customization.tmux.status.refresh]
+# Refresh/caching controls for extended tmux status.
+# interval-seconds: tmux redraw cadence. Higher values reduce shell process churn.
+# aibox-metrics-cache-ttl-seconds: LOG/OOM/PROC/AI/MCP/MIG cache TTL.
+#   These metrics are useful but not worth refreshing every redraw; a 30s TTL
+#   still surfaces runtime problems quickly while avoiding repeated aibox-status calls.
+# netspeed-cache-ttl-seconds: network throughput cache TTL. Keep near the redraw
+#   cadence if you want live-ish rates; increase for quieter laptops.
+# kubernetes-cache-ttl-seconds: local kubeconfig context cache TTL; this should
+#   not poll live clusters and does not need second-level freshness.
+# cloud-cache-ttl-seconds: local cloud CLI/context cache TTL; this avoids auth/network probes.
+# github-cache-ttl-seconds: local repo + GitHub issue/PR count cache TTL.
+interval-seconds = 15
+aibox-metrics-cache-ttl-seconds = 30
+netspeed-cache-ttl-seconds = 10
+kubernetes-cache-ttl-seconds = 120
+cloud-cache-ttl-seconds = 120
+github-cache-ttl-seconds = 120
+
+[customization.tmux.status.forge]
+# Exact GitHub SSH hostnames and aliases recognized by the Forge segment.
+# Add aliases from ~/.ssh/config here (for example, github-work).
+github-hosts = ["github.com"]
+
+[customization.tmux.status.model-providers]
+# Optional networked model-provider health segments for the extended tmux status line.
+# Each configured provider becomes one PowerKit segment when enabled, for example OAI ✓ or ANT 󰚌.
+# enabled: false avoids auto-adding all configured providers; explicit layout entries still render.
+# cache-ttl-seconds: minimum time between provider status requests per provider.
+# timeout-seconds: per-request HTTP timeout so status rendering cannot hang tmux.
+# show-ok: true shows healthy providers with ✓; false hides healthy providers and only shows degraded/unknown/outage.
+enabled = false
+cache-ttl-seconds = 300
+timeout-seconds = 3
+show-ok = false
+# Provider entries:
+# - provider: stable key from the model roster (openai, anthropic, google, mistral, deepseek, cohere, xai, alibaba, aws, meta, microsoft, minimax, moonshot, nvidia, xiaomi, zai)
+# - label: short category header shown in the status segment; use text or a symbol that your font supports
+# - checks: any of overall, models, harness; worst status wins (outage > degraded > unknown > ok)
+# - status-url: JSON status endpoint; Statuspage summary APIs are supported, Google uses incidents.json
+# - overall-components/model-components/harness-components: optional component-name filters for providers with componentized status APIs
+#   Symbols: ✓ ok, 󰀦 degraded, 󰚌 outage, ? unknown.
+
+[[customization.tmux.status.model-providers.providers]]
+provider = "openai"
+label = "OAI"
+checks = ["overall", "models", "harness"]
+status-url = "https://status.openai.com/api/v2/summary.json"
+model-components = ["Responses", "Chat Completions", "Embeddings", "Realtime", "Images"]
+harness-components = ["CLI", "Codex API", "Codex Web"]
+
+[[customization.tmux.status.model-providers.providers]]
+provider = "anthropic"
+label = "ANT"
+checks = ["overall", "models", "harness"]
+status-url = "https://status.claude.com/api/v2/summary.json"
+model-components = ["Claude API"]
+harness-components = ["Claude Code"]
+
+[[customization.tmux.status.model-providers.providers]]
+provider = "google"
+label = "GOOG"
+checks = ["overall", "models"]
+status-url = "https://status.cloud.google.com/incidents.json"
+
+[[customization.tmux.status.model-providers.providers]]
+provider = "mistral"
+label = "MST"
+checks = ["overall", "models"]
+status-url = "https://status.mistral.ai/api/v2/summary.json"
+
+[[customization.tmux.status.model-providers.providers]]
+provider = "deepseek"
+label = "DS"
+checks = ["overall", "models"]
+status-url = "https://status.deepseek.com/api/v2/summary.json"
+
+[[customization.tmux.status.model-providers.providers]]
+provider = "cohere"
+label = "COH"
+checks = ["overall", "models"]
+status-url = "https://status.cohere.com/api/v2/summary.json"
+
+[[customization.tmux.status.model-providers.providers]]
+provider = "xai"
+label = "XAI"
+checks = ["overall", "models"]
+# status-url intentionally omitted: no stable public JSON status API is configured yet
+
+[[customization.tmux.status.model-providers.providers]]
+provider = "alibaba"
+label = "QWN"
+checks = ["overall", "models"]
+# status-url intentionally omitted: no stable public JSON status API is configured yet
+
+[[customization.tmux.status.model-providers.providers]]
+provider = "aws"
+label = "AWS"
+checks = ["overall", "models"]
+# status-url intentionally omitted: no stable public JSON status API is configured yet
+
+[[customization.tmux.status.model-providers.providers]]
+provider = "meta"
+label = "META"
+checks = ["overall", "models"]
+# status-url intentionally omitted: no stable public JSON status API is configured yet
+
+[[customization.tmux.status.model-providers.providers]]
+provider = "microsoft"
+label = "MS"
+checks = ["overall", "models"]
+# status-url intentionally omitted: no stable public JSON status API is configured yet
+
+[[customization.tmux.status.model-providers.providers]]
+provider = "minimax"
+label = "MM"
+checks = ["overall", "models"]
+# status-url intentionally omitted: no stable public JSON status API is configured yet
+
+[[customization.tmux.status.model-providers.providers]]
+provider = "moonshot"
+label = "KIMI"
+checks = ["overall", "models"]
+# status-url intentionally omitted: no stable public JSON status API is configured yet
+
+[[customization.tmux.status.model-providers.providers]]
+provider = "nvidia"
+label = "NV"
+checks = ["overall", "models"]
+# status-url intentionally omitted: no stable public JSON status API is configured yet
+
+[[customization.tmux.status.model-providers.providers]]
+provider = "xiaomi"
+label = "MI"
+checks = ["overall", "models"]
+# status-url intentionally omitted: no stable public JSON status API is configured yet
+
+[[customization.tmux.status.model-providers.providers]]
+provider = "zai"
+label = "ZAI"
+checks = ["overall", "models"]
+# status-url intentionally omitted: no stable public JSON status API is configured yet
+
+# =============================================================================
+# [security] — explicit consent for security-sensitive runtime options
+# =============================================================================
+[security]
+# Codex bubblewrap sandboxing requires seccomp=unconfined in docker-compose.yml.
+# Set to true to acknowledge the trade-off and allow `aibox apply` to emit it.
+acknowledge_seccomp_unconfined = true

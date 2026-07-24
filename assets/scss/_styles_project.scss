@@ -1,0 +1,75 @@
+@import "td/code-dark";
+
+:root {
+  --projectious-midnight: #1d3352;
+  --projectious-midnight-dark: #132440;
+  --projectious-orange: #e05232;
+  --projectious-slate: #546a82;
+}
+
+body {
+  font-family: "Source Sans 3", sans-serif;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.navbar-brand__name,
+.td-cover__title {
+  font-family: "Plus Jakarta Sans", sans-serif;
+  letter-spacing: -0.02em;
+}
+
+code,
+pre,
+kbd {
+  font-family: "IBM Plex Mono", monospace;
+}
+
+.td-navbar {
+  border-bottom: 3px solid var(--projectious-orange);
+}
+
+.td-cover-block {
+  background:
+    linear-gradient(135deg, rgba(19, 36, 64, 0.98), rgba(29, 51, 82, 0.9)),
+    radial-gradient(circle at 88% 18%, rgba(224, 82, 50, 0.24), transparent 34%);
+}
+
+.td-cover__title {
+  max-width: 13ch;
+  font-weight: 700;
+}
+
+.td-cta-buttons .btn-primary {
+  background-color: var(--projectious-orange);
+  border-color: var(--projectious-orange);
+}
+
+.td-cta-buttons .btn-primary:hover,
+.td-cta-buttons .btn-primary:focus {
+  background-color: #b84228;
+  border-color: #b84228;
+}
+
+.td-box--primary,
+.td-box--secondary {
+  border-radius: 9px;
+  box-shadow: 0 4px 12px rgba(19, 36, 64, 0.08);
+}
+
+.td-box--primary {
+  background-color: var(--projectious-midnight);
+}
+
+.td-box--secondary {
+  background-color: #eef2f6;
+}
+
+.td-navbar .navbar-brand__logo svg {
+  height: 2.25rem;
+  width: 2.25rem;
+}

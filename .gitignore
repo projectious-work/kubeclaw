@@ -81,9 +81,13 @@ ansible/group_vars/all/vault.yml
 ansible/host_vars/*/vault.yml
 
 # =============================================================================
-# MkDocs
+# Hugo / Docsy
 # =============================================================================
 site/
+public/
+resources/_gen/
+.hugo_build.lock
+node_modules/
 
 # =============================================================================
 # IDE
@@ -93,3 +97,23 @@ site/
 *.swp
 *.swo
 *~
+
+# aibox generated
+.devcontainer/Dockerfile
+.devcontainer/docker-compose.yml
+.devcontainer/devcontainer.json
+.aibox-env/
+.latex-cache/
+.agents/skills/
+.aibox-local.toml
+.aibox-local.env
+context/.cache/
+context/.state/
+context/private/
+context/**/private/
+.mcp.json
+.cursor/mcp.json
+.gemini/settings.json
+.codex/config.toml
+.codex/hooks.json
+.continue/mcpServers/

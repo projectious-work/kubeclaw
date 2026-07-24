@@ -2,6 +2,8 @@
 
 A complete, security-first environment for running [OpenClaw](https://github.com/anthropics/openclaw) safely on remote infrastructure -- because agentic AI workloads should never run uncontained.
 
+📚 **[Read the documentation](https://projectious-work.github.io/kubeclaw/docs/)**
+
 ## Why KubeClaw?
 
 OpenClaw and similar agentic environments execute arbitrary code with tool access. Running them on a local machine or an unsandboxed server exposes your system to serious risks:
@@ -69,7 +71,7 @@ KubeClaw solves this by providing a fully automated, remote Kubernetes cluster o
 
 ```bash
 git clone <repo-url> && cd kubeclaw
-mkdir -p .root/.ssh && chmod 700 .root/.ssh
+mkdir -p .aibox-home/.ssh && chmod 700 .aibox-home/.ssh
 # Open in Dev Container (VS Code: "Reopen in Container")
 
 # Inside the Dev Container:
@@ -81,34 +83,36 @@ ssh control-node
 sudo cloudflared service install <TOKEN>  # skip if token is in tfvars
 ```
 
-See the [full Quick Start guide](https://bnaard.codeberg.page/kubeclaw/quick-start/) for detailed steps.
+See the [full Quick Start guide](https://projectious-work.github.io/kubeclaw/docs/quick-start/) for detailed steps.
 
 ## Documentation
 
-Full documentation is available via MkDocs:
+Full documentation is available as a Hugo site powered by Docsy:
 
 ```bash
-mkdocs serve   # http://localhost:8000
+./scripts/serve-docs.sh   # http://localhost:1313
 ```
 
 Key sections:
 
-- [Getting Started](https://bnaard.codeberg.page/kubeclaw/quick-start/) -- requirements, quick start, dev container
-- [Architecture](https://bnaard.codeberg.page/kubeclaw/introduction/architecture/) -- network design, node roles, security model
-- [Infrastructure](https://bnaard.codeberg.page/kubeclaw/guide/infrastructure/) -- SSH keys, scaling, OpenTofu workflow
-- [Kubernetes](https://bnaard.codeberg.page/kubeclaw/guide/kubernetes/) -- kubeadm deployment with Cilium and Hetzner CSI
-- [Reference](https://bnaard.codeberg.page/kubeclaw/reference/variables/) -- all variables, outputs, templates, playbooks
-- [Operations](https://bnaard.codeberg.page/kubeclaw/operations/troubleshooting/) -- troubleshooting, security, credentials
+- [Getting Started](https://projectious-work.github.io/kubeclaw/docs/quick-start/) -- requirements, quick start, dev container
+- [Architecture](https://projectious-work.github.io/kubeclaw/docs/introduction/architecture/) -- network design, node roles, security model
+- [Infrastructure](https://projectious-work.github.io/kubeclaw/docs/guide/infrastructure/) -- SSH keys, scaling, OpenTofu workflow
+- [Kubernetes](https://projectious-work.github.io/kubeclaw/docs/guide/kubernetes/) -- kubeadm deployment with Cilium and Hetzner CSI
+- [Reference](https://projectious-work.github.io/kubeclaw/docs/reference/variables/) -- all variables, outputs, templates, playbooks
+- [Operations](https://projectious-work.github.io/kubeclaw/docs/operations/troubleshooting/) -- troubleshooting, security, credentials
 
 ## Project Status
 
-**Working**: Infrastructure provisioning (OpenTofu), SSH config generation, NAT64/DNS64, Ansible playbooks (updates, hardening, K8s prerequisites), kubeadm deployment guide, Dev Container, MkDocs documentation.
+**Working**: Infrastructure provisioning (OpenTofu), SSH config generation,
+NAT64/DNS64, Ansible playbooks (updates, hardening, Kubernetes prerequisites),
+kubeadm deployment guide, aibox Dev Container, and Hugo/Docsy documentation.
 
 **Next**: Deploy infrastructure, set up Cloudflare Tunnel, deploy Kubernetes cluster, add K8s firewall rules.
 
 ## Contributing
 
-Contributions are welcome. See the [contributing guide](https://bnaard.codeberg.page/kubeclaw/contributing/) for details.
+Contributions are welcome. See the [contributing guide](https://projectious-work.github.io/kubeclaw/docs/contributing/) for details.
 
 ## License
 

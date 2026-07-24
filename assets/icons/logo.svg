@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" aria-labelledby="title desc" role="img">
+  <title id="title">Projectious</title>
+  <desc id="desc">Projectious brand mark</desc>
+  <path d="M20 3.2C29.6 3.2 36 12 34.4 22.4 32.8 30.4 25.6 36 18.4 36S4.8 30.4 5.6 20C6.4 10.4 12 3.2 20 3.2Z" fill="#1d3352"/>
+  <path d="M10.4 29.6C9.6 20 13.6 10.4 20.8 8 27.2 6.4 31.2 12 32 19.2l-.8 5.6c-4 6.4-14.4 8-19.2 5.6Z" fill="#fff" opacity=".85"/>
+  <path d="M12.8 26.4C12 19.2 16 10.4 21.6 10.4c4.8.8 8 5.6 8 10.4-.8 5.6-7.2 8.8-14.4 8Z" fill="#1d3352" opacity=".85"/>
+  <path d="M14.4 24.8c-.8-6.4 3.2-12.8 8-12 3.2.8 4.8 4.8 4 9.6-.8 3.2-6.4 4.8-11.2 3.2Z" fill="#fff" opacity=".8"/>
+  <path d="M16 23.2c0-4.8 2.4-8.8 5.6-8 2.4.8 3.2 4 1.6 6.4-1.6 1.6-5.6 2.4-7.2 1.6Z" fill="#e05232"/>
+</svg>

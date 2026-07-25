@@ -54,6 +54,9 @@ else
   cp -R "${BUILD_DIR}/." "${VERSION_DIR}/"
 fi
 
+# Tell GitHub Pages to publish the prebuilt Hugo output without Jekyll.
+: > "${WORKTREE_DIR}/.nojekyll"
+
 git -C "${WORKTREE_DIR}" add -A
 if git -C "${WORKTREE_DIR}" diff --cached --quiet; then
   echo "No documentation changes to deploy."

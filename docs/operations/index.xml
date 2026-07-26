@@ -1,4 +1,71 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Operations on KubeClaw</title><link>https://projectious-work.github.io/kubeclaw/docs/operations/</link><description>Recent content in Operations on KubeClaw</description><generator>Hugo</generator><language>en</language><atom:link href="https://projectious-work.github.io/kubeclaw/docs/operations/index.xml" rel="self" type="application/rss+xml"/><item><title>Kubernetes Maintenance</title><link>https://projectious-work.github.io/kubeclaw/docs/operations/kubernetes-maintenance/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/operations/kubernetes-maintenance/</guid><description>&lt;p&gt;Operational procedures for upgrading and managing the Kubernetes cluster. For initial cluster setup, see the &lt;a href="https://projectious-work.github.io/kubeclaw/docs/guide/kubernetes/"&gt;Kubernetes (kubeadm)&lt;/a&gt; guide.&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Operations on KubeClaw</title><link>https://projectious-work.github.io/kubeclaw/docs/operations/</link><description>Recent content in Operations on KubeClaw</description><generator>Hugo</generator><language>en</language><atom:link href="https://projectious-work.github.io/kubeclaw/docs/operations/index.xml" rel="self" type="application/rss+xml"/><item><title>Scale Up/Down</title><link>https://projectious-work.github.io/kubeclaw/docs/operations/scale-up-down/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/operations/scale-up-down/</guid><description>&lt;p&gt;This guide covers scaling your cluster at both the infrastructure and Kubernetes levels.&lt;/p&gt;
+&lt;h2 id="scale-infrastructure"&gt;Scale Infrastructure&lt;/h2&gt;
+&lt;h3 id="add-worker-nodes"&gt;Add worker nodes&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;Edit &lt;code&gt;terraform.tfvars&lt;/code&gt; &amp;ndash; update &lt;code&gt;worker_node_types&lt;/code&gt;:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-hcl" data-lang="hcl"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="n"&gt;worker_node_types&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="n"&gt; { type&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt; &amp;#34;cx23&amp;#34;, count&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="m"&gt;2&lt;/span&gt; }&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="n"&gt; { type&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt; &amp;#34;cx32&amp;#34;, count&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="m"&gt;1&lt;/span&gt; }&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="c1"&gt; # 3 workers total, mixed types
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Apply changes:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;tofu apply
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Regenerate Ansible inventory:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;./scripts/generate-ansible-inventory.sh
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Run Ansible playbooks on the new nodes &amp;ndash; see &lt;a href="https://projectious-work.github.io/kubeclaw/docs/guide/ansible/"&gt;Server Management (Ansible)&lt;/a&gt; for the full workflow.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id="add-replica-control-nodes"&gt;Add replica control nodes&lt;/h3&gt;
+&lt;p&gt;Same pattern using &lt;code&gt;control_node_types&lt;/code&gt;:&lt;/p&gt;</description></item><item><title>SSH Key Rotation</title><link>https://projectious-work.github.io/kubeclaw/docs/operations/ssh-key-rotation/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/operations/ssh-key-rotation/</guid><description>&lt;h2 id="when-to-rotate"&gt;When to rotate&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Periodically (e.g. annually)&lt;/li&gt;
+&lt;li&gt;If compromise is suspected&lt;/li&gt;
+&lt;li&gt;When personnel changes occur&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id="with-auto-generated-keys"&gt;With auto-generated keys&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 1. Mark old key resources for recreation&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;tofu taint &lt;span class="s1"&gt;&amp;#39;tls_private_key.control_node[0]&amp;#39;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;tofu taint &lt;span class="s1"&gt;&amp;#39;tls_private_key.worker_node[0]&amp;#39;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 2. Generate new keys and update servers&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;tofu apply
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 3. Export new keys&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;./scripts/setup-ssh.sh
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class="alert alert-primary" role="alert"&gt;&lt;div class="h4 alert-heading" role="heading"&gt;Warning&lt;/div&gt;
+
+
+During rotation SSH access may be briefly interrupted. Keep Hetzner web console root access available as a fallback.
+
+&lt;/div&gt;
+
+&lt;h2 id="with-custom-keys"&gt;With custom keys&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 1. Create new keys&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;ssh-keygen -t ed25519 -f ~/.ssh/k8s-control-new -C &lt;span class="s2"&gt;&amp;#34;control-node-new&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 2. Add the new public key to the server (before removing the old one)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;ssh control-node
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;ssh-ed25519 AAAA... control-node-new&amp;#34;&lt;/span&gt; &amp;gt;&amp;gt; ~/.ssh/authorized_keys
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 3. Test the new key&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;ssh -i ~/.ssh/k8s-control-new kubernetes-admin@&amp;lt;node-ip&amp;gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 4. Remove the old key from authorized_keys&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;ssh -i ~/.ssh/k8s-control-new control-node
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# Edit ~/.ssh/authorized_keys and remove the old key line&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 5. Update terraform.tfvars with the new public key&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# control_node_public_key = &amp;#34;ssh-ed25519 AAAA... (new key)&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 6. Sync OpenTofu state&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;tofu apply
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Repeat for worker node keys if applicable.&lt;/p&gt;</description></item><item><title>Kubernetes Maintenance</title><link>https://projectious-work.github.io/kubeclaw/docs/operations/kubernetes-maintenance/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/operations/kubernetes-maintenance/</guid><description>&lt;p&gt;Operational procedures for upgrading and managing the Kubernetes cluster. For initial cluster setup, see the &lt;a href="https://projectious-work.github.io/kubeclaw/docs/guide/kubernetes/"&gt;Kubernetes (kubeadm)&lt;/a&gt; guide.&lt;/p&gt;
 &lt;h2 id="upgrade-kubernetes"&gt;Upgrade Kubernetes&lt;/h2&gt;
 &lt;p&gt;Kubernetes upgrades follow a strict order: &lt;strong&gt;control plane first, then workers&lt;/strong&gt;. This is the standard CKA upgrade workflow.&lt;/p&gt;
 &lt;h3 id="upgrade-control-plane"&gt;Upgrade control plane&lt;/h3&gt;
@@ -27,77 +94,7 @@
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 7. Uncordon the node&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;kubectl uncordon &lt;span class="k"&gt;$(&lt;/span&gt;hostname&lt;span class="k"&gt;)&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id="upgrade-worker-nodes"&gt;Upgrade worker nodes&lt;/h3&gt;
-&lt;p&gt;On each worker node:&lt;/p&gt;</description></item><item><title>Password Management</title><link>https://projectious-work.github.io/kubeclaw/docs/operations/password-management/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/operations/password-management/</guid><description>&lt;h2 id="which-credentials-exist"&gt;Which credentials exist?&lt;/h2&gt;
-&lt;table&gt;
-	&lt;thead&gt;
-			&lt;tr&gt;
-					&lt;th&gt;Credential&lt;/th&gt;
-					&lt;th&gt;Purpose&lt;/th&gt;
-					&lt;th&gt;Storage&lt;/th&gt;
-			&lt;/tr&gt;
-	&lt;/thead&gt;
-	&lt;tbody&gt;
-			&lt;tr&gt;
-					&lt;td&gt;Hetzner API Token&lt;/td&gt;
-					&lt;td&gt;Create infrastructure&lt;/td&gt;
-					&lt;td&gt;&lt;code&gt;terraform.tfvars&lt;/code&gt;&lt;/td&gt;
-			&lt;/tr&gt;
-			&lt;tr&gt;
-					&lt;td&gt;Root password&lt;/td&gt;
-					&lt;td&gt;Emergency web console&lt;/td&gt;
-					&lt;td&gt;&lt;code&gt;terraform.tfvars&lt;/code&gt;&lt;/td&gt;
-			&lt;/tr&gt;
-			&lt;tr&gt;
-					&lt;td&gt;SSH private keys&lt;/td&gt;
-					&lt;td&gt;Server access&lt;/td&gt;
-					&lt;td&gt;&lt;code&gt;~/.ssh/&lt;/code&gt; or password manager&lt;/td&gt;
-			&lt;/tr&gt;
-			&lt;tr&gt;
-					&lt;td&gt;Cloudflare Tunnel token&lt;/td&gt;
-					&lt;td&gt;Tunnel auth&lt;/td&gt;
-					&lt;td&gt;Cloudflare Dashboard&lt;/td&gt;
-			&lt;/tr&gt;
-	&lt;/tbody&gt;
-&lt;/table&gt;
-&lt;h2 id="recommended-dashlane-structure"&gt;Recommended Dashlane structure&lt;/h2&gt;
-&lt;pre tabindex="0"&gt;&lt;code&gt;📁 K8s Cluster
-├── 🔐 Hetzner API Token
-│ └── Token: xxx
-├── 🔐 Root Password
-│ └── Password: xxx
-├── 📝 SSH Keys (Secure Note)
-│ ├── Control Node Private Key: ...
-│ ├── Control Node Public Key: ...
-│ ├── Worker Node Private Key: ...
-│ └── Worker Node Public Key: ...
-└── 🔐 Cloudflare Tunnel Token
- └── Token: xxx
-&lt;/code&gt;&lt;/pre&gt;&lt;h2 id="securing-terraformtfvars"&gt;Securing terraform.tfvars&lt;/h2&gt;
-&lt;p&gt;&lt;code&gt;terraform.tfvars&lt;/code&gt; contains sensitive data. Options:&lt;/p&gt;</description></item><item><title>Scale Up/Down</title><link>https://projectious-work.github.io/kubeclaw/docs/operations/scale-up-down/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/operations/scale-up-down/</guid><description>&lt;p&gt;This guide covers scaling your cluster at both the infrastructure and Kubernetes levels.&lt;/p&gt;
-&lt;h2 id="scale-infrastructure"&gt;Scale Infrastructure&lt;/h2&gt;
-&lt;h3 id="add-worker-nodes"&gt;Add worker nodes&lt;/h3&gt;
-&lt;ol&gt;
-&lt;li&gt;
-&lt;p&gt;Edit &lt;code&gt;terraform.tfvars&lt;/code&gt; &amp;ndash; update &lt;code&gt;worker_node_types&lt;/code&gt;:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-hcl" data-lang="hcl"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="n"&gt;worker_node_types&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="n"&gt; { type&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt; &amp;#34;cx23&amp;#34;, count&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="m"&gt;2&lt;/span&gt; }&lt;span class="p"&gt;,&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="n"&gt; { type&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt; &amp;#34;cx32&amp;#34;, count&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="m"&gt;1&lt;/span&gt; }&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="c1"&gt; # 3 workers total, mixed types
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;]&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;Apply changes:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;tofu apply
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;Regenerate Ansible inventory:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;./scripts/generate-ansible-inventory.sh
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;Run Ansible playbooks on the new nodes &amp;ndash; see &lt;a href="https://projectious-work.github.io/kubeclaw/docs/guide/ansible/"&gt;Server Management (Ansible)&lt;/a&gt; for the full workflow.&lt;/p&gt;
-&lt;/li&gt;
-&lt;/ol&gt;
-&lt;h3 id="add-replica-control-nodes"&gt;Add replica control nodes&lt;/h3&gt;
-&lt;p&gt;Same pattern using &lt;code&gt;control_node_types&lt;/code&gt;:&lt;/p&gt;</description></item><item><title>Security</title><link>https://projectious-work.github.io/kubeclaw/docs/operations/security/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/operations/security/</guid><description>&lt;h2 id="security-summary"&gt;Security Summary&lt;/h2&gt;
+&lt;p&gt;On each worker node:&lt;/p&gt;</description></item><item><title>Security</title><link>https://projectious-work.github.io/kubeclaw/docs/operations/security/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/operations/security/</guid><description>&lt;h2 id="security-summary"&gt;Security Summary&lt;/h2&gt;
 &lt;table&gt;
 	&lt;thead&gt;
 			&lt;tr&gt;
@@ -162,50 +159,53 @@
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;h2 id="openclaw-specific-security"&gt;OpenClaw-specific security&lt;/h2&gt;
-&lt;p&gt;When running OpenClaw:&lt;/p&gt;</description></item><item><title>SSH Key Rotation</title><link>https://projectious-work.github.io/kubeclaw/docs/operations/ssh-key-rotation/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/operations/ssh-key-rotation/</guid><description>&lt;h2 id="when-to-rotate"&gt;When to rotate&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;Periodically (e.g. annually)&lt;/li&gt;
-&lt;li&gt;If compromise is suspected&lt;/li&gt;
-&lt;li&gt;When personnel changes occur&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2 id="with-auto-generated-keys"&gt;With auto-generated keys&lt;/h2&gt;
-&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 1. Mark old key resources for recreation&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;tofu taint &lt;span class="s1"&gt;&amp;#39;tls_private_key.control_node[0]&amp;#39;&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;tofu taint &lt;span class="s1"&gt;&amp;#39;tls_private_key.worker_node[0]&amp;#39;&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 2. Generate new keys and update servers&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;tofu apply
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 3. Export new keys&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;./scripts/setup-ssh.sh
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class="alert alert-primary" role="alert"&gt;&lt;div class="h4 alert-heading" role="heading"&gt;Warning&lt;/div&gt;
-
-
-During rotation SSH access may be briefly interrupted. Keep Hetzner web console root access available as a fallback.
-
-&lt;/div&gt;
-
-&lt;h2 id="with-custom-keys"&gt;With custom keys&lt;/h2&gt;
-&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 1. Create new keys&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;ssh-keygen -t ed25519 -f ~/.ssh/k8s-control-new -C &lt;span class="s2"&gt;&amp;#34;control-node-new&amp;#34;&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 2. Add the new public key to the server (before removing the old one)&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;ssh control-node
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;ssh-ed25519 AAAA... control-node-new&amp;#34;&lt;/span&gt; &amp;gt;&amp;gt; ~/.ssh/authorized_keys
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 3. Test the new key&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;ssh -i ~/.ssh/k8s-control-new kubernetes-admin@&amp;lt;node-ip&amp;gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 4. Remove the old key from authorized_keys&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;ssh -i ~/.ssh/k8s-control-new control-node
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# Edit ~/.ssh/authorized_keys and remove the old key line&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 5. Update terraform.tfvars with the new public key&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# control_node_public_key = &amp;#34;ssh-ed25519 AAAA... (new key)&amp;#34;&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 6. Sync OpenTofu state&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;tofu apply
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Repeat for worker node keys if applicable.&lt;/p&gt;</description></item><item><title>Troubleshooting</title><link>https://projectious-work.github.io/kubeclaw/docs/operations/troubleshooting/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/operations/troubleshooting/</guid><description>&lt;h2 id="infrastructure-issues"&gt;Infrastructure Issues&lt;/h2&gt;
+&lt;p&gt;When running OpenClaw:&lt;/p&gt;</description></item><item><title>Password Management</title><link>https://projectious-work.github.io/kubeclaw/docs/operations/password-management/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/operations/password-management/</guid><description>&lt;h2 id="which-credentials-exist"&gt;Which credentials exist?&lt;/h2&gt;
+&lt;table&gt;
+	&lt;thead&gt;
+			&lt;tr&gt;
+					&lt;th&gt;Credential&lt;/th&gt;
+					&lt;th&gt;Purpose&lt;/th&gt;
+					&lt;th&gt;Storage&lt;/th&gt;
+			&lt;/tr&gt;
+	&lt;/thead&gt;
+	&lt;tbody&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Hetzner API Token&lt;/td&gt;
+					&lt;td&gt;Create infrastructure&lt;/td&gt;
+					&lt;td&gt;&lt;code&gt;terraform.tfvars&lt;/code&gt;&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Root password&lt;/td&gt;
+					&lt;td&gt;Emergency web console&lt;/td&gt;
+					&lt;td&gt;&lt;code&gt;terraform.tfvars&lt;/code&gt;&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;SSH private keys&lt;/td&gt;
+					&lt;td&gt;Server access&lt;/td&gt;
+					&lt;td&gt;&lt;code&gt;~/.ssh/&lt;/code&gt; or password manager&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Cloudflare Tunnel token&lt;/td&gt;
+					&lt;td&gt;Tunnel auth&lt;/td&gt;
+					&lt;td&gt;Cloudflare Dashboard&lt;/td&gt;
+			&lt;/tr&gt;
+	&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2 id="recommended-dashlane-structure"&gt;Recommended Dashlane structure&lt;/h2&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;📁 K8s Cluster
+├── 🔐 Hetzner API Token
+│ └── Token: xxx
+├── 🔐 Root Password
+│ └── Password: xxx
+├── 📝 SSH Keys (Secure Note)
+│ ├── Control Node Private Key: ...
+│ ├── Control Node Public Key: ...
+│ ├── Worker Node Private Key: ...
+│ └── Worker Node Public Key: ...
+└── 🔐 Cloudflare Tunnel Token
+ └── Token: xxx
+&lt;/code&gt;&lt;/pre&gt;&lt;h2 id="securing-terraformtfvars"&gt;Securing terraform.tfvars&lt;/h2&gt;
+&lt;p&gt;&lt;code&gt;terraform.tfvars&lt;/code&gt; contains sensitive data. Options:&lt;/p&gt;</description></item><item><title>Troubleshooting</title><link>https://projectious-work.github.io/kubeclaw/docs/operations/troubleshooting/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/operations/troubleshooting/</guid><description>&lt;h2 id="infrastructure-issues"&gt;Infrastructure Issues&lt;/h2&gt;
 &lt;h3 id="cloudflared-wont-start-ipv6-only"&gt;cloudflared won&amp;rsquo;t start (IPv6-only)&lt;/h3&gt;
 &lt;p&gt;Check &lt;code&gt;/etc/cloudflared/config.yml&lt;/code&gt;:&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-yaml" data-lang="yaml"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nt"&gt;edge-ip-version&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;6&amp;#34;&lt;/span&gt;&lt;span class="w"&gt;

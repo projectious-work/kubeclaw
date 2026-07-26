@@ -1,5 +1,9 @@
 # Architecture
 
+> Node roles, private network layout, and how traffic reaches an IPv6-only cluster.
+
+---
+
 LLMS index: [llms.txt](/kubeclaw/llms.txt)
 
 ---

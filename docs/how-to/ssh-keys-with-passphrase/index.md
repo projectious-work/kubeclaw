@@ -1,5 +1,9 @@
 # SSH Keys with Passphrase
 
+> Protect cluster SSH keys with a passphrase and keep Ansible working through ssh-agent.
+
+---
+
 LLMS index: [llms.txt](/kubeclaw/llms.txt)
 
 ---

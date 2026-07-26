@@ -1,43 +1,17 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>KubeClaw</title><link>https://projectious-work.github.io/kubeclaw/</link><description>Recent content on KubeClaw</description><generator>Hugo</generator><language>en</language><atom:link href="https://projectious-work.github.io/kubeclaw/index.xml" rel="self" type="application/rss+xml"/><item><title>Ansible Playbooks Reference</title><link>https://projectious-work.github.io/kubeclaw/docs/reference/playbooks/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/reference/playbooks/</guid><description>&lt;p&gt;All playbooks are in &lt;code&gt;ansible/playbooks/&lt;/code&gt; and target the &lt;code&gt;k8s_cluster&lt;/code&gt; host group by default.&lt;/p&gt;
-&lt;h2 id="update-systemyml"&gt;update-system.yml&lt;/h2&gt;
-&lt;p&gt;&lt;strong&gt;Purpose&lt;/strong&gt;: Run &lt;code&gt;apt update &amp;amp;&amp;amp; apt upgrade&lt;/code&gt; on all nodes.&lt;/p&gt;
-&lt;p&gt;&lt;strong&gt;Usage&lt;/strong&gt;:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;cd&lt;/span&gt; ansible
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;ansible-playbook playbooks/update-system.yml
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;ansible-playbook playbooks/update-system.yml --limit control_nodes
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;ansible-playbook playbooks/update-system.yml -e &lt;span class="s2"&gt;&amp;#34;reboot_after_update=true&amp;#34;&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;strong&gt;Variables&lt;/strong&gt;:&lt;/p&gt;
-&lt;table&gt;
-	&lt;thead&gt;
-			&lt;tr&gt;
-					&lt;th&gt;Variable&lt;/th&gt;
-					&lt;th&gt;Default&lt;/th&gt;
-					&lt;th&gt;Description&lt;/th&gt;
-			&lt;/tr&gt;
-	&lt;/thead&gt;
-	&lt;tbody&gt;
-			&lt;tr&gt;
-					&lt;td&gt;&lt;code&gt;reboot_after_update&lt;/code&gt;&lt;/td&gt;
-					&lt;td&gt;&lt;code&gt;false&lt;/code&gt;&lt;/td&gt;
-					&lt;td&gt;Reboot after update if the system requires it&lt;/td&gt;
-			&lt;/tr&gt;
-			&lt;tr&gt;
-					&lt;td&gt;&lt;code&gt;reboot_timeout&lt;/code&gt;&lt;/td&gt;
-					&lt;td&gt;&lt;code&gt;300&lt;/code&gt;&lt;/td&gt;
-					&lt;td&gt;Timeout (seconds) to wait for reboot&lt;/td&gt;
-			&lt;/tr&gt;
-	&lt;/tbody&gt;
-&lt;/table&gt;
-&lt;p&gt;&lt;strong&gt;Tasks&lt;/strong&gt;:&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;Update apt cache&lt;/li&gt;
-&lt;li&gt;Upgrade all packages (dist-upgrade with autoremove)&lt;/li&gt;
-&lt;li&gt;Check if reboot is required (&lt;code&gt;/var/run/reboot-required&lt;/code&gt;)&lt;/li&gt;
-&lt;li&gt;Reboot if required and enabled&lt;/li&gt;
-&lt;li&gt;Wait for system to come back online&lt;/li&gt;
-&lt;/ol&gt;
-&lt;h2 id="security-hardeningyml"&gt;security-hardening.yml&lt;/h2&gt;
-&lt;p&gt;&lt;strong&gt;Purpose&lt;/strong&gt;: Apply security measures on all nodes.&lt;/p&gt;</description></item><item><title>Architecture</title><link>https://projectious-work.github.io/kubeclaw/docs/introduction/architecture/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/introduction/architecture/</guid><description>&lt;h2 id="overview"&gt;Overview&lt;/h2&gt;
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>KubeClaw</title><link>https://projectious-work.github.io/kubeclaw/</link><description>Recent content on KubeClaw</description><generator>Hugo</generator><language>en</language><atom:link href="https://projectious-work.github.io/kubeclaw/index.xml" rel="self" type="application/rss+xml"/><item><title>Quick Start</title><link>https://projectious-work.github.io/kubeclaw/docs/quick-start/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/quick-start/</guid><description>&lt;h2 id="prerequisites"&gt;Prerequisites&lt;/h2&gt;
+&lt;h3 id="accounts"&gt;Accounts&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Hetzner Cloud account&lt;/strong&gt; with an API token (&lt;a href="https://console.hetzner.cloud"&gt;console.hetzner.cloud&lt;/a&gt;)&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Cloudflare account&lt;/strong&gt; with a configured domain (free tier is sufficient)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id="local-machine"&gt;Local Machine&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Docker&lt;/strong&gt; and an IDE with Dev Container support (e.g. VS Code + Dev Containers extension)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;That&amp;rsquo;s it. All project tools (OpenTofu, Ansible, SSH, &lt;code&gt;cloudflared&lt;/code&gt;, Hugo,
+Kubernetes clients, and AI assistants) are available in the Dev Container. No
+local installation is required beyond Docker and an IDE with Dev Container
+support.&lt;/p&gt;</description></item><item><title>Architecture</title><link>https://projectious-work.github.io/kubeclaw/docs/introduction/architecture/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/introduction/architecture/</guid><description>&lt;h2 id="overview"&gt;Overview&lt;/h2&gt;
 &lt;p&gt;KubeClaw creates a secure, IPv6-only Kubernetes cluster on Hetzner Cloud. The design prioritizes security through network isolation: no public IPv4 addresses, SSH access exclusively via Cloudflare Tunnel, and per-namespace egress control with Cilium network policies.&lt;/p&gt;
 &lt;pre tabindex="0"&gt;&lt;code&gt;┌─────────────────────────────────────────────────────────────────┐
 │ Internet │
@@ -82,149 +56,7 @@ This feature has been implemented. The [Kubernetes guide](/kubeclaw/docs/guide/k
 
 &lt;h2 id="summary"&gt;Summary&lt;/h2&gt;
 &lt;p&gt;The cluster uses &lt;strong&gt;dual-stack networking&lt;/strong&gt; (IPv4 + IPv6) in the Cilium pod network. Every pod gets both an IPv4 address (from &lt;code&gt;10.244.0.0/16&lt;/code&gt;) for internal cluster communication and an IPv6 address (from &lt;code&gt;fd00:10:244::/48&lt;/code&gt;) for external connectivity via DNS64/NAT64.&lt;/p&gt;
-&lt;p&gt;This eliminates the need for &lt;code&gt;hostNetwork: true&lt;/code&gt; on any pod, which means:&lt;/p&gt;</description></item><item><title>Cloud-Init Templates</title><link>https://projectious-work.github.io/kubeclaw/docs/reference/cloud-init/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/reference/cloud-init/</guid><description>&lt;p&gt;Cloud-init templates are located in &lt;code&gt;cloud-init/&lt;/code&gt; and rendered by OpenTofu via &lt;code&gt;templatefile()&lt;/code&gt; in &lt;code&gt;main.tf&lt;/code&gt;. They configure each server on first boot.&lt;/p&gt;
-&lt;h2 id="admin-nodeyamltpl"&gt;admin-node.yaml.tpl&lt;/h2&gt;
-&lt;p&gt;&lt;strong&gt;Purpose&lt;/strong&gt;: Minimal jump host for initial SSH access.&lt;/p&gt;
-&lt;p&gt;&lt;strong&gt;Used by&lt;/strong&gt;: &lt;code&gt;hcloud_server.admin_node&lt;/code&gt;&lt;/p&gt;
-&lt;p&gt;&lt;strong&gt;Template variables&lt;/strong&gt;:&lt;/p&gt;
-&lt;table&gt;
-	&lt;thead&gt;
-			&lt;tr&gt;
-					&lt;th&gt;Variable&lt;/th&gt;
-					&lt;th&gt;Source&lt;/th&gt;
-			&lt;/tr&gt;
-	&lt;/thead&gt;
-	&lt;tbody&gt;
-			&lt;tr&gt;
-					&lt;td&gt;&lt;code&gt;ssh_public_key&lt;/code&gt;&lt;/td&gt;
-					&lt;td&gt;&lt;code&gt;local.admin_node_public_key&lt;/code&gt;&lt;/td&gt;
-			&lt;/tr&gt;
-			&lt;tr&gt;
-					&lt;td&gt;&lt;code&gt;root_password&lt;/code&gt;&lt;/td&gt;
-					&lt;td&gt;&lt;code&gt;var.root_password&lt;/code&gt;&lt;/td&gt;
-			&lt;/tr&gt;
-			&lt;tr&gt;
-					&lt;td&gt;&lt;code&gt;admin_user&lt;/code&gt;&lt;/td&gt;
-					&lt;td&gt;&lt;code&gt;var.admin_user&lt;/code&gt;&lt;/td&gt;
-			&lt;/tr&gt;
-			&lt;tr&gt;
-					&lt;td&gt;&lt;code&gt;keyboard_layout&lt;/code&gt;&lt;/td&gt;
-					&lt;td&gt;&lt;code&gt;var.keyboard_layout&lt;/code&gt;&lt;/td&gt;
-			&lt;/tr&gt;
-	&lt;/tbody&gt;
-&lt;/table&gt;
-&lt;p&gt;&lt;strong&gt;What it configures&lt;/strong&gt;:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;Admin user with sudo NOPASSWD&lt;/li&gt;
-&lt;li&gt;SSH hardening with &lt;code&gt;AllowTcpForwarding yes&lt;/code&gt; (needed for ProxyJump)&lt;/li&gt;
-&lt;li&gt;fail2ban for SSH protection&lt;/li&gt;
-&lt;li&gt;UFW allowing public SSH (port 22 from anywhere)&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2 id="control-nodeyamltpl"&gt;control-node.yaml.tpl&lt;/h2&gt;
-&lt;p&gt;&lt;strong&gt;Purpose&lt;/strong&gt;: Kubernetes control plane node with optional Cloudflare Tunnel.&lt;/p&gt;</description></item><item><title>Cloudflare Tunnel Setup</title><link>https://projectious-work.github.io/kubeclaw/docs/guide/cloudflare-tunnel/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/guide/cloudflare-tunnel/</guid><description>&lt;p&gt;This guide walks through creating and configuring a Cloudflare Tunnel that provides secure SSH access to your KubeClaw cluster. The tunnel replaces the temporary admin node as the permanent access path &amp;ndash; no open ports, no public SSH, outbound-only connectivity.&lt;/p&gt;
-&lt;h2 id="why-cloudflare-tunnel"&gt;Why Cloudflare Tunnel?&lt;/h2&gt;
-&lt;p&gt;KubeClaw nodes have no public IPv4 and no inbound SSH ports. Access works through one of two paths:&lt;/p&gt;
-&lt;table&gt;
-	&lt;thead&gt;
-			&lt;tr&gt;
-					&lt;th&gt;Path&lt;/th&gt;
-					&lt;th&gt;When to use&lt;/th&gt;
-					&lt;th&gt;How it works&lt;/th&gt;
-			&lt;/tr&gt;
-	&lt;/thead&gt;
-	&lt;tbody&gt;
-			&lt;tr&gt;
-					&lt;td&gt;&lt;strong&gt;Admin node&lt;/strong&gt; (temporary)&lt;/td&gt;
-					&lt;td&gt;Initial setup, before tunnel is ready&lt;/td&gt;
-					&lt;td&gt;Jump host with public IPv6; SSH via &lt;code&gt;ProxyJump&lt;/code&gt;&lt;/td&gt;
-			&lt;/tr&gt;
-			&lt;tr&gt;
-					&lt;td&gt;&lt;strong&gt;Cloudflare Tunnel&lt;/strong&gt; (permanent)&lt;/td&gt;
-					&lt;td&gt;After tunnel is configured&lt;/td&gt;
-					&lt;td&gt;&lt;code&gt;cloudflared&lt;/code&gt; on the master node connects outbound to Cloudflare&amp;rsquo;s edge; SSH proxied via &lt;code&gt;ProxyCommand cloudflared access ssh&lt;/code&gt; on your local machine&lt;/td&gt;
-			&lt;/tr&gt;
-	&lt;/tbody&gt;
-&lt;/table&gt;
-&lt;p&gt;After the tunnel is working, you disable the admin node (&lt;code&gt;enable_admin_node = false&lt;/code&gt; in &lt;code&gt;terraform.tfvars&lt;/code&gt;) and all SSH flows through Cloudflare.&lt;/p&gt;</description></item><item><title>Code of Conduct</title><link>https://projectious-work.github.io/kubeclaw/docs/contributing/code-of-conduct/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/contributing/code-of-conduct/</guid><description>&lt;p&gt;This project follows the &lt;a href="https://www.contributor-covenant.org/version/2/1/code_of_conduct/"&gt;Contributor Covenant v2.1&lt;/a&gt;.&lt;/p&gt;
-&lt;p&gt;Please read the full text at the link above. In summary: be respectful, be constructive, and create a welcoming environment for everyone.&lt;/p&gt;
-&lt;h2 id="reporting"&gt;Reporting&lt;/h2&gt;
-&lt;p&gt;If you experience or witness unacceptable behavior, please contact the project maintainer at &lt;a href="mailto:bnaard@gmx.net"&gt;bnaard@gmx.net&lt;/a&gt;.&lt;/p&gt;</description></item><item><title>Cost Estimate</title><link>https://projectious-work.github.io/kubeclaw/docs/reference/cost-estimate/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/reference/cost-estimate/</guid><description>&lt;h2 id="example-2-node-cluster"&gt;Example: 2-node cluster&lt;/h2&gt;
-&lt;table&gt;
-	&lt;thead&gt;
-			&lt;tr&gt;
-					&lt;th&gt;Component&lt;/th&gt;
-					&lt;th&gt;Specification&lt;/th&gt;
-					&lt;th&gt;Monthly Cost&lt;/th&gt;
-			&lt;/tr&gt;
-	&lt;/thead&gt;
-	&lt;tbody&gt;
-			&lt;tr&gt;
-					&lt;td&gt;Node 1 (CX22, IPv6-only)&lt;/td&gt;
-					&lt;td&gt;2 vCPU / 4 GB RAM&lt;/td&gt;
-					&lt;td&gt;~€3.29&lt;/td&gt;
-			&lt;/tr&gt;
-			&lt;tr&gt;
-					&lt;td&gt;Node 2 (CX22, IPv6-only)&lt;/td&gt;
-					&lt;td&gt;2 vCPU / 4 GB RAM&lt;/td&gt;
-					&lt;td&gt;~€3.29&lt;/td&gt;
-			&lt;/tr&gt;
-			&lt;tr&gt;
-					&lt;td&gt;Block Volumes (10 GB each)&lt;/td&gt;
-					&lt;td&gt;Hetzner CSI&lt;/td&gt;
-					&lt;td&gt;~€0.96&lt;/td&gt;
-			&lt;/tr&gt;
-			&lt;tr&gt;
-					&lt;td&gt;Private Network&lt;/td&gt;
-					&lt;td&gt;&amp;ndash;&lt;/td&gt;
-					&lt;td&gt;Free&lt;/td&gt;
-			&lt;/tr&gt;
-			&lt;tr&gt;
-					&lt;td&gt;Cloudflare Tunnel + Access&lt;/td&gt;
-					&lt;td&gt;Up to 50 users&lt;/td&gt;
-					&lt;td&gt;Free&lt;/td&gt;
-			&lt;/tr&gt;
-			&lt;tr&gt;
-					&lt;td&gt;&lt;strong&gt;Total&lt;/strong&gt;&lt;/td&gt;
-					&lt;td&gt;&lt;/td&gt;
-					&lt;td&gt;&lt;strong&gt;~€7.54/month&lt;/strong&gt;&lt;/td&gt;
-			&lt;/tr&gt;
-	&lt;/tbody&gt;
-&lt;/table&gt;
-&lt;h2 id="notes"&gt;Notes&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;Costs vary with server types and volume count&lt;/li&gt;
-&lt;li&gt;IPv6-only nodes are cheaper (no IPv4 address surcharge)&lt;/li&gt;
-&lt;li&gt;The admin node (CX22, ~€3.29/month) is temporary and should be deleted after tunnel setup&lt;/li&gt;
-&lt;li&gt;Block volumes are billed per GB per month (~€0.048/GB)&lt;/li&gt;
-&lt;li&gt;See &lt;a href="https://www.hetzner.com/cloud/"&gt;Hetzner Cloud pricing&lt;/a&gt; for current prices&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2 id="scaling-costs"&gt;Scaling costs&lt;/h2&gt;
-&lt;table&gt;
-	&lt;thead&gt;
-			&lt;tr&gt;
-					&lt;th&gt;Configuration&lt;/th&gt;
-					&lt;th&gt;Nodes&lt;/th&gt;
-					&lt;th&gt;Estimated Monthly Cost&lt;/th&gt;
-			&lt;/tr&gt;
-	&lt;/thead&gt;
-	&lt;tbody&gt;
-			&lt;tr&gt;
-					&lt;td&gt;Master-only (dev/learning)&lt;/td&gt;
-					&lt;td&gt;1&lt;/td&gt;
-					&lt;td&gt;~€3.29&lt;/td&gt;
-			&lt;/tr&gt;
-			&lt;tr&gt;
-					&lt;td&gt;Master + 1 worker&lt;/td&gt;
-					&lt;td&gt;2&lt;/td&gt;
-					&lt;td&gt;~€6.58 + volumes&lt;/td&gt;
-			&lt;/tr&gt;
-			&lt;tr&gt;
-					&lt;td&gt;3 control + 2 workers (HA)&lt;/td&gt;
-					&lt;td&gt;5&lt;/td&gt;
-					&lt;td&gt;~€16.45 + volumes&lt;/td&gt;
-			&lt;/tr&gt;
-	&lt;/tbody&gt;
-&lt;/table&gt;</description></item><item><title>Dev Container</title><link>https://projectious-work.github.io/kubeclaw/docs/guide/dev-container/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/guide/dev-container/</guid><description>&lt;p&gt;The project uses an aibox-generated Dev Container (Debian Trixie) as a
+&lt;p&gt;This eliminates the need for &lt;code&gt;hostNetwork: true&lt;/code&gt; on any pod, which means:&lt;/p&gt;</description></item><item><title>Dev Container</title><link>https://projectious-work.github.io/kubeclaw/docs/guide/dev-container/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/guide/dev-container/</guid><description>&lt;p&gt;The project uses an aibox-generated Dev Container (Debian Trixie) as a
 self-contained, reproducible environment. Nothing needs to be set up on the
 host machine beyond Docker and an IDE with Dev Container support.&lt;/p&gt;
 &lt;h2 id="what-the-dev-container-provides"&gt;What the Dev Container Provides&lt;/h2&gt;
@@ -248,685 +80,13 @@ development environment. The aibox Dev Container includes OpenTofu, Ansible,
 &lt;p&gt;Preview the documentation site locally:&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;./scripts/serve-docs.sh
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# Open http://localhost:1313&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;When using a remote Dev Container environment, forward port 8000 from your
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;When using a remote Dev Container environment, forward port 1313 from your
 editor to view the preview.&lt;/p&gt;
 &lt;p&gt;Build the site:&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;./scripts/build-docs.sh
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The build uses Hugo&amp;rsquo;s strict template and content validation. The first run
 installs the pinned Docsy asset dependencies locally and initializes the pinned
-Docsy theme submodule when needed.&lt;/p&gt;</description></item><item><title>DNS and NAT64</title><link>https://projectious-work.github.io/kubeclaw/docs/introduction/dns-and-nat64/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/introduction/dns-and-nat64/</guid><description>&lt;p&gt;The cluster is IPv6-only &amp;ndash; but many services (GitHub CDN, container registries, package repos) are IPv4-only. &lt;strong&gt;NAT64/DNS64&lt;/strong&gt; provides transparent IPv4 reachability at the network layer, no application changes needed. This page covers how DNS64/NAT64 works, how it integrates with Kubernetes CoreDNS, and how to configure it.&lt;/p&gt;
-&lt;h2 id="the-problem-ipv4-internet-from-ipv6-only-nodes"&gt;The Problem: IPv4 Internet from IPv6-Only Nodes&lt;/h2&gt;
-&lt;p&gt;The nodes have no public IPv4 addresses. Most internet services (GitHub, Docker Hub, package repos) have IPv4 addresses. How does an IPv6-only node reach them?&lt;/p&gt;</description></item><item><title>Infrastructure (OpenTofu)</title><link>https://projectious-work.github.io/kubeclaw/docs/guide/infrastructure/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/guide/infrastructure/</guid><description>&lt;p&gt;KubeClaw uses OpenTofu (Terraform-compatible) to provision all infrastructure on Hetzner Cloud. This page walks through the provisioning workflow step by step. See &lt;a href="https://projectious-work.github.io/kubeclaw/docs/reference/variables/"&gt;Variables Reference&lt;/a&gt; for all configurable options.&lt;/p&gt;
-&lt;h2 id="step-1-configure-terraformtfvars"&gt;Step 1: Configure terraform.tfvars&lt;/h2&gt;
-&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;cp terraform.tfvars.example terraform.tfvars
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Edit &lt;code&gt;terraform.tfvars&lt;/code&gt; with your settings:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-hcl" data-lang="hcl"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="n"&gt;hcloud_token&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;your-hcloud-api-token&amp;#34;&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="n"&gt;root_password&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;a-strong-root-password&amp;#34;&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="n"&gt;cluster_name&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;k8s-cluster&amp;#34;&lt;/span&gt;&lt;span class="c1"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# Optional: auto-configure Cloudflare Tunnel on the master control node
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# cloudflare_tunnel_token = &amp;#34;eyJ...&amp;#34;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id="ssh-key-options"&gt;SSH key options&lt;/h3&gt;
-
-
-
-&lt;ul class="nav nav-tabs" id="tabs-1" role="tablist"&gt;
- &lt;li class="nav-item"&gt;
- &lt;button class="nav-link active"
- id="tabs-01-00-tab" data-bs-toggle="tab" data-bs-target="#tabs-01-00" role="tab"
- aria-controls="tabs-01-00" aria-selected="true"&gt;
- Option A: Auto-generated keys (default)
- &lt;/button&gt;
- &lt;/li&gt;&lt;li class="nav-item"&gt;
- &lt;button class="nav-link"
- id="tabs-01-01-tab" data-bs-toggle="tab" data-bs-target="#tabs-01-01" role="tab"
- aria-controls="tabs-01-01" aria-selected="false"&gt;
- Option B: Custom keys
- &lt;/button&gt;
- &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;div class="tab-content" id="tabs-1-content"&gt;
- &lt;div class="tab-pane fade show active"
- id="tabs-01-00" role="tabpanel" aria-labelled-by="tabs-01-00-tab" tabindex="1"&gt;
- &lt;pre tabindex="0"&gt;&lt;code&gt;No configuration needed. OpenTofu generates ED25519 keys and stores them in the state file.
-
-| Advantage | Disadvantage |
-|-----------|--------------|
-| No manual key creation | State file contains private keys |
-| Works out of the box | Keys lost if state is lost |&lt;/code&gt;&lt;/pre&gt;
- &lt;/div&gt;
- &lt;div class="tab-pane fade"
- id="tabs-01-01" role="tabpanel" aria-labelled-by="tabs-01-01-tab" tabindex="1"&gt;
- &lt;pre tabindex="0"&gt;&lt;code&gt;Create your own keys and reference them in `terraform.tfvars`:
-
-```bash
-ssh-keygen -t ed25519 -f ~/.ssh/k8s-cluster_control-node_key -C &amp;#34;control-node&amp;#34;
-ssh-keygen -t ed25519 -f ~/.ssh/k8s-cluster_worker-node_key -C &amp;#34;worker-node&amp;#34;
-```
-
-```hcl
-control_node_public_key = &amp;#34;ssh-ed25519 AAAA... control-node&amp;#34;
-worker_node_public_key = &amp;#34;ssh-ed25519 AAAA... worker-node&amp;#34;
-```
-
-| Advantage | Disadvantage |
-|-----------|--------------|
-| Full control over key storage | Manual key management |
-| State has no private keys | Must create keys before provisioning |
-| Easy password manager integration | |&lt;/code&gt;&lt;/pre&gt;
- &lt;/div&gt;
-&lt;/div&gt;
-
-&lt;h2 id="step-2-provision-infrastructure"&gt;Step 2: Provision Infrastructure&lt;/h2&gt;
-&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;tofu init &lt;span class="c1"&gt;# First time only&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;tofu apply
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;This creates:&lt;/p&gt;</description></item><item><title>Kubernetes (kubeadm)</title><link>https://projectious-work.github.io/kubeclaw/docs/guide/kubernetes/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/guide/kubernetes/</guid><description>&lt;p&gt;After provisioning the infrastructure with OpenTofu and configuring SSH access, deploy a standard Kubernetes cluster using &lt;a href="https://kubernetes.io/docs/reference/setup-tools/kubeadm/"&gt;kubeadm&lt;/a&gt; with &lt;a href="https://cilium.io/"&gt;Cilium&lt;/a&gt; as the CNI.&lt;/p&gt;
-&lt;h2 id="why-kubeadm--cilium"&gt;Why kubeadm + Cilium?&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;strong&gt;kubeadm&lt;/strong&gt;: The official Kubernetes bootstrapper. Produces a standard, upstream cluster &amp;ndash; exactly what the CKA exam expects. Full control over every component (etcd, kube-apiserver, kube-scheduler, kube-controller-manager).&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;Cilium&lt;/strong&gt;: eBPF-based CNI providing advanced network policies with FQDN-based egress filtering &amp;ndash; critical for restricting outbound traffic per namespace.&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2 id="step-1-initialize-the-control-plane-dual-stack"&gt;Step 1: Initialize the Control Plane (Dual-Stack)&lt;/h2&gt;
-&lt;p&gt;SSH into the master control node. Prerequisites (containerd, kubeadm, kubelet, kubectl) are already installed via cloud-init when &lt;code&gt;enable_k8s_prereqs = true&lt;/code&gt; (default).&lt;/p&gt;</description></item><item><title>Kubernetes Maintenance</title><link>https://projectious-work.github.io/kubeclaw/docs/operations/kubernetes-maintenance/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/operations/kubernetes-maintenance/</guid><description>&lt;p&gt;Operational procedures for upgrading and managing the Kubernetes cluster. For initial cluster setup, see the &lt;a href="https://projectious-work.github.io/kubeclaw/docs/guide/kubernetes/"&gt;Kubernetes (kubeadm)&lt;/a&gt; guide.&lt;/p&gt;
-&lt;h2 id="upgrade-kubernetes"&gt;Upgrade Kubernetes&lt;/h2&gt;
-&lt;p&gt;Kubernetes upgrades follow a strict order: &lt;strong&gt;control plane first, then workers&lt;/strong&gt;. This is the standard CKA upgrade workflow.&lt;/p&gt;
-&lt;h3 id="upgrade-control-plane"&gt;Upgrade control plane&lt;/h3&gt;
-&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 1. Unhold packages&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;sudo apt-mark unhold kubeadm
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 2. Upgrade kubeadm&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;sudo apt-get update &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; sudo apt-get install -y &lt;span class="nv"&gt;kubeadm&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;1.33.*-*
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 3. Check available upgrade&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;sudo kubeadm upgrade plan
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 4. Apply the upgrade&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;sudo kubeadm upgrade apply v1.33.0
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 5. Drain the control node (if running workloads)&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;kubectl drain &lt;span class="k"&gt;$(&lt;/span&gt;hostname&lt;span class="k"&gt;)&lt;/span&gt; --ignore-daemonsets --delete-emptydir-data
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 6. Upgrade kubelet and kubectl&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;sudo apt-mark unhold kubelet kubectl
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;sudo apt-get install -y &lt;span class="nv"&gt;kubelet&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;1.33.*-* &lt;span class="nv"&gt;kubectl&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;1.33.*-*
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;sudo apt-mark hold kubelet kubeadm kubectl
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;sudo systemctl daemon-reload
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;sudo systemctl restart kubelet
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 7. Uncordon the node&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;kubectl uncordon &lt;span class="k"&gt;$(&lt;/span&gt;hostname&lt;span class="k"&gt;)&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id="upgrade-worker-nodes"&gt;Upgrade worker nodes&lt;/h3&gt;
-&lt;p&gt;On each worker node:&lt;/p&gt;</description></item><item><title>Manual Setup (Alternative)</title><link>https://projectious-work.github.io/kubeclaw/docs/introduction/manual-setup/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/introduction/manual-setup/</guid><description>&lt;div class="alert alert-primary" role="alert"&gt;&lt;div class="h4 alert-heading" role="heading"&gt;This guide is an alternative to OpenTofu&lt;/div&gt;
-
-
-This guide shows the manual steps that OpenTofu automates. Use this if you want to understand what happens behind the scenes, or if you prefer to set up infrastructure manually via the Hetzner Cloud Console. For the automated approach, see [Infrastructure (OpenTofu)](/kubeclaw/docs/guide/infrastructure/).
-
-&lt;/div&gt;
-
-&lt;h2 id="overview"&gt;Overview&lt;/h2&gt;
-&lt;p&gt;This setup creates a secure server infrastructure with the following properties:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;strong&gt;No public IPv4/IPv6 addresses&lt;/strong&gt; (after setup)&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;SSH access exclusively via Cloudflare Tunnel&lt;/strong&gt;&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;Internal communication via Hetzner Private Network&lt;/strong&gt;&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;Hardened SSH configuration with fail2ban and UFW&lt;/strong&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h3 id="architecture"&gt;Architecture&lt;/h3&gt;
-&lt;pre tabindex="0"&gt;&lt;code&gt;┌─────────────────────────────────────────────────────────────────┐
-│ Internet │
-└─────────────────────────────────────────────────────────────────┘
- │
- ▼
-┌─────────────────────────────────────────────────────────────────┐
-│ Cloudflare Tunnel │
-│ console.yourdomain.org │
-└─────────────────────────────────────────────────────────────────┘
- │
- ▼
-┌─────────────────────────────────────────────────────────────────┐
-│ Hetzner Cloud │
-│ ┌─────────────────────────────────────────────────────────┐ │
-│ │ Private Network (10.0.0.0/24) │ │
-│ │ │ │
-│ │ ┌─────────────────┐ ┌─────────────────┐ │ │
-│ │ │ control-node │ │ worker-node │ │ │
-│ │ │ 10.0.0.2 │◄─────►│ 10.0.0.3 │ │ │
-│ │ │ (cloudflared) │ │ (isolated) │ │ │
-│ │ └─────────────────┘ └─────────────────┘ │ │
-│ │ │ │
-│ └─────────────────────────────────────────────────────────┘ │
-└─────────────────────────────────────────────────────────────────┘
-&lt;/code&gt;&lt;/pre&gt;&lt;h2 id="prerequisites"&gt;Prerequisites&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;Hetzner Cloud account&lt;/li&gt;
-&lt;li&gt;Cloudflare account with your own domain&lt;/li&gt;
-&lt;li&gt;macOS/Linux machine with SSH&lt;/li&gt;
-&lt;li&gt;&lt;code&gt;cloudflared&lt;/code&gt; installed locally (&lt;code&gt;brew install cloudflared&lt;/code&gt;)&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2 id="step-1-create-hetzner-private-network"&gt;Step 1: Create Hetzner Private Network&lt;/h2&gt;
-&lt;ol&gt;
-&lt;li&gt;Open the &lt;a href="https://console.hetzner.cloud"&gt;Hetzner Cloud Console&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;Select your project&lt;/li&gt;
-&lt;li&gt;Go to &lt;strong&gt;Networks&lt;/strong&gt; &amp;gt; &lt;strong&gt;Create Network&lt;/strong&gt;&lt;/li&gt;
-&lt;li&gt;Configure:
-&lt;ul&gt;
-&lt;li&gt;&lt;strong&gt;Name&lt;/strong&gt;: &lt;code&gt;k8s-network&lt;/code&gt; (or any name)&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;IP Range&lt;/strong&gt;: &lt;code&gt;10.0.0.0/8&lt;/code&gt; (Hetzner requires &lt;code&gt;/8&lt;/code&gt; for the network object)&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;li&gt;Click &lt;strong&gt;Create Network&lt;/strong&gt;&lt;/li&gt;
-&lt;li&gt;Add a &lt;strong&gt;Subnet&lt;/strong&gt;: &lt;code&gt;10.0.0.0/24&lt;/code&gt; in zone &lt;code&gt;eu-central&lt;/code&gt; (this is the actual range used by nodes)&lt;/li&gt;
-&lt;/ol&gt;
-&lt;h2 id="step-2-generate-ssh-keys"&gt;Step 2: Generate SSH keys&lt;/h2&gt;
-&lt;p&gt;Create a separate SSH key for each server:&lt;/p&gt;</description></item><item><title>OpenClaw Deployment</title><link>https://projectious-work.github.io/kubeclaw/docs/guide/openclaw/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/guide/openclaw/</guid><description>&lt;p&gt;A step-by-step guide to deploying OpenClaw as an isolated AI assistant on the KubeClaw cluster, accessible via Telegram, WhatsApp, or Signal, with a web-based Control UI exposed through Cloudflare Tunnel.&lt;/p&gt;
-&lt;h2 id="architecture-overview"&gt;Architecture Overview&lt;/h2&gt;
-&lt;pre tabindex="0"&gt;&lt;code&gt;┌─────────────────────────────────────────────────────────────────────┐
-│ Hetzner Private Network │
-│ (10.0.0.0/24) │
-│ │
-│ ┌────────────────────────────────────────────────────────────┐ │
-│ │ Kubernetes Cluster (kubeadm) + Cilium │ │
-│ │ │ │
-│ │ ┌─────────────────┐ ┌─────────────────┐ │ │
-│ │ │ control-01 │ │ worker-01 │ │ │
-│ │ │ (control plane)│◄─────►│ (worker node) │ │ │
-│ │ │ 10.0.0.2 │ │ 10.0.0.3 │ │ │
-│ │ │ │ │ │ │ │
-│ │ │ ┌───────────┐ │ │ ┌───────────┐ │ │ │
-│ │ │ │Block Vol │ │ │ │Block Vol │ │ │ │
-│ │ │ │ 10 GB │ │ │ │ 10 GB │ │ │ │
-│ │ │ └───────────┘ │ │ └───────────┘ │ │ │
-│ │ └────────┬────────┘ └─────────────────┘ │ │
-│ │ │ │ │
-│ │ system-unrestricted namespace: │ │
-│ │ └─ cloudflared (egress: ANY) │ │
-│ │ │ │
-│ │ apps-restricted namespace: │ │
-│ │ └─ OpenClaw (Cilium FQDN egress whitelist) │ │
-│ │ ├─ Telegram / WhatsApp / Signal │ │
-│ │ └─ Control UI (:18789) │ │
-│ │ │ │
-│ └─────────────────────────────────────────────────────────────┘ │
-│ │ │
-│ cloudflared │
-│ (outbound only) │
-└──────────────────────────────┼──────────────────────────────────────┘
- │
- ▼
- ┌───────────────────┐
- │ Cloudflare │
- │ Edge + Access │
- └─────────┬─────────┘
- │
- ┌─────────┼─────────┐
- │ │ │
- ▼ ▼ ▼
- [Telegram] [WhatsApp] [Signal]
- │
- ▼
- [Control UI]
- (browser dashboard)
-&lt;/code&gt;&lt;/pre&gt;&lt;h2 id="prerequisites"&gt;Prerequisites&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;A running KubeClaw cluster (see &lt;a href="https://projectious-work.github.io/kubeclaw/docs/guide/kubernetes/"&gt;Kubernetes guide&lt;/a&gt;)&lt;/li&gt;
-&lt;li&gt;Anthropic API key (&lt;a href="https://console.anthropic.com"&gt;console.anthropic.com&lt;/a&gt;)&lt;/li&gt;
-&lt;li&gt;At least one messaging channel:&lt;/li&gt;
-&lt;/ul&gt;
-&lt;table&gt;
-	&lt;thead&gt;
-			&lt;tr&gt;
-					&lt;th&gt;Channel&lt;/th&gt;
-					&lt;th&gt;What You Need&lt;/th&gt;
-			&lt;/tr&gt;
-	&lt;/thead&gt;
-	&lt;tbody&gt;
-			&lt;tr&gt;
-					&lt;td&gt;&lt;strong&gt;Telegram&lt;/strong&gt;&lt;/td&gt;
-					&lt;td&gt;Bot Token from &lt;a href="https://t.me/BotFather"&gt;@BotFather&lt;/a&gt;, your Telegram User ID&lt;/td&gt;
-			&lt;/tr&gt;
-			&lt;tr&gt;
-					&lt;td&gt;&lt;strong&gt;WhatsApp&lt;/strong&gt;&lt;/td&gt;
-					&lt;td&gt;A phone number with WhatsApp, access to scan a QR code&lt;/td&gt;
-			&lt;/tr&gt;
-			&lt;tr&gt;
-					&lt;td&gt;&lt;strong&gt;Signal&lt;/strong&gt;&lt;/td&gt;
-					&lt;td&gt;A dedicated phone number, &lt;code&gt;signal-cli&lt;/code&gt; installed in the container&lt;/td&gt;
-			&lt;/tr&gt;
-	&lt;/tbody&gt;
-&lt;/table&gt;
-&lt;div class="alert alert-primary" role="alert"&gt;&lt;div class="h4 alert-heading" role="heading"&gt;Start with Telegram&lt;/div&gt;
-
-
-Telegram is the simplest channel to set up — it only requires a bot token and user ID, with no interactive pairing or additional dependencies.
-
-&lt;/div&gt;
-
-&lt;h2 id="step-1-infrastructure-setup"&gt;Step 1: Infrastructure Setup&lt;/h2&gt;
-&lt;p&gt;If you haven&amp;rsquo;t already set up the Hetzner Cloud infrastructure, follow the &lt;a href="https://projectious-work.github.io/kubeclaw/docs/quick-start/"&gt;Quick Start&lt;/a&gt; and &lt;a href="https://projectious-work.github.io/kubeclaw/docs/guide/kubernetes/"&gt;Kubernetes guide&lt;/a&gt;.&lt;/p&gt;</description></item><item><title>OS Images</title><link>https://projectious-work.github.io/kubeclaw/docs/reference/os-images/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/reference/os-images/</guid><description>&lt;p&gt;Hetzner Cloud offers the following Debian/Ubuntu images:&lt;/p&gt;
-&lt;table&gt;
-	&lt;thead&gt;
-			&lt;tr&gt;
-					&lt;th&gt;Image&lt;/th&gt;
-					&lt;th&gt;Name&lt;/th&gt;
-					&lt;th&gt;Recommendation&lt;/th&gt;
-			&lt;/tr&gt;
-	&lt;/thead&gt;
-	&lt;tbody&gt;
-			&lt;tr&gt;
-					&lt;td&gt;&lt;code&gt;debian-13&lt;/code&gt;&lt;/td&gt;
-					&lt;td&gt;Debian 13 Trixie&lt;/td&gt;
-					&lt;td&gt;&lt;strong&gt;Recommended for K8s&lt;/strong&gt;&lt;/td&gt;
-			&lt;/tr&gt;
-			&lt;tr&gt;
-					&lt;td&gt;&lt;code&gt;debian-12&lt;/code&gt;&lt;/td&gt;
-					&lt;td&gt;Debian 12 Bookworm&lt;/td&gt;
-					&lt;td&gt;Stable, well-proven&lt;/td&gt;
-			&lt;/tr&gt;
-			&lt;tr&gt;
-					&lt;td&gt;&lt;code&gt;ubuntu-24.04&lt;/code&gt;&lt;/td&gt;
-					&lt;td&gt;Ubuntu 24.04 LTS&lt;/td&gt;
-					&lt;td&gt;Good for K8s&lt;/td&gt;
-			&lt;/tr&gt;
-			&lt;tr&gt;
-					&lt;td&gt;&lt;code&gt;ubuntu-22.04&lt;/code&gt;&lt;/td&gt;
-					&lt;td&gt;Ubuntu 22.04 LTS&lt;/td&gt;
-					&lt;td&gt;Well-proven&lt;/td&gt;
-			&lt;/tr&gt;
-	&lt;/tbody&gt;
-&lt;/table&gt;
-&lt;h2 id="why-debian-13"&gt;Why Debian 13?&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;strong&gt;Stability&lt;/strong&gt;: long support cycles&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;Compatibility&lt;/strong&gt;: all K8s tools (kubeadm, k3s, etc.) support Debian&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;Small footprint&lt;/strong&gt;: leaner than Ubuntu, but not as small as Alpine&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;No glibc/musl issues&lt;/strong&gt;: unlike Alpine, no compatibility problems&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;Hetzner Cloud doesn&amp;rsquo;t provide dedicated &amp;ldquo;slim&amp;rdquo; or &amp;ldquo;minimal&amp;rdquo; variants. The standard images are fairly compact already.&lt;/p&gt;</description></item><item><title>Outputs Reference</title><link>https://projectious-work.github.io/kubeclaw/docs/reference/outputs/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/reference/outputs/</guid><description>&lt;p&gt;All outputs exposed by the OpenTofu configuration. These are consumed by the setup scripts and can be queried manually.&lt;/p&gt;
-&lt;h2 id="network-information"&gt;Network Information&lt;/h2&gt;
-&lt;table&gt;
-	&lt;thead&gt;
-			&lt;tr&gt;
-					&lt;th&gt;Output&lt;/th&gt;
-					&lt;th&gt;Description&lt;/th&gt;
-			&lt;/tr&gt;
-	&lt;/thead&gt;
-	&lt;tbody&gt;
-			&lt;tr&gt;
-					&lt;td&gt;&lt;code&gt;network_id&lt;/code&gt;&lt;/td&gt;
-					&lt;td&gt;ID of the private network&lt;/td&gt;
-			&lt;/tr&gt;
-			&lt;tr&gt;
-					&lt;td&gt;&lt;code&gt;network_name&lt;/code&gt;&lt;/td&gt;
-					&lt;td&gt;Name of the private network&lt;/td&gt;
-			&lt;/tr&gt;
-	&lt;/tbody&gt;
-&lt;/table&gt;
-&lt;h2 id="cluster-metadata"&gt;Cluster Metadata&lt;/h2&gt;
-&lt;table&gt;
-	&lt;thead&gt;
-			&lt;tr&gt;
-					&lt;th&gt;Output&lt;/th&gt;
-					&lt;th&gt;Description&lt;/th&gt;
-			&lt;/tr&gt;
-	&lt;/thead&gt;
-	&lt;tbody&gt;
-			&lt;tr&gt;
-					&lt;td&gt;&lt;code&gt;cluster_name&lt;/code&gt;&lt;/td&gt;
-					&lt;td&gt;Name of the cluster&lt;/td&gt;
-			&lt;/tr&gt;
-			&lt;tr&gt;
-					&lt;td&gt;&lt;code&gt;admin_user&lt;/code&gt;&lt;/td&gt;
-					&lt;td&gt;Admin user name&lt;/td&gt;
-			&lt;/tr&gt;
-			&lt;tr&gt;
-					&lt;td&gt;&lt;code&gt;ssh_key_prefix&lt;/code&gt;&lt;/td&gt;
-					&lt;td&gt;Prefix used for SSH key filenames&lt;/td&gt;
-			&lt;/tr&gt;
-	&lt;/tbody&gt;
-&lt;/table&gt;
-&lt;h2 id="master-control-node"&gt;Master Control Node&lt;/h2&gt;
-&lt;table&gt;
-	&lt;thead&gt;
-			&lt;tr&gt;
-					&lt;th&gt;Output&lt;/th&gt;
-					&lt;th&gt;Description&lt;/th&gt;
-			&lt;/tr&gt;
-	&lt;/thead&gt;
-	&lt;tbody&gt;
-			&lt;tr&gt;
-					&lt;td&gt;&lt;code&gt;master_control_node_id&lt;/code&gt;&lt;/td&gt;
-					&lt;td&gt;ID of the master control node&lt;/td&gt;
-			&lt;/tr&gt;
-			&lt;tr&gt;
-					&lt;td&gt;&lt;code&gt;master_control_node_name&lt;/code&gt;&lt;/td&gt;
-					&lt;td&gt;Name of the master control node&lt;/td&gt;
-			&lt;/tr&gt;
-			&lt;tr&gt;
-					&lt;td&gt;&lt;code&gt;master_control_node_private_ip&lt;/code&gt;&lt;/td&gt;
-					&lt;td&gt;Private IP of the master control node&lt;/td&gt;
-			&lt;/tr&gt;
-	&lt;/tbody&gt;
-&lt;/table&gt;
-&lt;h2 id="all-control-nodes-master--replicas"&gt;All Control Nodes (master + replicas)&lt;/h2&gt;
-&lt;table&gt;
-	&lt;thead&gt;
-			&lt;tr&gt;
-					&lt;th&gt;Output&lt;/th&gt;
-					&lt;th&gt;Description&lt;/th&gt;
-			&lt;/tr&gt;
-	&lt;/thead&gt;
-	&lt;tbody&gt;
-			&lt;tr&gt;
-					&lt;td&gt;&lt;code&gt;control_node_count&lt;/code&gt;&lt;/td&gt;
-					&lt;td&gt;Total number of control nodes (master + replicas)&lt;/td&gt;
-			&lt;/tr&gt;
-			&lt;tr&gt;
-					&lt;td&gt;&lt;code&gt;control_node_ids&lt;/code&gt;&lt;/td&gt;
-					&lt;td&gt;IDs of all control nodes&lt;/td&gt;
-			&lt;/tr&gt;
-			&lt;tr&gt;
-					&lt;td&gt;&lt;code&gt;control_node_names&lt;/code&gt;&lt;/td&gt;
-					&lt;td&gt;Names of all control nodes&lt;/td&gt;
-			&lt;/tr&gt;
-			&lt;tr&gt;
-					&lt;td&gt;&lt;code&gt;control_node_private_ips&lt;/code&gt;&lt;/td&gt;
-					&lt;td&gt;Private IPs of all control nodes&lt;/td&gt;
-			&lt;/tr&gt;
-	&lt;/tbody&gt;
-&lt;/table&gt;
-&lt;h2 id="worker-nodes"&gt;Worker Nodes&lt;/h2&gt;
-&lt;table&gt;
-	&lt;thead&gt;
-			&lt;tr&gt;
-					&lt;th&gt;Output&lt;/th&gt;
-					&lt;th&gt;Description&lt;/th&gt;
-			&lt;/tr&gt;
-	&lt;/thead&gt;
-	&lt;tbody&gt;
-			&lt;tr&gt;
-					&lt;td&gt;&lt;code&gt;worker_node_count&lt;/code&gt;&lt;/td&gt;
-					&lt;td&gt;Number of worker nodes&lt;/td&gt;
-			&lt;/tr&gt;
-			&lt;tr&gt;
-					&lt;td&gt;&lt;code&gt;worker_node_ids&lt;/code&gt;&lt;/td&gt;
-					&lt;td&gt;IDs of worker nodes&lt;/td&gt;
-			&lt;/tr&gt;
-			&lt;tr&gt;
-					&lt;td&gt;&lt;code&gt;worker_node_names&lt;/code&gt;&lt;/td&gt;
-					&lt;td&gt;Names of worker nodes&lt;/td&gt;
-			&lt;/tr&gt;
-			&lt;tr&gt;
-					&lt;td&gt;&lt;code&gt;worker_node_private_ips&lt;/code&gt;&lt;/td&gt;
-					&lt;td&gt;Private IPs of worker nodes&lt;/td&gt;
-			&lt;/tr&gt;
-	&lt;/tbody&gt;
-&lt;/table&gt;
-&lt;h2 id="admin-node"&gt;Admin Node&lt;/h2&gt;
-&lt;table&gt;
-	&lt;thead&gt;
-			&lt;tr&gt;
-					&lt;th&gt;Output&lt;/th&gt;
-					&lt;th&gt;Description&lt;/th&gt;
-			&lt;/tr&gt;
-	&lt;/thead&gt;
-	&lt;tbody&gt;
-			&lt;tr&gt;
-					&lt;td&gt;&lt;code&gt;admin_node_id&lt;/code&gt;&lt;/td&gt;
-					&lt;td&gt;ID of the admin node (null if disabled)&lt;/td&gt;
-			&lt;/tr&gt;
-			&lt;tr&gt;
-					&lt;td&gt;&lt;code&gt;admin_node_name&lt;/code&gt;&lt;/td&gt;
-					&lt;td&gt;Name of the admin node (null if disabled)&lt;/td&gt;
-			&lt;/tr&gt;
-			&lt;tr&gt;
-					&lt;td&gt;&lt;code&gt;admin_node_ipv6&lt;/code&gt;&lt;/td&gt;
-					&lt;td&gt;Public IPv6 address of the admin node (null if disabled)&lt;/td&gt;
-			&lt;/tr&gt;
-			&lt;tr&gt;
-					&lt;td&gt;&lt;code&gt;admin_node_private_ip&lt;/code&gt;&lt;/td&gt;
-					&lt;td&gt;Private IP of the admin node (null if disabled)&lt;/td&gt;
-			&lt;/tr&gt;
-			&lt;tr&gt;
-					&lt;td&gt;&lt;code&gt;enable_admin_node&lt;/code&gt;&lt;/td&gt;
-					&lt;td&gt;Whether the admin node is enabled&lt;/td&gt;
-			&lt;/tr&gt;
-	&lt;/tbody&gt;
-&lt;/table&gt;
-&lt;h2 id="ssh-keys"&gt;SSH Keys&lt;/h2&gt;
-&lt;p&gt;These outputs are sensitive when auto-generated keys are used.&lt;/p&gt;</description></item><item><title>Password Management</title><link>https://projectious-work.github.io/kubeclaw/docs/operations/password-management/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/operations/password-management/</guid><description>&lt;h2 id="which-credentials-exist"&gt;Which credentials exist?&lt;/h2&gt;
-&lt;table&gt;
-	&lt;thead&gt;
-			&lt;tr&gt;
-					&lt;th&gt;Credential&lt;/th&gt;
-					&lt;th&gt;Purpose&lt;/th&gt;
-					&lt;th&gt;Storage&lt;/th&gt;
-			&lt;/tr&gt;
-	&lt;/thead&gt;
-	&lt;tbody&gt;
-			&lt;tr&gt;
-					&lt;td&gt;Hetzner API Token&lt;/td&gt;
-					&lt;td&gt;Create infrastructure&lt;/td&gt;
-					&lt;td&gt;&lt;code&gt;terraform.tfvars&lt;/code&gt;&lt;/td&gt;
-			&lt;/tr&gt;
-			&lt;tr&gt;
-					&lt;td&gt;Root password&lt;/td&gt;
-					&lt;td&gt;Emergency web console&lt;/td&gt;
-					&lt;td&gt;&lt;code&gt;terraform.tfvars&lt;/code&gt;&lt;/td&gt;
-			&lt;/tr&gt;
-			&lt;tr&gt;
-					&lt;td&gt;SSH private keys&lt;/td&gt;
-					&lt;td&gt;Server access&lt;/td&gt;
-					&lt;td&gt;&lt;code&gt;~/.ssh/&lt;/code&gt; or password manager&lt;/td&gt;
-			&lt;/tr&gt;
-			&lt;tr&gt;
-					&lt;td&gt;Cloudflare Tunnel token&lt;/td&gt;
-					&lt;td&gt;Tunnel auth&lt;/td&gt;
-					&lt;td&gt;Cloudflare Dashboard&lt;/td&gt;
-			&lt;/tr&gt;
-	&lt;/tbody&gt;
-&lt;/table&gt;
-&lt;h2 id="recommended-dashlane-structure"&gt;Recommended Dashlane structure&lt;/h2&gt;
-&lt;pre tabindex="0"&gt;&lt;code&gt;📁 K8s Cluster
-├── 🔐 Hetzner API Token
-│ └── Token: xxx
-├── 🔐 Root Password
-│ └── Password: xxx
-├── 📝 SSH Keys (Secure Note)
-│ ├── Control Node Private Key: ...
-│ ├── Control Node Public Key: ...
-│ ├── Worker Node Private Key: ...
-│ └── Worker Node Public Key: ...
-└── 🔐 Cloudflare Tunnel Token
- └── Token: xxx
-&lt;/code&gt;&lt;/pre&gt;&lt;h2 id="securing-terraformtfvars"&gt;Securing terraform.tfvars&lt;/h2&gt;
-&lt;p&gt;&lt;code&gt;terraform.tfvars&lt;/code&gt; contains sensitive data. Options:&lt;/p&gt;</description></item><item><title>Project Structure</title><link>https://projectious-work.github.io/kubeclaw/docs/reference/project-structure/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/reference/project-structure/</guid><description>&lt;pre tabindex="0"&gt;&lt;code&gt;kubeclaw/
-├── main.tf # Infrastructure (providers, network, firewalls, servers)
-├── variables.tf # All configurable inputs
-├── outputs.tf # IPs, SSH keys, ssh_config_snippet, next-steps banner
-├── terraform.tfvars.example # Example configuration
-├── hugo.yaml # Hugo + Docsy configuration
-├── package.json # Docsy asset dependencies
-├── themes/docsy/ # Pinned Docsy theme submodule
-├── CLAUDE.md # Claude Code project instructions
-├── README.md # Project overview (concise)
-├── LICENSE # MIT License
-├── .gitignore
-├── .devcontainer/
-│ ├── devcontainer.json # Container config (bind mounts, extensions, port forwarding)
-│ ├── Dockerfile # Generated by aibox; do not edit directly
-│ ├── Dockerfile.local # Project layer: installs cloudflared
-│ └── docker-compose.override.yml # Project override: writable SSH mount
-├── cloud-init/
-│ ├── admin-node.yaml.tpl # Admin node (temporary jump host with public IPv6)
-│ ├── control-node.yaml.tpl # Control node (cloudflared on master, UFW, fail2ban, k8s prereqs)
-│ └── worker-node.yaml.tpl # Worker node (isolated, outbound DNS/HTTP/S only, k8s prereqs)
-├── scripts/
-│ ├── setup-ssh.sh # Export SSH keys from tofu state, generate ~/.ssh/config
-│ ├── ssh-agent-setup.sh # Fix SSH permissions, start ssh-agent, load keys
-│ ├── generate-ansible-inventory.sh # Build ansible/inventory.ini from tofu state
-│ ├── build-docs.sh # Build Hugo site locally
-│ ├── serve-docs.sh # Preview Hugo site locally
-│ └── deploy-docs.sh # Build and deploy Hugo to gh-pages
-├── ansible/
-│ ├── ansible.cfg # Ansible defaults (user, pipelining, SSH args)
-│ ├── inventory.ini # Auto-generated inventory (do not hand-edit)
-│ └── playbooks/
-│ ├── update-system.yml # System updates with optional reboot
-│ ├── security-hardening.yml # Unattended upgrades, fail2ban, sysctl hardening
-│ ├── configure-nat64.yml # NAT64/DNS64 for IPv4 reachability on running nodes
-│ └── prepare-k8s-nodes.yml # Kubernetes prerequisites (containerd, kubeadm) on running nodes
-└── content/ # Hugo documentation source
- ├── _index.md # Branded landing page
- └── docs/ # Documentation section
- ├── _index.md # Documentation overview
- ├── quick-start.md # Combined prerequisites + deployment steps
- ├── introduction/
- │ ├── _index.md
- │ ├── architecture.md
- │ ├── dns-and-nat64.md
- │ ├── security-model.md
- │ └── manual-setup.md
- ├── guide/
- │ ├── _index.md
- │ ├── dev-container.md
- │ ├── infrastructure.md
- │ ├── ansible.md
- │ ├── kubernetes.md
- │ └── openclaw.md
- ├── how-to/
- │ ├── _index.md
- │ ├── ssh-keys-with-passphrase.md
- │ └── store-ssh-keys-in-password-manager.md
- ├── reference/
- │ ├── _index.md
- │ ├── variables.md
- │ ├── outputs.md
- │ ├── cloud-init.md
- │ ├── playbooks.md
- │ ├── os-images.md
- │ ├── project-structure.md
- │ └── cost-estimate.md
- ├── operations/
- │ ├── _index.md
- │ ├── scale-up-down.md
- │ ├── ssh-key-rotation.md
- │ ├── kubernetes-maintenance.md
- │ ├── troubleshooting.md
- │ ├── security.md
- │ └── password-management.md
- ├── roadmap/
- │ ├── _index.md
- │ └── cilium-ipv6.md
- └── contributing/
- ├── _index.md
- ├── code-of-conduct.md
- └── development.md
-&lt;/code&gt;&lt;/pre&gt;&lt;h2 id="key-files"&gt;Key Files&lt;/h2&gt;
-&lt;h3 id="infrastructure-root-level"&gt;Infrastructure (root level)&lt;/h3&gt;
-&lt;table&gt;
-	&lt;thead&gt;
-			&lt;tr&gt;
-					&lt;th&gt;File&lt;/th&gt;
-					&lt;th&gt;Purpose&lt;/th&gt;
-			&lt;/tr&gt;
-	&lt;/thead&gt;
-	&lt;tbody&gt;
-			&lt;tr&gt;
-					&lt;td&gt;&lt;code&gt;main.tf&lt;/code&gt;&lt;/td&gt;
-					&lt;td&gt;Core infrastructure: providers, SSH keys, network/subnet, firewalls, servers, cloud-init rendering&lt;/td&gt;
-			&lt;/tr&gt;
-			&lt;tr&gt;
-					&lt;td&gt;&lt;code&gt;variables.tf&lt;/code&gt;&lt;/td&gt;
-					&lt;td&gt;All configurable inputs with types, defaults, and descriptions&lt;/td&gt;
-			&lt;/tr&gt;
-			&lt;tr&gt;
-					&lt;td&gt;&lt;code&gt;outputs.tf&lt;/code&gt;&lt;/td&gt;
-					&lt;td&gt;Exposes IPs, SSH keys (sensitive), ssh_config_snippet, and next-steps banner&lt;/td&gt;
-			&lt;/tr&gt;
-			&lt;tr&gt;
-					&lt;td&gt;&lt;code&gt;terraform.tfvars.example&lt;/code&gt;&lt;/td&gt;
-					&lt;td&gt;Reference configuration (actual &lt;code&gt;.tfvars&lt;/code&gt; is gitignored)&lt;/td&gt;
-			&lt;/tr&gt;
-	&lt;/tbody&gt;
-&lt;/table&gt;
-&lt;h3 id="cloud-init-templates"&gt;Cloud-Init Templates&lt;/h3&gt;
-&lt;table&gt;
-	&lt;thead&gt;
-			&lt;tr&gt;
-					&lt;th&gt;File&lt;/th&gt;
-					&lt;th&gt;Purpose&lt;/th&gt;
-			&lt;/tr&gt;
-	&lt;/thead&gt;
-	&lt;tbody&gt;
-			&lt;tr&gt;
-					&lt;td&gt;&lt;code&gt;cloud-init/admin-node.yaml.tpl&lt;/code&gt;&lt;/td&gt;
-					&lt;td&gt;Minimal jump host: admin user, SSH hardening, fail2ban, public SSH&lt;/td&gt;
-			&lt;/tr&gt;
-			&lt;tr&gt;
-					&lt;td&gt;&lt;code&gt;cloud-init/control-node.yaml.tpl&lt;/code&gt;&lt;/td&gt;
-					&lt;td&gt;Control plane: cloudflared (master only), UFW, fail2ban, optional NAT64 + K8s prereqs&lt;/td&gt;
-			&lt;/tr&gt;
-			&lt;tr&gt;
-					&lt;td&gt;&lt;code&gt;cloud-init/worker-node.yaml.tpl&lt;/code&gt;&lt;/td&gt;
-					&lt;td&gt;Worker: restrictive UFW, no TCP forwarding, optional NAT64 + K8s prereqs&lt;/td&gt;
-			&lt;/tr&gt;
-	&lt;/tbody&gt;
-&lt;/table&gt;
-&lt;h3 id="scripts"&gt;Scripts&lt;/h3&gt;
-&lt;table&gt;
-	&lt;thead&gt;
-			&lt;tr&gt;
-					&lt;th&gt;File&lt;/th&gt;
-					&lt;th&gt;Purpose&lt;/th&gt;
-			&lt;/tr&gt;
-	&lt;/thead&gt;
-	&lt;tbody&gt;
-			&lt;tr&gt;
-					&lt;td&gt;&lt;code&gt;scripts/setup-ssh.sh&lt;/code&gt;&lt;/td&gt;
-					&lt;td&gt;Export SSH keys, generate &lt;code&gt;~/.ssh/config&lt;/code&gt; with backup&lt;/td&gt;
-			&lt;/tr&gt;
-			&lt;tr&gt;
-					&lt;td&gt;&lt;code&gt;scripts/ssh-agent-setup.sh&lt;/code&gt;&lt;/td&gt;
-					&lt;td&gt;Fix SSH permissions, start ssh-agent, load keys&lt;/td&gt;
-			&lt;/tr&gt;
-			&lt;tr&gt;
-					&lt;td&gt;&lt;code&gt;scripts/generate-ansible-inventory.sh&lt;/code&gt;&lt;/td&gt;
-					&lt;td&gt;Build Ansible inventory from OpenTofu state&lt;/td&gt;
-			&lt;/tr&gt;
-			&lt;tr&gt;
-					&lt;td&gt;&lt;code&gt;scripts/build-docs.sh&lt;/code&gt;&lt;/td&gt;
-					&lt;td&gt;Build the Hugo site locally&lt;/td&gt;
-			&lt;/tr&gt;
-			&lt;tr&gt;
-					&lt;td&gt;&lt;code&gt;scripts/serve-docs.sh&lt;/code&gt;&lt;/td&gt;
-					&lt;td&gt;Preview the site locally&lt;/td&gt;
-			&lt;/tr&gt;
-			&lt;tr&gt;
-					&lt;td&gt;&lt;code&gt;scripts/deploy-docs.sh&lt;/code&gt;&lt;/td&gt;
-					&lt;td&gt;Build Hugo and push to &lt;code&gt;gh-pages&lt;/code&gt;&lt;/td&gt;
-			&lt;/tr&gt;
-	&lt;/tbody&gt;
-&lt;/table&gt;
-&lt;h3 id="dev-container"&gt;Dev Container&lt;/h3&gt;
-&lt;p&gt;The aibox configuration in &lt;code&gt;aibox.toml&lt;/code&gt; is the source of truth for generated
-Dev Container files. Run &lt;code&gt;aibox apply&lt;/code&gt; after changing it; do not hand-edit
-&lt;code&gt;.devcontainer/Dockerfile&lt;/code&gt;, &lt;code&gt;docker-compose.yml&lt;/code&gt;, or &lt;code&gt;devcontainer.json&lt;/code&gt;.
-&lt;code&gt;Dockerfile.local&lt;/code&gt; and &lt;code&gt;docker-compose.override.yml&lt;/code&gt; are project-owned
-extensions and are safe to edit.&lt;/p&gt;</description></item><item><title>Quick Start</title><link>https://projectious-work.github.io/kubeclaw/docs/quick-start/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/quick-start/</guid><description>&lt;h2 id="prerequisites"&gt;Prerequisites&lt;/h2&gt;
-&lt;h3 id="accounts"&gt;Accounts&lt;/h3&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;strong&gt;Hetzner Cloud account&lt;/strong&gt; with an API token (&lt;a href="https://console.hetzner.cloud"&gt;console.hetzner.cloud&lt;/a&gt;)&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;Cloudflare account&lt;/strong&gt; with a configured domain (free tier is sufficient)&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h3 id="local-machine"&gt;Local Machine&lt;/h3&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;strong&gt;Docker&lt;/strong&gt; and an IDE with Dev Container support (e.g. VS Code + Dev Containers extension)&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;That&amp;rsquo;s it. All project tools (OpenTofu, Ansible, SSH, &lt;code&gt;cloudflared&lt;/code&gt;, Hugo,
-Kubernetes clients, and AI assistants) are available in the Dev Container. No
-local installation is required beyond Docker and an IDE with Dev Container
-support.&lt;/p&gt;</description></item><item><title>Scale Up/Down</title><link>https://projectious-work.github.io/kubeclaw/docs/operations/scale-up-down/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/operations/scale-up-down/</guid><description>&lt;p&gt;This guide covers scaling your cluster at both the infrastructure and Kubernetes levels.&lt;/p&gt;
+Docsy theme submodule when needed.&lt;/p&gt;</description></item><item><title>Scale Up/Down</title><link>https://projectious-work.github.io/kubeclaw/docs/operations/scale-up-down/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/operations/scale-up-down/</guid><description>&lt;p&gt;This guide covers scaling your cluster at both the infrastructure and Kubernetes levels.&lt;/p&gt;
 &lt;h2 id="scale-infrastructure"&gt;Scale Infrastructure&lt;/h2&gt;
 &lt;h3 id="add-worker-nodes"&gt;Add worker nodes&lt;/h3&gt;
 &lt;ol&gt;
@@ -950,154 +110,7 @@ support.&lt;/p&gt;</description></item><item><title>Scale Up/Down</title><link>h
 &lt;/li&gt;
 &lt;/ol&gt;
 &lt;h3 id="add-replica-control-nodes"&gt;Add replica control nodes&lt;/h3&gt;
-&lt;p&gt;Same pattern using &lt;code&gt;control_node_types&lt;/code&gt;:&lt;/p&gt;</description></item><item><title>Security</title><link>https://projectious-work.github.io/kubeclaw/docs/operations/security/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/operations/security/</guid><description>&lt;h2 id="security-summary"&gt;Security Summary&lt;/h2&gt;
-&lt;table&gt;
-	&lt;thead&gt;
-			&lt;tr&gt;
-					&lt;th&gt;Layer&lt;/th&gt;
-					&lt;th&gt;Protection&lt;/th&gt;
-			&lt;/tr&gt;
-	&lt;/thead&gt;
-	&lt;tbody&gt;
-			&lt;tr&gt;
-					&lt;td&gt;&lt;strong&gt;Network (Hetzner)&lt;/strong&gt;&lt;/td&gt;
-					&lt;td&gt;Firewall blocks all inbound; IPv6-only, no public IPv4&lt;/td&gt;
-			&lt;/tr&gt;
-			&lt;tr&gt;
-					&lt;td&gt;&lt;strong&gt;Network (K8s)&lt;/strong&gt;&lt;/td&gt;
-					&lt;td&gt;Cilium egress whitelist per namespace/app (FQDN-based)&lt;/td&gt;
-			&lt;/tr&gt;
-			&lt;tr&gt;
-					&lt;td&gt;&lt;strong&gt;Access&lt;/strong&gt;&lt;/td&gt;
-					&lt;td&gt;Cloudflare Tunnel (outbound-only connection, no open ports)&lt;/td&gt;
-			&lt;/tr&gt;
-			&lt;tr&gt;
-					&lt;td&gt;&lt;strong&gt;Authentication&lt;/strong&gt;&lt;/td&gt;
-					&lt;td&gt;Cloudflare Access policies + SSH key-only auth&lt;/td&gt;
-			&lt;/tr&gt;
-			&lt;tr&gt;
-					&lt;td&gt;&lt;strong&gt;Container&lt;/strong&gt;&lt;/td&gt;
-					&lt;td&gt;Non-root user, dropped capabilities, resource limits&lt;/td&gt;
-			&lt;/tr&gt;
-			&lt;tr&gt;
-					&lt;td&gt;&lt;strong&gt;SSH&lt;/strong&gt;&lt;/td&gt;
-					&lt;td&gt;Key-only auth, fail2ban, no TCP forwarding on workers&lt;/td&gt;
-			&lt;/tr&gt;
-			&lt;tr&gt;
-					&lt;td&gt;&lt;strong&gt;Storage&lt;/strong&gt;&lt;/td&gt;
-					&lt;td&gt;Isolated PVCs per workload&lt;/td&gt;
-			&lt;/tr&gt;
-	&lt;/tbody&gt;
-&lt;/table&gt;
-&lt;h2 id="what-this-setup-protects-against"&gt;What this setup protects against&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;strong&gt;Direct server attacks&lt;/strong&gt; &amp;ndash; no public IPs, no open inbound ports&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;Unauthorized access&lt;/strong&gt; &amp;ndash; Cloudflare Access + SSH key-only auth&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;Data exfiltration&lt;/strong&gt; &amp;ndash; FQDN-based egress whitelist per application&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;Lateral movement&lt;/strong&gt; &amp;ndash; namespace isolation, per-pod network policies&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;Resource abuse&lt;/strong&gt; &amp;ndash; container resource limits&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2 id="what-to-monitor"&gt;What to monitor&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;strong&gt;API key and token compromise&lt;/strong&gt; &amp;ndash; rotate regularly&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;Cloudflare Tunnel health&lt;/strong&gt; &amp;ndash; monitor via Zero Trust dashboard&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;Node resource utilization&lt;/strong&gt; &amp;ndash; watch for memory pressure on small instances&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2 id="security-notes"&gt;Security notes&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;strong&gt;Passwords in cloud-init&lt;/strong&gt; are visible in cloud-init logs. Change them after first login.&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;SSH keys&lt;/strong&gt; should be different for each server role.&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;Root password&lt;/strong&gt; is only intended for emergency access via Hetzner Web Console.&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;Terraform state&lt;/strong&gt; contains sensitive data (private keys when auto-generated). Protect state files.&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;UFW rules&lt;/strong&gt; for HTTP/HTTPS on worker nodes can be removed after initial setup:
-&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;sudo ufw delete allow out to any port &lt;span class="m"&gt;80&lt;/span&gt; proto tcp
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;sudo ufw delete allow out to any port &lt;span class="m"&gt;443&lt;/span&gt; proto tcp
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2 id="openclaw-specific-security"&gt;OpenClaw-specific security&lt;/h2&gt;
-&lt;p&gt;When running OpenClaw:&lt;/p&gt;</description></item><item><title>Security Model</title><link>https://projectious-work.github.io/kubeclaw/docs/introduction/security-model/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/introduction/security-model/</guid><description>&lt;p&gt;KubeClaw&amp;rsquo;s security is layered across three levels: Hetzner Cloud firewalls, host-level hardening, and Kubernetes network policies. See &lt;a href="https://projectious-work.github.io/kubeclaw/docs/introduction/architecture/"&gt;Architecture&lt;/a&gt; for the overall network design.&lt;/p&gt;
-&lt;h2 id="firewall-rules-hetzner"&gt;Firewall Rules (Hetzner)&lt;/h2&gt;
-&lt;p&gt;Hetzner Cloud firewalls are the first line of defense. Each node role has its own firewall:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;strong&gt;Control nodes&lt;/strong&gt;: SSH from private network + localhost (for tunnel), ICMP from private network&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;Worker nodes&lt;/strong&gt;: SSH from private network, ICMP from private network&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;Admin node&lt;/strong&gt;: SSH from anywhere (temporary), ICMP from private network&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;Kubernetes ports (6443, 10250, 2379-2380, 30000-32767) are intentionally excluded from the Hetzner firewall and added only when deploying Kubernetes.&lt;/p&gt;</description></item><item><title>Server Management (Ansible)</title><link>https://projectious-work.github.io/kubeclaw/docs/guide/ansible/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/guide/ansible/</guid><description>&lt;p&gt;Ansible handles ongoing server management: system updates, security hardening, NAT64 configuration, and Kubernetes prerequisites. All playbooks run from the Dev Container.&lt;/p&gt;
-&lt;h2 id="step-1-set-up-ansible"&gt;Step 1: Set Up Ansible&lt;/h2&gt;
-&lt;h3 id="11-generate-inventory"&gt;1.1 Generate inventory&lt;/h3&gt;
-&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;./scripts/generate-ansible-inventory.sh
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The inventory (&lt;code&gt;ansible/inventory.ini&lt;/code&gt;) is auto-generated. It defines three groups:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;code&gt;control_nodes&lt;/code&gt; &amp;ndash; all control plane nodes&lt;/li&gt;
-&lt;li&gt;&lt;code&gt;worker_nodes&lt;/code&gt; &amp;ndash; all worker nodes&lt;/li&gt;
-&lt;li&gt;&lt;code&gt;k8s_cluster&lt;/code&gt; &amp;ndash; union of control and worker nodes&lt;/li&gt;
-&lt;/ul&gt;
-&lt;div class="alert alert-primary" role="alert"&gt;&lt;div class="h4 alert-heading" role="heading"&gt;Warning&lt;/div&gt;
-
-
-Never hand-edit `inventory.ini`. Regenerate after infrastructure changes with `./scripts/generate-ansible-inventory.sh`.
-
-&lt;/div&gt;
-
-&lt;h3 id="12-load-ssh-keys"&gt;1.2 Load SSH keys&lt;/h3&gt;
-&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;source&lt;/span&gt; ./scripts/ssh-agent-setup.sh
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class="alert alert-primary" role="alert"&gt;&lt;div class="h4 alert-heading" role="heading"&gt;Important&lt;/div&gt;
-
-
-The ssh-agent must be running with the cluster keys loaded before Ansible can connect. Run `source ./scripts/ssh-agent-setup.sh` in every new terminal session.
-
-&lt;/div&gt;
-
-&lt;h3 id="13-test-connectivity"&gt;1.3 Test connectivity&lt;/h3&gt;
-&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;cd&lt;/span&gt; ansible
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;ansible all -m ping
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id="step-2-apply-system-updates"&gt;Step 2: Apply System Updates&lt;/h2&gt;
-&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;ansible-playbook playbooks/update-system.yml
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Target specific node groups or enable automatic reboots:&lt;/p&gt;</description></item><item><title>SSH Key Rotation</title><link>https://projectious-work.github.io/kubeclaw/docs/operations/ssh-key-rotation/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/operations/ssh-key-rotation/</guid><description>&lt;h2 id="when-to-rotate"&gt;When to rotate&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;Periodically (e.g. annually)&lt;/li&gt;
-&lt;li&gt;If compromise is suspected&lt;/li&gt;
-&lt;li&gt;When personnel changes occur&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2 id="with-auto-generated-keys"&gt;With auto-generated keys&lt;/h2&gt;
-&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 1. Mark old key resources for recreation&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;tofu taint &lt;span class="s1"&gt;&amp;#39;tls_private_key.control_node[0]&amp;#39;&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;tofu taint &lt;span class="s1"&gt;&amp;#39;tls_private_key.worker_node[0]&amp;#39;&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 2. Generate new keys and update servers&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;tofu apply
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 3. Export new keys&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;./scripts/setup-ssh.sh
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class="alert alert-primary" role="alert"&gt;&lt;div class="h4 alert-heading" role="heading"&gt;Warning&lt;/div&gt;
-
-
-During rotation SSH access may be briefly interrupted. Keep Hetzner web console root access available as a fallback.
-
-&lt;/div&gt;
-
-&lt;h2 id="with-custom-keys"&gt;With custom keys&lt;/h2&gt;
-&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 1. Create new keys&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;ssh-keygen -t ed25519 -f ~/.ssh/k8s-control-new -C &lt;span class="s2"&gt;&amp;#34;control-node-new&amp;#34;&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 2. Add the new public key to the server (before removing the old one)&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;ssh control-node
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;ssh-ed25519 AAAA... control-node-new&amp;#34;&lt;/span&gt; &amp;gt;&amp;gt; ~/.ssh/authorized_keys
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 3. Test the new key&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;ssh -i ~/.ssh/k8s-control-new kubernetes-admin@&amp;lt;node-ip&amp;gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 4. Remove the old key from authorized_keys&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;ssh -i ~/.ssh/k8s-control-new control-node
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# Edit ~/.ssh/authorized_keys and remove the old key line&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 5. Update terraform.tfvars with the new public key&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# control_node_public_key = &amp;#34;ssh-ed25519 AAAA... (new key)&amp;#34;&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 6. Sync OpenTofu state&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;tofu apply
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Repeat for worker node keys if applicable.&lt;/p&gt;</description></item><item><title>SSH Keys with Passphrase</title><link>https://projectious-work.github.io/kubeclaw/docs/how-to/ssh-keys-with-passphrase/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/how-to/ssh-keys-with-passphrase/</guid><description>&lt;h2 id="why-use-a-passphrase"&gt;Why use a passphrase?&lt;/h2&gt;
+&lt;p&gt;Same pattern using &lt;code&gt;control_node_types&lt;/code&gt;:&lt;/p&gt;</description></item><item><title>SSH Keys with Passphrase</title><link>https://projectious-work.github.io/kubeclaw/docs/how-to/ssh-keys-with-passphrase/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/how-to/ssh-keys-with-passphrase/</guid><description>&lt;h2 id="why-use-a-passphrase"&gt;Why use a passphrase?&lt;/h2&gt;
 &lt;p&gt;An SSH key without a passphrase is like a house key without a lock on the key cabinet. If your laptop or key file is stolen, the attacker gains immediate access to your cluster.&lt;/p&gt;
 &lt;h2 id="creating-keys-with-a-passphrase"&gt;Creating keys with a passphrase&lt;/h2&gt;
 &lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# Control node key&lt;/span&gt;
@@ -1108,41 +121,7 @@ During rotation SSH access may be briefly interrupted. Keep Hetzner web console 
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;ssh-keygen -t ed25519 -f ~/.ssh/k8s-cluster_worker-node_key -C &lt;span class="s2"&gt;&amp;#34;k8s-worker&amp;#34;&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# Enter a passphrase when prompted&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id="using-ssh-agent"&gt;Using ssh-agent&lt;/h2&gt;
-&lt;p&gt;Since Terraform and Ansible cannot directly use encrypted keys, you must use ssh-agent:&lt;/p&gt;</description></item><item><title>Store SSH Keys in Password Manager</title><link>https://projectious-work.github.io/kubeclaw/docs/how-to/store-ssh-keys-in-password-manager/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/how-to/store-ssh-keys-in-password-manager/</guid><description>&lt;p&gt;Storing SSH keys in a password manager provides a secure backup that survives hardware failures and makes it easy to restore access from a new machine.&lt;/p&gt;
-&lt;h2 id="general-workflow"&gt;General workflow&lt;/h2&gt;
-&lt;p&gt;This workflow applies to any password manager that supports secure notes or file attachments (Dashlane, 1Password, Bitwarden, etc.).&lt;/p&gt;
-&lt;h3 id="1-create-keys-locally"&gt;1. Create keys locally&lt;/h3&gt;
-&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;ssh-keygen -t ed25519 -f ~/.ssh/k8s-cluster_control-node_key -C &lt;span class="s2"&gt;&amp;#34;control-node&amp;#34;&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;ssh-keygen -t ed25519 -f ~/.ssh/k8s-cluster_worker-node_key -C &lt;span class="s2"&gt;&amp;#34;worker-node&amp;#34;&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id="2-save-to-your-password-manager"&gt;2. Save to your password manager&lt;/h3&gt;
-&lt;p&gt;Create a secure note or vault entry:&lt;/p&gt;</description></item><item><title>Troubleshooting</title><link>https://projectious-work.github.io/kubeclaw/docs/operations/troubleshooting/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/operations/troubleshooting/</guid><description>&lt;h2 id="infrastructure-issues"&gt;Infrastructure Issues&lt;/h2&gt;
-&lt;h3 id="cloudflared-wont-start-ipv6-only"&gt;cloudflared won&amp;rsquo;t start (IPv6-only)&lt;/h3&gt;
-&lt;p&gt;Check &lt;code&gt;/etc/cloudflared/config.yml&lt;/code&gt;:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-yaml" data-lang="yaml"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nt"&gt;edge-ip-version&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;6&amp;#34;&lt;/span&gt;&lt;span class="w"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class="alert alert-primary" role="alert"&gt;&lt;div class="h4 alert-heading" role="heading"&gt;Important&lt;/div&gt;
-
-
-The value must be a string in quotes (`"6"`, not `6`). Cloudflared defaults to IPv4 connections to Cloudflare's edge servers.
-
-&lt;/div&gt;
-
-&lt;h3 id="ssh-key-rotation-failed"&gt;SSH key rotation failed&lt;/h3&gt;
-&lt;ol&gt;
-&lt;li&gt;Connect via Hetzner web console (root password)&lt;/li&gt;
-&lt;li&gt;Add the new key manually:
-&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;ssh-ed25519 AAAA...&amp;#34;&lt;/span&gt; &amp;gt;&amp;gt; /home/kubernetes-admin/.ssh/authorized_keys
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/li&gt;
-&lt;/ol&gt;
-&lt;h3 id="ansible-cannot-connect"&gt;Ansible cannot connect&lt;/h3&gt;
-&lt;p&gt;Check:&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;Is &lt;code&gt;cloudflared&lt;/code&gt; installed locally?&lt;/li&gt;
-&lt;li&gt;Is the tunnel running? (&lt;code&gt;cloudflared tunnel list&lt;/code&gt;)&lt;/li&gt;
-&lt;li&gt;Is the inventory correct? (&lt;code&gt;./scripts/generate-ansible-inventory.sh&lt;/code&gt;)&lt;/li&gt;
-&lt;li&gt;Is the ssh-agent running with keys loaded? (&lt;code&gt;ssh-add -l&lt;/code&gt;)&lt;/li&gt;
-&lt;/ol&gt;
-&lt;h3 id="state-lost--keys-gone"&gt;State lost / keys gone&lt;/h3&gt;
-&lt;p&gt;With auto-generated keys:&lt;/p&gt;</description></item><item><title>Variables Reference</title><link>https://projectious-work.github.io/kubeclaw/docs/reference/variables/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/reference/variables/</guid><description>&lt;p&gt;All configurable inputs for the OpenTofu infrastructure. Set these in &lt;code&gt;terraform.tfvars&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Since Terraform and Ansible cannot directly use encrypted keys, you must use ssh-agent:&lt;/p&gt;</description></item><item><title>Variables Reference</title><link>https://projectious-work.github.io/kubeclaw/docs/reference/variables/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/reference/variables/</guid><description>&lt;p&gt;All configurable inputs for the OpenTofu infrastructure. Set these in &lt;code&gt;terraform.tfvars&lt;/code&gt;.&lt;/p&gt;
 &lt;h2 id="required-variables"&gt;Required Variables&lt;/h2&gt;
 &lt;table&gt;
 	&lt;thead&gt;
@@ -1310,4 +289,1000 @@ The value must be a string in quotes (`"6"`, not `6`). Cloudflared defaults to I
 	&lt;/tbody&gt;
 &lt;/table&gt;
 &lt;h2 id="ssh-keys"&gt;SSH Keys&lt;/h2&gt;
-&lt;p&gt;If left empty, new keys will be auto-generated and stored in the OpenTofu state. When using custom keys, manage private keys yourself.&lt;/p&gt;</description></item></channel></rss>
+&lt;p&gt;If left empty, new keys will be auto-generated and stored in the OpenTofu state. When using custom keys, manage private keys yourself.&lt;/p&gt;</description></item><item><title>Code of Conduct</title><link>https://projectious-work.github.io/kubeclaw/docs/contributing/code-of-conduct/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/contributing/code-of-conduct/</guid><description>&lt;p&gt;This project follows the &lt;a href="https://www.contributor-covenant.org/version/2/1/code_of_conduct/"&gt;Contributor Covenant v2.1&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Please read the full text at the link above. In summary: be respectful, be constructive, and create a welcoming environment for everyone.&lt;/p&gt;
+&lt;h2 id="reporting"&gt;Reporting&lt;/h2&gt;
+&lt;p&gt;If you experience or witness unacceptable behavior, please contact the project maintainer at &lt;a href="mailto:bnaard@gmx.net"&gt;bnaard@gmx.net&lt;/a&gt;.&lt;/p&gt;</description></item><item><title>Infrastructure (OpenTofu)</title><link>https://projectious-work.github.io/kubeclaw/docs/guide/infrastructure/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/guide/infrastructure/</guid><description>&lt;p&gt;KubeClaw uses OpenTofu (Terraform-compatible) to provision all infrastructure on Hetzner Cloud. This page walks through the provisioning workflow step by step. See &lt;a href="https://projectious-work.github.io/kubeclaw/docs/reference/variables/"&gt;Variables Reference&lt;/a&gt; for all configurable options.&lt;/p&gt;
+&lt;h2 id="step-1-configure-terraformtfvars"&gt;Step 1: Configure terraform.tfvars&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;cp terraform.tfvars.example terraform.tfvars
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Edit &lt;code&gt;terraform.tfvars&lt;/code&gt; with your settings:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-hcl" data-lang="hcl"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="n"&gt;hcloud_token&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;your-hcloud-api-token&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="n"&gt;root_password&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;a-strong-root-password&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="n"&gt;cluster_name&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;k8s-cluster&amp;#34;&lt;/span&gt;&lt;span class="c1"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# Optional: auto-configure Cloudflare Tunnel on the master control node
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# cloudflare_tunnel_token = &amp;#34;eyJ...&amp;#34;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id="ssh-key-options"&gt;SSH key options&lt;/h3&gt;
+
+
+
+&lt;ul class="nav nav-tabs" id="tabs-1" role="tablist"&gt;
+ &lt;li class="nav-item"&gt;
+ &lt;button class="nav-link active"
+ id="tabs-01-00-tab" data-bs-toggle="tab" data-bs-target="#tabs-01-00" role="tab"
+ aria-controls="tabs-01-00" aria-selected="true"&gt;
+ Option A: Auto-generated keys (default)
+ &lt;/button&gt;
+ &lt;/li&gt;&lt;li class="nav-item"&gt;
+ &lt;button class="nav-link"
+ id="tabs-01-01-tab" data-bs-toggle="tab" data-bs-target="#tabs-01-01" role="tab"
+ aria-controls="tabs-01-01" aria-selected="false"&gt;
+ Option B: Custom keys
+ &lt;/button&gt;
+ &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class="tab-content" id="tabs-1-content"&gt;
+ &lt;div class="tab-pane fade show active"
+ id="tabs-01-00" role="tabpanel" aria-labelled-by="tabs-01-00-tab" tabindex="1"&gt;
+ &lt;pre tabindex="0"&gt;&lt;code&gt;No configuration needed. OpenTofu generates ED25519 keys and stores them in the state file.
+
+| Advantage | Disadvantage |
+|-----------|--------------|
+| No manual key creation | State file contains private keys |
+| Works out of the box | Keys lost if state is lost |&lt;/code&gt;&lt;/pre&gt;
+ &lt;/div&gt;
+ &lt;div class="tab-pane fade"
+ id="tabs-01-01" role="tabpanel" aria-labelled-by="tabs-01-01-tab" tabindex="1"&gt;
+ &lt;pre tabindex="0"&gt;&lt;code&gt;Create your own keys and reference them in `terraform.tfvars`:
+
+```bash
+ssh-keygen -t ed25519 -f ~/.ssh/k8s-cluster_control-node_key -C &amp;#34;control-node&amp;#34;
+ssh-keygen -t ed25519 -f ~/.ssh/k8s-cluster_worker-node_key -C &amp;#34;worker-node&amp;#34;
+```
+
+```hcl
+control_node_public_key = &amp;#34;ssh-ed25519 AAAA... control-node&amp;#34;
+worker_node_public_key = &amp;#34;ssh-ed25519 AAAA... worker-node&amp;#34;
+```
+
+| Advantage | Disadvantage |
+|-----------|--------------|
+| Full control over key storage | Manual key management |
+| State has no private keys | Must create keys before provisioning |
+| Easy password manager integration | |&lt;/code&gt;&lt;/pre&gt;
+ &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;h2 id="step-2-provision-infrastructure"&gt;Step 2: Provision Infrastructure&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;tofu init &lt;span class="c1"&gt;# First time only&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;tofu apply
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;This creates:&lt;/p&gt;</description></item><item><title>Outputs Reference</title><link>https://projectious-work.github.io/kubeclaw/docs/reference/outputs/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/reference/outputs/</guid><description>&lt;p&gt;All outputs exposed by the OpenTofu configuration. These are consumed by the setup scripts and can be queried manually.&lt;/p&gt;
+&lt;h2 id="network-information"&gt;Network Information&lt;/h2&gt;
+&lt;table&gt;
+	&lt;thead&gt;
+			&lt;tr&gt;
+					&lt;th&gt;Output&lt;/th&gt;
+					&lt;th&gt;Description&lt;/th&gt;
+			&lt;/tr&gt;
+	&lt;/thead&gt;
+	&lt;tbody&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;network_id&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;ID of the private network&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;network_name&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Name of the private network&lt;/td&gt;
+			&lt;/tr&gt;
+	&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2 id="cluster-metadata"&gt;Cluster Metadata&lt;/h2&gt;
+&lt;table&gt;
+	&lt;thead&gt;
+			&lt;tr&gt;
+					&lt;th&gt;Output&lt;/th&gt;
+					&lt;th&gt;Description&lt;/th&gt;
+			&lt;/tr&gt;
+	&lt;/thead&gt;
+	&lt;tbody&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;cluster_name&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Name of the cluster&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;admin_user&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Admin user name&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;ssh_key_prefix&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Prefix used for SSH key filenames&lt;/td&gt;
+			&lt;/tr&gt;
+	&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2 id="master-control-node"&gt;Master Control Node&lt;/h2&gt;
+&lt;table&gt;
+	&lt;thead&gt;
+			&lt;tr&gt;
+					&lt;th&gt;Output&lt;/th&gt;
+					&lt;th&gt;Description&lt;/th&gt;
+			&lt;/tr&gt;
+	&lt;/thead&gt;
+	&lt;tbody&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;master_control_node_id&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;ID of the master control node&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;master_control_node_name&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Name of the master control node&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;master_control_node_private_ip&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Private IP of the master control node&lt;/td&gt;
+			&lt;/tr&gt;
+	&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2 id="all-control-nodes-master--replicas"&gt;All Control Nodes (master + replicas)&lt;/h2&gt;
+&lt;table&gt;
+	&lt;thead&gt;
+			&lt;tr&gt;
+					&lt;th&gt;Output&lt;/th&gt;
+					&lt;th&gt;Description&lt;/th&gt;
+			&lt;/tr&gt;
+	&lt;/thead&gt;
+	&lt;tbody&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;control_node_count&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Total number of control nodes (master + replicas)&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;control_node_ids&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;IDs of all control nodes&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;control_node_names&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Names of all control nodes&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;control_node_private_ips&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Private IPs of all control nodes&lt;/td&gt;
+			&lt;/tr&gt;
+	&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2 id="worker-nodes"&gt;Worker Nodes&lt;/h2&gt;
+&lt;table&gt;
+	&lt;thead&gt;
+			&lt;tr&gt;
+					&lt;th&gt;Output&lt;/th&gt;
+					&lt;th&gt;Description&lt;/th&gt;
+			&lt;/tr&gt;
+	&lt;/thead&gt;
+	&lt;tbody&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;worker_node_count&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Number of worker nodes&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;worker_node_ids&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;IDs of worker nodes&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;worker_node_names&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Names of worker nodes&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;worker_node_private_ips&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Private IPs of worker nodes&lt;/td&gt;
+			&lt;/tr&gt;
+	&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2 id="admin-node"&gt;Admin Node&lt;/h2&gt;
+&lt;table&gt;
+	&lt;thead&gt;
+			&lt;tr&gt;
+					&lt;th&gt;Output&lt;/th&gt;
+					&lt;th&gt;Description&lt;/th&gt;
+			&lt;/tr&gt;
+	&lt;/thead&gt;
+	&lt;tbody&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;admin_node_id&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;ID of the admin node (null if disabled)&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;admin_node_name&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Name of the admin node (null if disabled)&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;admin_node_ipv6&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Public IPv6 address of the admin node (null if disabled)&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;admin_node_private_ip&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Private IP of the admin node (null if disabled)&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;enable_admin_node&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Whether the admin node is enabled&lt;/td&gt;
+			&lt;/tr&gt;
+	&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2 id="ssh-keys"&gt;SSH Keys&lt;/h2&gt;
+&lt;p&gt;These outputs are sensitive when auto-generated keys are used.&lt;/p&gt;</description></item><item><title>Security Model</title><link>https://projectious-work.github.io/kubeclaw/docs/introduction/security-model/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/introduction/security-model/</guid><description>&lt;p&gt;KubeClaw&amp;rsquo;s security is layered across three levels: Hetzner Cloud firewalls, host-level hardening, and Kubernetes network policies. See &lt;a href="https://projectious-work.github.io/kubeclaw/docs/introduction/architecture/"&gt;Architecture&lt;/a&gt; for the overall network design.&lt;/p&gt;
+&lt;h2 id="firewall-rules-hetzner"&gt;Firewall Rules (Hetzner)&lt;/h2&gt;
+&lt;p&gt;Hetzner Cloud firewalls are the first line of defense. Each node role has its own firewall:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Control nodes&lt;/strong&gt;: SSH from private network + localhost (for tunnel), ICMP from private network&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Worker nodes&lt;/strong&gt;: SSH from private network, ICMP from private network&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Admin node&lt;/strong&gt;: SSH from anywhere (temporary), ICMP from private network&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Kubernetes ports (6443, 10250, 2379-2380, 30000-32767) are intentionally excluded from the Hetzner firewall and added only when deploying Kubernetes.&lt;/p&gt;</description></item><item><title>SSH Key Rotation</title><link>https://projectious-work.github.io/kubeclaw/docs/operations/ssh-key-rotation/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/operations/ssh-key-rotation/</guid><description>&lt;h2 id="when-to-rotate"&gt;When to rotate&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Periodically (e.g. annually)&lt;/li&gt;
+&lt;li&gt;If compromise is suspected&lt;/li&gt;
+&lt;li&gt;When personnel changes occur&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id="with-auto-generated-keys"&gt;With auto-generated keys&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 1. Mark old key resources for recreation&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;tofu taint &lt;span class="s1"&gt;&amp;#39;tls_private_key.control_node[0]&amp;#39;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;tofu taint &lt;span class="s1"&gt;&amp;#39;tls_private_key.worker_node[0]&amp;#39;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 2. Generate new keys and update servers&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;tofu apply
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 3. Export new keys&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;./scripts/setup-ssh.sh
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class="alert alert-primary" role="alert"&gt;&lt;div class="h4 alert-heading" role="heading"&gt;Warning&lt;/div&gt;
+
+
+During rotation SSH access may be briefly interrupted. Keep Hetzner web console root access available as a fallback.
+
+&lt;/div&gt;
+
+&lt;h2 id="with-custom-keys"&gt;With custom keys&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 1. Create new keys&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;ssh-keygen -t ed25519 -f ~/.ssh/k8s-control-new -C &lt;span class="s2"&gt;&amp;#34;control-node-new&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 2. Add the new public key to the server (before removing the old one)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;ssh control-node
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;ssh-ed25519 AAAA... control-node-new&amp;#34;&lt;/span&gt; &amp;gt;&amp;gt; ~/.ssh/authorized_keys
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 3. Test the new key&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;ssh -i ~/.ssh/k8s-control-new kubernetes-admin@&amp;lt;node-ip&amp;gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 4. Remove the old key from authorized_keys&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;ssh -i ~/.ssh/k8s-control-new control-node
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# Edit ~/.ssh/authorized_keys and remove the old key line&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 5. Update terraform.tfvars with the new public key&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# control_node_public_key = &amp;#34;ssh-ed25519 AAAA... (new key)&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 6. Sync OpenTofu state&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;tofu apply
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Repeat for worker node keys if applicable.&lt;/p&gt;</description></item><item><title>Store SSH Keys in Password Manager</title><link>https://projectious-work.github.io/kubeclaw/docs/how-to/store-ssh-keys-in-password-manager/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/how-to/store-ssh-keys-in-password-manager/</guid><description>&lt;p&gt;Storing SSH keys in a password manager provides a secure backup that survives hardware failures and makes it easy to restore access from a new machine.&lt;/p&gt;
+&lt;h2 id="general-workflow"&gt;General workflow&lt;/h2&gt;
+&lt;p&gt;This workflow applies to any password manager that supports secure notes or file attachments (Dashlane, 1Password, Bitwarden, etc.).&lt;/p&gt;
+&lt;h3 id="1-create-keys-locally"&gt;1. Create keys locally&lt;/h3&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;ssh-keygen -t ed25519 -f ~/.ssh/k8s-cluster_control-node_key -C &lt;span class="s2"&gt;&amp;#34;control-node&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;ssh-keygen -t ed25519 -f ~/.ssh/k8s-cluster_worker-node_key -C &lt;span class="s2"&gt;&amp;#34;worker-node&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id="2-save-to-your-password-manager"&gt;2. Save to your password manager&lt;/h3&gt;
+&lt;p&gt;Create a secure note or vault entry:&lt;/p&gt;</description></item><item><title>Cloud-Init Templates</title><link>https://projectious-work.github.io/kubeclaw/docs/reference/cloud-init/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/reference/cloud-init/</guid><description>&lt;p&gt;Cloud-init templates are located in &lt;code&gt;cloud-init/&lt;/code&gt; and rendered by OpenTofu via &lt;code&gt;templatefile()&lt;/code&gt; in &lt;code&gt;main.tf&lt;/code&gt;. They configure each server on first boot.&lt;/p&gt;
+&lt;h2 id="admin-nodeyamltpl"&gt;admin-node.yaml.tpl&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;Purpose&lt;/strong&gt;: Minimal jump host for initial SSH access.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Used by&lt;/strong&gt;: &lt;code&gt;hcloud_server.admin_node&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Template variables&lt;/strong&gt;:&lt;/p&gt;
+&lt;table&gt;
+	&lt;thead&gt;
+			&lt;tr&gt;
+					&lt;th&gt;Variable&lt;/th&gt;
+					&lt;th&gt;Source&lt;/th&gt;
+			&lt;/tr&gt;
+	&lt;/thead&gt;
+	&lt;tbody&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;ssh_public_key&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;&lt;code&gt;local.admin_node_public_key&lt;/code&gt;&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;root_password&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;&lt;code&gt;var.root_password&lt;/code&gt;&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;admin_user&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;&lt;code&gt;var.admin_user&lt;/code&gt;&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;keyboard_layout&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;&lt;code&gt;var.keyboard_layout&lt;/code&gt;&lt;/td&gt;
+			&lt;/tr&gt;
+	&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;&lt;strong&gt;What it configures&lt;/strong&gt;:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Admin user with sudo NOPASSWD&lt;/li&gt;
+&lt;li&gt;SSH hardening with &lt;code&gt;AllowTcpForwarding yes&lt;/code&gt; (needed for ProxyJump)&lt;/li&gt;
+&lt;li&gt;fail2ban for SSH protection&lt;/li&gt;
+&lt;li&gt;UFW allowing public SSH (port 22 from anywhere)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id="control-nodeyamltpl"&gt;control-node.yaml.tpl&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;Purpose&lt;/strong&gt;: Kubernetes control plane node with optional Cloudflare Tunnel.&lt;/p&gt;</description></item><item><title>Cloudflare Tunnel Setup</title><link>https://projectious-work.github.io/kubeclaw/docs/guide/cloudflare-tunnel/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/guide/cloudflare-tunnel/</guid><description>&lt;p&gt;This guide walks through creating and configuring a Cloudflare Tunnel that provides secure SSH access to your KubeClaw cluster. The tunnel replaces the temporary admin node as the permanent access path &amp;ndash; no open ports, no public SSH, outbound-only connectivity.&lt;/p&gt;
+&lt;h2 id="why-cloudflare-tunnel"&gt;Why Cloudflare Tunnel?&lt;/h2&gt;
+&lt;p&gt;KubeClaw nodes have no public IPv4 and no inbound SSH ports. Access works through one of two paths:&lt;/p&gt;
+&lt;table&gt;
+	&lt;thead&gt;
+			&lt;tr&gt;
+					&lt;th&gt;Path&lt;/th&gt;
+					&lt;th&gt;When to use&lt;/th&gt;
+					&lt;th&gt;How it works&lt;/th&gt;
+			&lt;/tr&gt;
+	&lt;/thead&gt;
+	&lt;tbody&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;strong&gt;Admin node&lt;/strong&gt; (temporary)&lt;/td&gt;
+					&lt;td&gt;Initial setup, before tunnel is ready&lt;/td&gt;
+					&lt;td&gt;Jump host with public IPv6; SSH via &lt;code&gt;ProxyJump&lt;/code&gt;&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;strong&gt;Cloudflare Tunnel&lt;/strong&gt; (permanent)&lt;/td&gt;
+					&lt;td&gt;After tunnel is configured&lt;/td&gt;
+					&lt;td&gt;&lt;code&gt;cloudflared&lt;/code&gt; on the master node connects outbound to Cloudflare&amp;rsquo;s edge; SSH proxied via &lt;code&gt;ProxyCommand cloudflared access ssh&lt;/code&gt; on your local machine&lt;/td&gt;
+			&lt;/tr&gt;
+	&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;After the tunnel is working, you disable the admin node (&lt;code&gt;enable_admin_node = false&lt;/code&gt; in &lt;code&gt;terraform.tfvars&lt;/code&gt;) and all SSH flows through Cloudflare.&lt;/p&gt;</description></item><item><title>DNS and NAT64</title><link>https://projectious-work.github.io/kubeclaw/docs/introduction/dns-and-nat64/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/introduction/dns-and-nat64/</guid><description>&lt;p&gt;The cluster is IPv6-only &amp;ndash; but many services (GitHub CDN, container registries, package repos) are IPv4-only. &lt;strong&gt;NAT64/DNS64&lt;/strong&gt; provides transparent IPv4 reachability at the network layer, no application changes needed. This page covers how DNS64/NAT64 works, how it integrates with Kubernetes CoreDNS, and how to configure it.&lt;/p&gt;
+&lt;h2 id="the-problem-ipv4-internet-from-ipv6-only-nodes"&gt;The Problem: IPv4 Internet from IPv6-Only Nodes&lt;/h2&gt;
+&lt;p&gt;The nodes have no public IPv4 addresses. Most internet services (GitHub, Docker Hub, package repos) have IPv4 addresses. How does an IPv6-only node reach them?&lt;/p&gt;</description></item><item><title>Kubernetes Maintenance</title><link>https://projectious-work.github.io/kubeclaw/docs/operations/kubernetes-maintenance/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/operations/kubernetes-maintenance/</guid><description>&lt;p&gt;Operational procedures for upgrading and managing the Kubernetes cluster. For initial cluster setup, see the &lt;a href="https://projectious-work.github.io/kubeclaw/docs/guide/kubernetes/"&gt;Kubernetes (kubeadm)&lt;/a&gt; guide.&lt;/p&gt;
+&lt;h2 id="upgrade-kubernetes"&gt;Upgrade Kubernetes&lt;/h2&gt;
+&lt;p&gt;Kubernetes upgrades follow a strict order: &lt;strong&gt;control plane first, then workers&lt;/strong&gt;. This is the standard CKA upgrade workflow.&lt;/p&gt;
+&lt;h3 id="upgrade-control-plane"&gt;Upgrade control plane&lt;/h3&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 1. Unhold packages&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;sudo apt-mark unhold kubeadm
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 2. Upgrade kubeadm&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;sudo apt-get update &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; sudo apt-get install -y &lt;span class="nv"&gt;kubeadm&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;1.33.*-*
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 3. Check available upgrade&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;sudo kubeadm upgrade plan
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 4. Apply the upgrade&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;sudo kubeadm upgrade apply v1.33.0
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 5. Drain the control node (if running workloads)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;kubectl drain &lt;span class="k"&gt;$(&lt;/span&gt;hostname&lt;span class="k"&gt;)&lt;/span&gt; --ignore-daemonsets --delete-emptydir-data
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 6. Upgrade kubelet and kubectl&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;sudo apt-mark unhold kubelet kubectl
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;sudo apt-get install -y &lt;span class="nv"&gt;kubelet&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;1.33.*-* &lt;span class="nv"&gt;kubectl&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;1.33.*-*
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;sudo apt-mark hold kubelet kubeadm kubectl
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;sudo systemctl daemon-reload
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;sudo systemctl restart kubelet
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 7. Uncordon the node&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;kubectl uncordon &lt;span class="k"&gt;$(&lt;/span&gt;hostname&lt;span class="k"&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id="upgrade-worker-nodes"&gt;Upgrade worker nodes&lt;/h3&gt;
+&lt;p&gt;On each worker node:&lt;/p&gt;</description></item><item><title>Manual Setup (Alternative)</title><link>https://projectious-work.github.io/kubeclaw/docs/how-to/manual-setup/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/how-to/manual-setup/</guid><description>&lt;div class="alert alert-primary" role="alert"&gt;&lt;div class="h4 alert-heading" role="heading"&gt;This guide is an alternative to OpenTofu&lt;/div&gt;
+
+
+This guide shows the manual steps that OpenTofu automates. Use this if you want to understand what happens behind the scenes, or if you prefer to set up infrastructure manually via the Hetzner Cloud Console. For the automated approach, see [Infrastructure (OpenTofu)](/kubeclaw/docs/guide/infrastructure/).
+
+&lt;/div&gt;
+
+&lt;h2 id="overview"&gt;Overview&lt;/h2&gt;
+&lt;p&gt;This setup creates a secure server infrastructure with the following properties:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;No public IPv4/IPv6 addresses&lt;/strong&gt; (after setup)&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;SSH access exclusively via Cloudflare Tunnel&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Internal communication via Hetzner Private Network&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Hardened SSH configuration with fail2ban and UFW&lt;/strong&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id="architecture"&gt;Architecture&lt;/h3&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;┌─────────────────────────────────────────────────────────────────┐
+│ Internet │
+└─────────────────────────────────────────────────────────────────┘
+ │
+ ▼
+┌─────────────────────────────────────────────────────────────────┐
+│ Cloudflare Tunnel │
+│ console.yourdomain.org │
+└─────────────────────────────────────────────────────────────────┘
+ │
+ ▼
+┌─────────────────────────────────────────────────────────────────┐
+│ Hetzner Cloud │
+│ ┌─────────────────────────────────────────────────────────┐ │
+│ │ Private Network (10.0.0.0/24) │ │
+│ │ │ │
+│ │ ┌─────────────────┐ ┌─────────────────┐ │ │
+│ │ │ control-node │ │ worker-node │ │ │
+│ │ │ 10.0.0.2 │◄─────►│ 10.0.0.3 │ │ │
+│ │ │ (cloudflared) │ │ (isolated) │ │ │
+│ │ └─────────────────┘ └─────────────────┘ │ │
+│ │ │ │
+│ └─────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────────┘
+&lt;/code&gt;&lt;/pre&gt;&lt;h2 id="prerequisites"&gt;Prerequisites&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Hetzner Cloud account&lt;/li&gt;
+&lt;li&gt;Cloudflare account with your own domain&lt;/li&gt;
+&lt;li&gt;macOS/Linux machine with SSH&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;cloudflared&lt;/code&gt; installed locally (&lt;code&gt;brew install cloudflared&lt;/code&gt;)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id="step-1-create-hetzner-private-network"&gt;Step 1: Create Hetzner Private Network&lt;/h2&gt;
+&lt;ol&gt;
+&lt;li&gt;Open the &lt;a href="https://console.hetzner.cloud"&gt;Hetzner Cloud Console&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Select your project&lt;/li&gt;
+&lt;li&gt;Go to &lt;strong&gt;Networks&lt;/strong&gt; &amp;gt; &lt;strong&gt;Create Network&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;Configure:
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Name&lt;/strong&gt;: &lt;code&gt;k8s-network&lt;/code&gt; (or any name)&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;IP Range&lt;/strong&gt;: &lt;code&gt;10.0.0.0/8&lt;/code&gt; (Hetzner requires &lt;code&gt;/8&lt;/code&gt; for the network object)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Click &lt;strong&gt;Create Network&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;Add a &lt;strong&gt;Subnet&lt;/strong&gt;: &lt;code&gt;10.0.0.0/24&lt;/code&gt; in zone &lt;code&gt;eu-central&lt;/code&gt; (this is the actual range used by nodes)&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id="step-2-generate-ssh-keys"&gt;Step 2: Generate SSH keys&lt;/h2&gt;
+&lt;p&gt;Create a separate SSH key for each server:&lt;/p&gt;</description></item><item><title>Ansible Playbooks Reference</title><link>https://projectious-work.github.io/kubeclaw/docs/reference/playbooks/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/reference/playbooks/</guid><description>&lt;p&gt;All playbooks are in &lt;code&gt;ansible/playbooks/&lt;/code&gt; and target the &lt;code&gt;k8s_cluster&lt;/code&gt; host group by default.&lt;/p&gt;
+&lt;h2 id="update-systemyml"&gt;update-system.yml&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;Purpose&lt;/strong&gt;: Run &lt;code&gt;apt update &amp;amp;&amp;amp; apt upgrade&lt;/code&gt; on all nodes.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Usage&lt;/strong&gt;:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;cd&lt;/span&gt; ansible
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;ansible-playbook playbooks/update-system.yml
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;ansible-playbook playbooks/update-system.yml --limit control_nodes
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;ansible-playbook playbooks/update-system.yml -e &lt;span class="s2"&gt;&amp;#34;reboot_after_update=true&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;strong&gt;Variables&lt;/strong&gt;:&lt;/p&gt;
+&lt;table&gt;
+	&lt;thead&gt;
+			&lt;tr&gt;
+					&lt;th&gt;Variable&lt;/th&gt;
+					&lt;th&gt;Default&lt;/th&gt;
+					&lt;th&gt;Description&lt;/th&gt;
+			&lt;/tr&gt;
+	&lt;/thead&gt;
+	&lt;tbody&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;reboot_after_update&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;&lt;code&gt;false&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Reboot after update if the system requires it&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;reboot_timeout&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;&lt;code&gt;300&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Timeout (seconds) to wait for reboot&lt;/td&gt;
+			&lt;/tr&gt;
+	&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;&lt;strong&gt;Tasks&lt;/strong&gt;:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Update apt cache&lt;/li&gt;
+&lt;li&gt;Upgrade all packages (dist-upgrade with autoremove)&lt;/li&gt;
+&lt;li&gt;Check if reboot is required (&lt;code&gt;/var/run/reboot-required&lt;/code&gt;)&lt;/li&gt;
+&lt;li&gt;Reboot if required and enabled&lt;/li&gt;
+&lt;li&gt;Wait for system to come back online&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id="security-hardeningyml"&gt;security-hardening.yml&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;Purpose&lt;/strong&gt;: Apply security measures on all nodes.&lt;/p&gt;</description></item><item><title>Security</title><link>https://projectious-work.github.io/kubeclaw/docs/operations/security/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/operations/security/</guid><description>&lt;h2 id="security-summary"&gt;Security Summary&lt;/h2&gt;
+&lt;table&gt;
+	&lt;thead&gt;
+			&lt;tr&gt;
+					&lt;th&gt;Layer&lt;/th&gt;
+					&lt;th&gt;Protection&lt;/th&gt;
+			&lt;/tr&gt;
+	&lt;/thead&gt;
+	&lt;tbody&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;strong&gt;Network (Hetzner)&lt;/strong&gt;&lt;/td&gt;
+					&lt;td&gt;Firewall blocks all inbound; IPv6-only, no public IPv4&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;strong&gt;Network (K8s)&lt;/strong&gt;&lt;/td&gt;
+					&lt;td&gt;Cilium egress whitelist per namespace/app (FQDN-based)&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;strong&gt;Access&lt;/strong&gt;&lt;/td&gt;
+					&lt;td&gt;Cloudflare Tunnel (outbound-only connection, no open ports)&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;strong&gt;Authentication&lt;/strong&gt;&lt;/td&gt;
+					&lt;td&gt;Cloudflare Access policies + SSH key-only auth&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;strong&gt;Container&lt;/strong&gt;&lt;/td&gt;
+					&lt;td&gt;Non-root user, dropped capabilities, resource limits&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;strong&gt;SSH&lt;/strong&gt;&lt;/td&gt;
+					&lt;td&gt;Key-only auth, fail2ban, no TCP forwarding on workers&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;strong&gt;Storage&lt;/strong&gt;&lt;/td&gt;
+					&lt;td&gt;Isolated PVCs per workload&lt;/td&gt;
+			&lt;/tr&gt;
+	&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2 id="what-this-setup-protects-against"&gt;What this setup protects against&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Direct server attacks&lt;/strong&gt; &amp;ndash; no public IPs, no open inbound ports&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Unauthorized access&lt;/strong&gt; &amp;ndash; Cloudflare Access + SSH key-only auth&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Data exfiltration&lt;/strong&gt; &amp;ndash; FQDN-based egress whitelist per application&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Lateral movement&lt;/strong&gt; &amp;ndash; namespace isolation, per-pod network policies&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Resource abuse&lt;/strong&gt; &amp;ndash; container resource limits&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id="what-to-monitor"&gt;What to monitor&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;API key and token compromise&lt;/strong&gt; &amp;ndash; rotate regularly&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Cloudflare Tunnel health&lt;/strong&gt; &amp;ndash; monitor via Zero Trust dashboard&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Node resource utilization&lt;/strong&gt; &amp;ndash; watch for memory pressure on small instances&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id="security-notes"&gt;Security notes&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Passwords in cloud-init&lt;/strong&gt; are visible in cloud-init logs. Change them after first login.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;SSH keys&lt;/strong&gt; should be different for each server role.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Root password&lt;/strong&gt; is only intended for emergency access via Hetzner Web Console.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Terraform state&lt;/strong&gt; contains sensitive data (private keys when auto-generated). Protect state files.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;UFW rules&lt;/strong&gt; for HTTP/HTTPS on worker nodes can be removed after initial setup:
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;sudo ufw delete allow out to any port &lt;span class="m"&gt;80&lt;/span&gt; proto tcp
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;sudo ufw delete allow out to any port &lt;span class="m"&gt;443&lt;/span&gt; proto tcp
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id="openclaw-specific-security"&gt;OpenClaw-specific security&lt;/h2&gt;
+&lt;p&gt;When running OpenClaw:&lt;/p&gt;</description></item><item><title>Server Management (Ansible)</title><link>https://projectious-work.github.io/kubeclaw/docs/guide/ansible/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/guide/ansible/</guid><description>&lt;p&gt;Ansible handles ongoing server management: system updates, security hardening, NAT64 configuration, and Kubernetes prerequisites. All playbooks run from the Dev Container.&lt;/p&gt;
+&lt;h2 id="step-1-set-up-ansible"&gt;Step 1: Set Up Ansible&lt;/h2&gt;
+&lt;h3 id="11-generate-inventory"&gt;1.1 Generate inventory&lt;/h3&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;./scripts/generate-ansible-inventory.sh
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The inventory (&lt;code&gt;ansible/inventory.ini&lt;/code&gt;) is auto-generated. It defines three groups:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;control_nodes&lt;/code&gt; &amp;ndash; all control plane nodes&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;worker_nodes&lt;/code&gt; &amp;ndash; all worker nodes&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;k8s_cluster&lt;/code&gt; &amp;ndash; union of control and worker nodes&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class="alert alert-primary" role="alert"&gt;&lt;div class="h4 alert-heading" role="heading"&gt;Warning&lt;/div&gt;
+
+
+Never hand-edit `inventory.ini`. Regenerate after infrastructure changes with `./scripts/generate-ansible-inventory.sh`.
+
+&lt;/div&gt;
+
+&lt;h3 id="12-load-ssh-keys"&gt;1.2 Load SSH keys&lt;/h3&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;source&lt;/span&gt; ./scripts/ssh-agent-setup.sh
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class="alert alert-primary" role="alert"&gt;&lt;div class="h4 alert-heading" role="heading"&gt;Important&lt;/div&gt;
+
+
+The ssh-agent must be running with the cluster keys loaded before Ansible can connect. Run `source ./scripts/ssh-agent-setup.sh` in every new terminal session.
+
+&lt;/div&gt;
+
+&lt;h3 id="13-test-connectivity"&gt;1.3 Test connectivity&lt;/h3&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;cd&lt;/span&gt; ansible
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;ansible all -m ping
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id="step-2-apply-system-updates"&gt;Step 2: Apply System Updates&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;ansible-playbook playbooks/update-system.yml
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Target specific node groups or enable automatic reboots:&lt;/p&gt;</description></item><item><title>Kubernetes (kubeadm)</title><link>https://projectious-work.github.io/kubeclaw/docs/guide/kubernetes/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/guide/kubernetes/</guid><description>&lt;p&gt;After provisioning the infrastructure with OpenTofu and configuring SSH access, deploy a standard Kubernetes cluster using &lt;a href="https://kubernetes.io/docs/reference/setup-tools/kubeadm/"&gt;kubeadm&lt;/a&gt; with &lt;a href="https://cilium.io/"&gt;Cilium&lt;/a&gt; as the CNI.&lt;/p&gt;
+&lt;h2 id="why-kubeadm--cilium"&gt;Why kubeadm + Cilium?&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;kubeadm&lt;/strong&gt;: The official Kubernetes bootstrapper. Produces a standard, upstream cluster &amp;ndash; exactly what the CKA exam expects. Full control over every component (etcd, kube-apiserver, kube-scheduler, kube-controller-manager).&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Cilium&lt;/strong&gt;: eBPF-based CNI providing advanced network policies with FQDN-based egress filtering &amp;ndash; critical for restricting outbound traffic per namespace.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id="step-1-initialize-the-control-plane-dual-stack"&gt;Step 1: Initialize the Control Plane (Dual-Stack)&lt;/h2&gt;
+&lt;p&gt;SSH into the master control node. Prerequisites (containerd, kubeadm, kubelet, kubectl) are already installed via cloud-init when &lt;code&gt;enable_k8s_prereqs = true&lt;/code&gt; (default).&lt;/p&gt;</description></item><item><title>OS Images</title><link>https://projectious-work.github.io/kubeclaw/docs/reference/os-images/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/reference/os-images/</guid><description>&lt;p&gt;Hetzner Cloud offers the following Debian/Ubuntu images:&lt;/p&gt;
+&lt;table&gt;
+	&lt;thead&gt;
+			&lt;tr&gt;
+					&lt;th&gt;Image&lt;/th&gt;
+					&lt;th&gt;Name&lt;/th&gt;
+					&lt;th&gt;Recommendation&lt;/th&gt;
+			&lt;/tr&gt;
+	&lt;/thead&gt;
+	&lt;tbody&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;debian-13&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Debian 13 Trixie&lt;/td&gt;
+					&lt;td&gt;&lt;strong&gt;Recommended for K8s&lt;/strong&gt;&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;debian-12&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Debian 12 Bookworm&lt;/td&gt;
+					&lt;td&gt;Stable, well-proven&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;ubuntu-24.04&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Ubuntu 24.04 LTS&lt;/td&gt;
+					&lt;td&gt;Good for K8s&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;ubuntu-22.04&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Ubuntu 22.04 LTS&lt;/td&gt;
+					&lt;td&gt;Well-proven&lt;/td&gt;
+			&lt;/tr&gt;
+	&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2 id="why-debian-13"&gt;Why Debian 13?&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Stability&lt;/strong&gt;: long support cycles&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Compatibility&lt;/strong&gt;: the &lt;code&gt;pkgs.k8s.io&lt;/code&gt; apt repository used for kubeadm, kubelet, and kubectl ships Debian packages&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Small footprint&lt;/strong&gt;: leaner than Ubuntu, but not as small as Alpine&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;No glibc/musl issues&lt;/strong&gt;: unlike Alpine, no compatibility problems&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Hetzner Cloud doesn&amp;rsquo;t provide dedicated &amp;ldquo;slim&amp;rdquo; or &amp;ldquo;minimal&amp;rdquo; variants. The standard images are fairly compact already.&lt;/p&gt;</description></item><item><title>Password Management</title><link>https://projectious-work.github.io/kubeclaw/docs/operations/password-management/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/operations/password-management/</guid><description>&lt;h2 id="which-credentials-exist"&gt;Which credentials exist?&lt;/h2&gt;
+&lt;table&gt;
+	&lt;thead&gt;
+			&lt;tr&gt;
+					&lt;th&gt;Credential&lt;/th&gt;
+					&lt;th&gt;Purpose&lt;/th&gt;
+					&lt;th&gt;Storage&lt;/th&gt;
+			&lt;/tr&gt;
+	&lt;/thead&gt;
+	&lt;tbody&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Hetzner API Token&lt;/td&gt;
+					&lt;td&gt;Create infrastructure&lt;/td&gt;
+					&lt;td&gt;&lt;code&gt;terraform.tfvars&lt;/code&gt;&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Root password&lt;/td&gt;
+					&lt;td&gt;Emergency web console&lt;/td&gt;
+					&lt;td&gt;&lt;code&gt;terraform.tfvars&lt;/code&gt;&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;SSH private keys&lt;/td&gt;
+					&lt;td&gt;Server access&lt;/td&gt;
+					&lt;td&gt;&lt;code&gt;~/.ssh/&lt;/code&gt; or password manager&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Cloudflare Tunnel token&lt;/td&gt;
+					&lt;td&gt;Tunnel auth&lt;/td&gt;
+					&lt;td&gt;Cloudflare Dashboard&lt;/td&gt;
+			&lt;/tr&gt;
+	&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2 id="recommended-dashlane-structure"&gt;Recommended Dashlane structure&lt;/h2&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;📁 K8s Cluster
+├── 🔐 Hetzner API Token
+│ └── Token: xxx
+├── 🔐 Root Password
+│ └── Password: xxx
+├── 📝 SSH Keys (Secure Note)
+│ ├── Control Node Private Key: ...
+│ ├── Control Node Public Key: ...
+│ ├── Worker Node Private Key: ...
+│ └── Worker Node Public Key: ...
+└── 🔐 Cloudflare Tunnel Token
+ └── Token: xxx
+&lt;/code&gt;&lt;/pre&gt;&lt;h2 id="securing-terraformtfvars"&gt;Securing terraform.tfvars&lt;/h2&gt;
+&lt;p&gt;&lt;code&gt;terraform.tfvars&lt;/code&gt; contains sensitive data. Options:&lt;/p&gt;</description></item><item><title>OpenClaw Deployment</title><link>https://projectious-work.github.io/kubeclaw/docs/guide/openclaw/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/guide/openclaw/</guid><description>&lt;p&gt;A step-by-step guide to deploying OpenClaw as an isolated AI assistant on the KubeClaw cluster, accessible via Telegram, WhatsApp, or Signal, with a web-based Control UI exposed through Cloudflare Tunnel.&lt;/p&gt;
+&lt;h2 id="architecture-overview"&gt;Architecture Overview&lt;/h2&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;┌─────────────────────────────────────────────────────────────────────┐
+│ Hetzner Private Network │
+│ (10.0.0.0/24) │
+│ │
+│ ┌────────────────────────────────────────────────────────────┐ │
+│ │ Kubernetes Cluster (kubeadm) + Cilium │ │
+│ │ │ │
+│ │ ┌─────────────────┐ ┌─────────────────┐ │ │
+│ │ │ control-01 │ │ worker-01 │ │ │
+│ │ │ (control plane)│◄─────►│ (worker node) │ │ │
+│ │ │ 10.0.0.2 │ │ 10.0.0.3 │ │ │
+│ │ │ │ │ │ │ │
+│ │ │ ┌───────────┐ │ │ ┌───────────┐ │ │ │
+│ │ │ │Block Vol │ │ │ │Block Vol │ │ │ │
+│ │ │ │ 10 GB │ │ │ │ 10 GB │ │ │ │
+│ │ │ └───────────┘ │ │ └───────────┘ │ │ │
+│ │ └────────┬────────┘ └─────────────────┘ │ │
+│ │ │ │ │
+│ │ system-unrestricted namespace: │ │
+│ │ └─ cloudflared (egress: ANY) │ │
+│ │ │ │
+│ │ apps-restricted namespace: │ │
+│ │ └─ OpenClaw (Cilium FQDN egress whitelist) │ │
+│ │ ├─ Telegram / WhatsApp / Signal │ │
+│ │ └─ Control UI (:18789) │ │
+│ │ │ │
+│ └─────────────────────────────────────────────────────────────┘ │
+│ │ │
+│ cloudflared │
+│ (outbound only) │
+└──────────────────────────────┼──────────────────────────────────────┘
+ │
+ ▼
+ ┌───────────────────┐
+ │ Cloudflare │
+ │ Edge + Access │
+ └─────────┬─────────┘
+ │
+ ┌─────────┼─────────┐
+ │ │ │
+ ▼ ▼ ▼
+ [Telegram] [WhatsApp] [Signal]
+ │
+ ▼
+ [Control UI]
+ (browser dashboard)
+&lt;/code&gt;&lt;/pre&gt;&lt;h2 id="prerequisites"&gt;Prerequisites&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;A running KubeClaw cluster (see &lt;a href="https://projectious-work.github.io/kubeclaw/docs/guide/kubernetes/"&gt;Kubernetes guide&lt;/a&gt;)&lt;/li&gt;
+&lt;li&gt;Anthropic API key (&lt;a href="https://console.anthropic.com"&gt;console.anthropic.com&lt;/a&gt;)&lt;/li&gt;
+&lt;li&gt;At least one messaging channel:&lt;/li&gt;
+&lt;/ul&gt;
+&lt;table&gt;
+	&lt;thead&gt;
+			&lt;tr&gt;
+					&lt;th&gt;Channel&lt;/th&gt;
+					&lt;th&gt;What You Need&lt;/th&gt;
+			&lt;/tr&gt;
+	&lt;/thead&gt;
+	&lt;tbody&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;strong&gt;Telegram&lt;/strong&gt;&lt;/td&gt;
+					&lt;td&gt;Bot Token from &lt;a href="https://t.me/BotFather"&gt;@BotFather&lt;/a&gt;, your Telegram User ID&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;strong&gt;WhatsApp&lt;/strong&gt;&lt;/td&gt;
+					&lt;td&gt;A phone number with WhatsApp, access to scan a QR code&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;strong&gt;Signal&lt;/strong&gt;&lt;/td&gt;
+					&lt;td&gt;A dedicated phone number, &lt;code&gt;signal-cli&lt;/code&gt; installed in the container&lt;/td&gt;
+			&lt;/tr&gt;
+	&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;div class="alert alert-primary" role="alert"&gt;&lt;div class="h4 alert-heading" role="heading"&gt;Start with Telegram&lt;/div&gt;
+
+
+Telegram is the simplest channel to set up — it only requires a bot token and user ID, with no interactive pairing or additional dependencies.
+
+&lt;/div&gt;
+
+&lt;h2 id="step-1-infrastructure-setup"&gt;Step 1: Infrastructure Setup&lt;/h2&gt;
+&lt;p&gt;If you haven&amp;rsquo;t already set up the Hetzner Cloud infrastructure, follow the &lt;a href="https://projectious-work.github.io/kubeclaw/docs/quick-start/"&gt;Quick Start&lt;/a&gt; and &lt;a href="https://projectious-work.github.io/kubeclaw/docs/guide/kubernetes/"&gt;Kubernetes guide&lt;/a&gt;.&lt;/p&gt;</description></item><item><title>Project Structure</title><link>https://projectious-work.github.io/kubeclaw/docs/reference/project-structure/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/reference/project-structure/</guid><description>&lt;pre tabindex="0"&gt;&lt;code&gt;kubeclaw/
+├── main.tf # Infrastructure (providers, network, firewalls, servers)
+├── variables.tf # All configurable inputs
+├── outputs.tf # IPs, SSH keys, ssh_config_snippet, next-steps banner
+├── terraform.tfvars.example # Example configuration
+├── hugo.yaml # Hugo + Docsy configuration
+├── package.json # Docsy asset dependencies
+├── themes/docsy/ # Pinned Docsy theme submodule
+├── aibox.toml # Dev Container source of truth (aibox apply)
+├── aibox.lock # Pinned aibox toolchain versions
+├── CLAUDE.md # Claude Code project instructions
+├── README.md # Project overview (concise)
+├── LICENSE # MIT License
+├── .gitignore
+├── .devcontainer/
+│ ├── devcontainer.json # Generated by aibox; do not edit directly
+│ ├── Dockerfile # Generated by aibox; do not edit directly
+│ ├── docker-compose.yml # Generated by aibox; do not edit directly
+│ ├── Dockerfile.local # Project layer: installs cloudflared
+│ └── docker-compose.override.yml # Project override: writable SSH mount
+├── cloud-init/
+│ ├── admin-node.yaml.tpl # Admin node (temporary jump host with public IPv6)
+│ ├── control-node.yaml.tpl # Control node (cloudflared on master, UFW, fail2ban, k8s prereqs)
+│ └── worker-node.yaml.tpl # Worker node (isolated, outbound DNS/HTTP/S only, k8s prereqs)
+├── scripts/
+│ ├── setup-ssh.sh # Export SSH keys from tofu state, generate ~/.ssh/config
+│ ├── ssh-agent-setup.sh # Fix SSH permissions, start ssh-agent, load keys
+│ ├── generate-ansible-inventory.sh # Build ansible/inventory.ini from tofu state
+│ ├── build-docs.sh # Build Hugo site locally
+│ ├── serve-docs.sh # Preview Hugo site locally
+│ └── deploy-docs.sh # Build and deploy Hugo to gh-pages
+├── ansible/
+│ ├── ansible.cfg # Ansible defaults (user, pipelining, SSH args)
+│ ├── inventory.ini # Auto-generated inventory (do not hand-edit)
+│ └── playbooks/
+│ ├── update-system.yml # System updates with optional reboot
+│ ├── security-hardening.yml # Unattended upgrades, fail2ban, sysctl hardening
+│ ├── configure-nat64.yml # NAT64/DNS64 for IPv4 reachability on running nodes
+│ └── prepare-k8s-nodes.yml # Kubernetes prerequisites (container runtime, kubeadm) on running nodes
+├── assets/ # Project brand layer for the Hugo site
+│ ├── icons/logo.svg # projectious mark used in the navbar
+│ └── scss/ # Brand tokens and Docsy surface styles
+├── layouts/ # Project template overrides (favicons, head hooks)
+├── static/favicons/ # Brand favicon set
+├── content/ # Hugo documentation source
+│ ├── _index.md # Branded landing page
+│ └── docs/ # Documentation section
+│ ├── _index.md # Documentation overview
+│ ├── quick-start.md # Combined prerequisites + deployment steps
+│ ├── introduction/ # Concepts: architecture, security, DNS/NAT64
+│ ├── guide/ # Ordered deployment path (dev container -&amp;gt; OpenClaw)
+│ ├── how-to/ # Focused procedures, incl. the manual setup alternative
+│ ├── reference/ # Variables, outputs, templates, playbooks, structure
+│ ├── operations/ # Day-two: scaling, rotation, upgrades, troubleshooting
+│ ├── roadmap/ # Planned work
+│ └── contributing/ # Development setup and code of conduct
+└── public/ # Generated site output (gitignored)
+&lt;/code&gt;&lt;/pre&gt;&lt;h2 id="key-files"&gt;Key Files&lt;/h2&gt;
+&lt;h3 id="infrastructure-root-level"&gt;Infrastructure (root level)&lt;/h3&gt;
+&lt;table&gt;
+	&lt;thead&gt;
+			&lt;tr&gt;
+					&lt;th&gt;File&lt;/th&gt;
+					&lt;th&gt;Purpose&lt;/th&gt;
+			&lt;/tr&gt;
+	&lt;/thead&gt;
+	&lt;tbody&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;main.tf&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Core infrastructure: providers, SSH keys, network/subnet, firewalls, servers, cloud-init rendering&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;variables.tf&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;All configurable inputs with types, defaults, and descriptions&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;outputs.tf&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Exposes IPs, SSH keys (sensitive), ssh_config_snippet, and next-steps banner&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;terraform.tfvars.example&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Reference configuration (actual &lt;code&gt;.tfvars&lt;/code&gt; is gitignored)&lt;/td&gt;
+			&lt;/tr&gt;
+	&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h3 id="cloud-init-templates"&gt;Cloud-Init Templates&lt;/h3&gt;
+&lt;table&gt;
+	&lt;thead&gt;
+			&lt;tr&gt;
+					&lt;th&gt;File&lt;/th&gt;
+					&lt;th&gt;Purpose&lt;/th&gt;
+			&lt;/tr&gt;
+	&lt;/thead&gt;
+	&lt;tbody&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;cloud-init/admin-node.yaml.tpl&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Minimal jump host: admin user, SSH hardening, fail2ban, public SSH&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;cloud-init/control-node.yaml.tpl&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Control plane: cloudflared (master only), UFW, fail2ban, optional NAT64 + K8s prereqs&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;cloud-init/worker-node.yaml.tpl&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Worker: restrictive UFW, no TCP forwarding, optional NAT64 + K8s prereqs&lt;/td&gt;
+			&lt;/tr&gt;
+	&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h3 id="scripts"&gt;Scripts&lt;/h3&gt;
+&lt;table&gt;
+	&lt;thead&gt;
+			&lt;tr&gt;
+					&lt;th&gt;File&lt;/th&gt;
+					&lt;th&gt;Purpose&lt;/th&gt;
+			&lt;/tr&gt;
+	&lt;/thead&gt;
+	&lt;tbody&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;scripts/setup-ssh.sh&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Export SSH keys, generate &lt;code&gt;~/.ssh/config&lt;/code&gt; with backup&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;scripts/ssh-agent-setup.sh&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Fix SSH permissions, start ssh-agent, load keys&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;scripts/generate-ansible-inventory.sh&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Build Ansible inventory from OpenTofu state&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;scripts/build-docs.sh&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Build the Hugo site locally&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;scripts/serve-docs.sh&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Preview the site locally&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;scripts/deploy-docs.sh&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Build Hugo and push to &lt;code&gt;gh-pages&lt;/code&gt;&lt;/td&gt;
+			&lt;/tr&gt;
+	&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h3 id="dev-container"&gt;Dev Container&lt;/h3&gt;
+&lt;p&gt;The aibox configuration in &lt;code&gt;aibox.toml&lt;/code&gt; is the source of truth for generated
+Dev Container files. Run &lt;code&gt;aibox apply&lt;/code&gt; after changing it; do not hand-edit
+&lt;code&gt;.devcontainer/Dockerfile&lt;/code&gt;, &lt;code&gt;docker-compose.yml&lt;/code&gt;, or &lt;code&gt;devcontainer.json&lt;/code&gt;.
+&lt;code&gt;Dockerfile.local&lt;/code&gt; and &lt;code&gt;docker-compose.override.yml&lt;/code&gt; are project-owned
+extensions and are safe to edit.&lt;/p&gt;</description></item><item><title>Troubleshooting</title><link>https://projectious-work.github.io/kubeclaw/docs/operations/troubleshooting/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/operations/troubleshooting/</guid><description>&lt;h2 id="infrastructure-issues"&gt;Infrastructure Issues&lt;/h2&gt;
+&lt;h3 id="cloudflared-wont-start-ipv6-only"&gt;cloudflared won&amp;rsquo;t start (IPv6-only)&lt;/h3&gt;
+&lt;p&gt;Check &lt;code&gt;/etc/cloudflared/config.yml&lt;/code&gt;:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-yaml" data-lang="yaml"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nt"&gt;edge-ip-version&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;6&amp;#34;&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class="alert alert-primary" role="alert"&gt;&lt;div class="h4 alert-heading" role="heading"&gt;Important&lt;/div&gt;
+
+
+The value must be a string in quotes (`"6"`, not `6`). Cloudflared defaults to IPv4 connections to Cloudflare's edge servers.
+
+&lt;/div&gt;
+
+&lt;h3 id="ssh-key-rotation-failed"&gt;SSH key rotation failed&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;Connect via Hetzner web console (root password)&lt;/li&gt;
+&lt;li&gt;Add the new key manually:
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;ssh-ed25519 AAAA...&amp;#34;&lt;/span&gt; &amp;gt;&amp;gt; /home/kubernetes-admin/.ssh/authorized_keys
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id="ansible-cannot-connect"&gt;Ansible cannot connect&lt;/h3&gt;
+&lt;p&gt;Check:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Is &lt;code&gt;cloudflared&lt;/code&gt; installed locally?&lt;/li&gt;
+&lt;li&gt;Is the tunnel running? (&lt;code&gt;cloudflared tunnel list&lt;/code&gt;)&lt;/li&gt;
+&lt;li&gt;Is the inventory correct? (&lt;code&gt;./scripts/generate-ansible-inventory.sh&lt;/code&gt;)&lt;/li&gt;
+&lt;li&gt;Is the ssh-agent running with keys loaded? (&lt;code&gt;ssh-add -l&lt;/code&gt;)&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id="state-lost--keys-gone"&gt;State lost / keys gone&lt;/h3&gt;
+&lt;p&gt;With auto-generated keys:&lt;/p&gt;</description></item><item><title>Cost Estimate</title><link>https://projectious-work.github.io/kubeclaw/docs/reference/cost-estimate/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/reference/cost-estimate/</guid><description>&lt;h2 id="example-2-node-cluster"&gt;Example: 2-node cluster&lt;/h2&gt;
+&lt;table&gt;
+	&lt;thead&gt;
+			&lt;tr&gt;
+					&lt;th&gt;Component&lt;/th&gt;
+					&lt;th&gt;Specification&lt;/th&gt;
+					&lt;th&gt;Monthly Cost&lt;/th&gt;
+			&lt;/tr&gt;
+	&lt;/thead&gt;
+	&lt;tbody&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Node 1 (CX22, IPv6-only)&lt;/td&gt;
+					&lt;td&gt;2 vCPU / 4 GB RAM&lt;/td&gt;
+					&lt;td&gt;~€3.29&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Node 2 (CX22, IPv6-only)&lt;/td&gt;
+					&lt;td&gt;2 vCPU / 4 GB RAM&lt;/td&gt;
+					&lt;td&gt;~€3.29&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Block Volumes (10 GB each)&lt;/td&gt;
+					&lt;td&gt;Hetzner CSI&lt;/td&gt;
+					&lt;td&gt;~€0.96&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Private Network&lt;/td&gt;
+					&lt;td&gt;&amp;ndash;&lt;/td&gt;
+					&lt;td&gt;Free&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Cloudflare Tunnel + Access&lt;/td&gt;
+					&lt;td&gt;Up to 50 users&lt;/td&gt;
+					&lt;td&gt;Free&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;strong&gt;Total&lt;/strong&gt;&lt;/td&gt;
+					&lt;td&gt;&lt;/td&gt;
+					&lt;td&gt;&lt;strong&gt;~€7.54/month&lt;/strong&gt;&lt;/td&gt;
+			&lt;/tr&gt;
+	&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2 id="notes"&gt;Notes&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Costs vary with server types and volume count&lt;/li&gt;
+&lt;li&gt;IPv6-only nodes are cheaper (no IPv4 address surcharge)&lt;/li&gt;
+&lt;li&gt;The admin node (CX22, ~€3.29/month) is temporary and should be deleted after tunnel setup&lt;/li&gt;
+&lt;li&gt;Block volumes are billed per GB per month (~€0.048/GB)&lt;/li&gt;
+&lt;li&gt;See &lt;a href="https://www.hetzner.com/cloud/"&gt;Hetzner Cloud pricing&lt;/a&gt; for current prices&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id="scaling-costs"&gt;Scaling costs&lt;/h2&gt;
+&lt;table&gt;
+	&lt;thead&gt;
+			&lt;tr&gt;
+					&lt;th&gt;Configuration&lt;/th&gt;
+					&lt;th&gt;Nodes&lt;/th&gt;
+					&lt;th&gt;Estimated Monthly Cost&lt;/th&gt;
+			&lt;/tr&gt;
+	&lt;/thead&gt;
+	&lt;tbody&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Master-only (dev/learning)&lt;/td&gt;
+					&lt;td&gt;1&lt;/td&gt;
+					&lt;td&gt;~€3.29&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Master + 1 worker&lt;/td&gt;
+					&lt;td&gt;2&lt;/td&gt;
+					&lt;td&gt;~€6.58 + volumes&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;3 control + 2 workers (HA)&lt;/td&gt;
+					&lt;td&gt;5&lt;/td&gt;
+					&lt;td&gt;~€16.45 + volumes&lt;/td&gt;
+			&lt;/tr&gt;
+	&lt;/tbody&gt;
+&lt;/table&gt;</description></item></channel></rss>

@@ -34,71 +34,7 @@
 └─────────────────────────────────────────────────────────────────┘
 &lt;/code&gt;&lt;/pre&gt;&lt;h2 id="node-roles"&gt;Node Roles&lt;/h2&gt;
 &lt;h3 id="master-control-node-control-01-10002"&gt;Master Control Node (control-01, 10.0.0.2)&lt;/h3&gt;
-&lt;p&gt;The master control node always exists and serves as:&lt;/p&gt;</description></item><item><title>DNS and NAT64</title><link>https://projectious-work.github.io/kubeclaw/docs/introduction/dns-and-nat64/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/introduction/dns-and-nat64/</guid><description>&lt;p&gt;The cluster is IPv6-only &amp;ndash; but many services (GitHub CDN, container registries, package repos) are IPv4-only. &lt;strong&gt;NAT64/DNS64&lt;/strong&gt; provides transparent IPv4 reachability at the network layer, no application changes needed. This page covers how DNS64/NAT64 works, how it integrates with Kubernetes CoreDNS, and how to configure it.&lt;/p&gt;
-&lt;h2 id="the-problem-ipv4-internet-from-ipv6-only-nodes"&gt;The Problem: IPv4 Internet from IPv6-Only Nodes&lt;/h2&gt;
-&lt;p&gt;The nodes have no public IPv4 addresses. Most internet services (GitHub, Docker Hub, package repos) have IPv4 addresses. How does an IPv6-only node reach them?&lt;/p&gt;</description></item><item><title>Manual Setup (Alternative)</title><link>https://projectious-work.github.io/kubeclaw/docs/introduction/manual-setup/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/introduction/manual-setup/</guid><description>&lt;div class="alert alert-primary" role="alert"&gt;&lt;div class="h4 alert-heading" role="heading"&gt;This guide is an alternative to OpenTofu&lt;/div&gt;
-
-
-This guide shows the manual steps that OpenTofu automates. Use this if you want to understand what happens behind the scenes, or if you prefer to set up infrastructure manually via the Hetzner Cloud Console. For the automated approach, see [Infrastructure (OpenTofu)](/kubeclaw/docs/guide/infrastructure/).
-
-&lt;/div&gt;
-
-&lt;h2 id="overview"&gt;Overview&lt;/h2&gt;
-&lt;p&gt;This setup creates a secure server infrastructure with the following properties:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;strong&gt;No public IPv4/IPv6 addresses&lt;/strong&gt; (after setup)&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;SSH access exclusively via Cloudflare Tunnel&lt;/strong&gt;&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;Internal communication via Hetzner Private Network&lt;/strong&gt;&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;Hardened SSH configuration with fail2ban and UFW&lt;/strong&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h3 id="architecture"&gt;Architecture&lt;/h3&gt;
-&lt;pre tabindex="0"&gt;&lt;code&gt;┌─────────────────────────────────────────────────────────────────┐
-│ Internet │
-└─────────────────────────────────────────────────────────────────┘
- │
- ▼
-┌─────────────────────────────────────────────────────────────────┐
-│ Cloudflare Tunnel │
-│ console.yourdomain.org │
-└─────────────────────────────────────────────────────────────────┘
- │
- ▼
-┌─────────────────────────────────────────────────────────────────┐
-│ Hetzner Cloud │
-│ ┌─────────────────────────────────────────────────────────┐ │
-│ │ Private Network (10.0.0.0/24) │ │
-│ │ │ │
-│ │ ┌─────────────────┐ ┌─────────────────┐ │ │
-│ │ │ control-node │ │ worker-node │ │ │
-│ │ │ 10.0.0.2 │◄─────►│ 10.0.0.3 │ │ │
-│ │ │ (cloudflared) │ │ (isolated) │ │ │
-│ │ └─────────────────┘ └─────────────────┘ │ │
-│ │ │ │
-│ └─────────────────────────────────────────────────────────┘ │
-└─────────────────────────────────────────────────────────────────┘
-&lt;/code&gt;&lt;/pre&gt;&lt;h2 id="prerequisites"&gt;Prerequisites&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;Hetzner Cloud account&lt;/li&gt;
-&lt;li&gt;Cloudflare account with your own domain&lt;/li&gt;
-&lt;li&gt;macOS/Linux machine with SSH&lt;/li&gt;
-&lt;li&gt;&lt;code&gt;cloudflared&lt;/code&gt; installed locally (&lt;code&gt;brew install cloudflared&lt;/code&gt;)&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2 id="step-1-create-hetzner-private-network"&gt;Step 1: Create Hetzner Private Network&lt;/h2&gt;
-&lt;ol&gt;
-&lt;li&gt;Open the &lt;a href="https://console.hetzner.cloud"&gt;Hetzner Cloud Console&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;Select your project&lt;/li&gt;
-&lt;li&gt;Go to &lt;strong&gt;Networks&lt;/strong&gt; &amp;gt; &lt;strong&gt;Create Network&lt;/strong&gt;&lt;/li&gt;
-&lt;li&gt;Configure:
-&lt;ul&gt;
-&lt;li&gt;&lt;strong&gt;Name&lt;/strong&gt;: &lt;code&gt;k8s-network&lt;/code&gt; (or any name)&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;IP Range&lt;/strong&gt;: &lt;code&gt;10.0.0.0/8&lt;/code&gt; (Hetzner requires &lt;code&gt;/8&lt;/code&gt; for the network object)&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;li&gt;Click &lt;strong&gt;Create Network&lt;/strong&gt;&lt;/li&gt;
-&lt;li&gt;Add a &lt;strong&gt;Subnet&lt;/strong&gt;: &lt;code&gt;10.0.0.0/24&lt;/code&gt; in zone &lt;code&gt;eu-central&lt;/code&gt; (this is the actual range used by nodes)&lt;/li&gt;
-&lt;/ol&gt;
-&lt;h2 id="step-2-generate-ssh-keys"&gt;Step 2: Generate SSH keys&lt;/h2&gt;
-&lt;p&gt;Create a separate SSH key for each server:&lt;/p&gt;</description></item><item><title>Security Model</title><link>https://projectious-work.github.io/kubeclaw/docs/introduction/security-model/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/introduction/security-model/</guid><description>&lt;p&gt;KubeClaw&amp;rsquo;s security is layered across three levels: Hetzner Cloud firewalls, host-level hardening, and Kubernetes network policies. See &lt;a href="https://projectious-work.github.io/kubeclaw/docs/introduction/architecture/"&gt;Architecture&lt;/a&gt; for the overall network design.&lt;/p&gt;
+&lt;p&gt;The master control node always exists and serves as:&lt;/p&gt;</description></item><item><title>Security Model</title><link>https://projectious-work.github.io/kubeclaw/docs/introduction/security-model/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/introduction/security-model/</guid><description>&lt;p&gt;KubeClaw&amp;rsquo;s security is layered across three levels: Hetzner Cloud firewalls, host-level hardening, and Kubernetes network policies. See &lt;a href="https://projectious-work.github.io/kubeclaw/docs/introduction/architecture/"&gt;Architecture&lt;/a&gt; for the overall network design.&lt;/p&gt;
 &lt;h2 id="firewall-rules-hetzner"&gt;Firewall Rules (Hetzner)&lt;/h2&gt;
 &lt;p&gt;Hetzner Cloud firewalls are the first line of defense. Each node role has its own firewall:&lt;/p&gt;
 &lt;ul&gt;
@@ -106,4 +42,6 @@ This guide shows the manual steps that OpenTofu automates. Use this if you want 
 &lt;li&gt;&lt;strong&gt;Worker nodes&lt;/strong&gt;: SSH from private network, ICMP from private network&lt;/li&gt;
 &lt;li&gt;&lt;strong&gt;Admin node&lt;/strong&gt;: SSH from anywhere (temporary), ICMP from private network&lt;/li&gt;
 &lt;/ul&gt;
-&lt;p&gt;Kubernetes ports (6443, 10250, 2379-2380, 30000-32767) are intentionally excluded from the Hetzner firewall and added only when deploying Kubernetes.&lt;/p&gt;</description></item></channel></rss>
+&lt;p&gt;Kubernetes ports (6443, 10250, 2379-2380, 30000-32767) are intentionally excluded from the Hetzner firewall and added only when deploying Kubernetes.&lt;/p&gt;</description></item><item><title>DNS and NAT64</title><link>https://projectious-work.github.io/kubeclaw/docs/introduction/dns-and-nat64/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/introduction/dns-and-nat64/</guid><description>&lt;p&gt;The cluster is IPv6-only &amp;ndash; but many services (GitHub CDN, container registries, package repos) are IPv4-only. &lt;strong&gt;NAT64/DNS64&lt;/strong&gt; provides transparent IPv4 reachability at the network layer, no application changes needed. This page covers how DNS64/NAT64 works, how it integrates with Kubernetes CoreDNS, and how to configure it.&lt;/p&gt;
+&lt;h2 id="the-problem-ipv4-internet-from-ipv6-only-nodes"&gt;The Problem: IPv4 Internet from IPv6-Only Nodes&lt;/h2&gt;
+&lt;p&gt;The nodes have no public IPv4 addresses. Most internet services (GitHub, Docker Hub, package repos) have IPv4 addresses. How does an IPv6-only node reach them?&lt;/p&gt;</description></item></channel></rss>

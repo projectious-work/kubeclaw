@@ -1,5 +1,9 @@
 # Development Setup
 
+> Local development workflow for infrastructure changes and the documentation site.
+
+---
+
 LLMS index: [llms.txt](/kubeclaw/llms.txt)
 
 ---
@@ -19,7 +23,7 @@ Preview the documentation site locally:
 # Open http://localhost:1313
 ```
 
-When using a remote Dev Container environment, forward port 8000 from your
+When using a remote Dev Container environment, forward port 1313 from your
 editor to view the preview.
 
 Build the site:
@@ -57,9 +61,14 @@ To deploy the documentation to GitHub Pages:
 ./scripts/deploy-docs.sh
 ```
 
-This builds the Hugo site locally and pushes the generated `public/` directory
-to the `gh-pages` branch. GitHub Pages must be configured to serve that branch;
-no GitHub Actions workflow is required or used.
+This is the standard documentation deployment. It builds the Hugo site locally
+and pushes the generated `public/` directory to the root of the `gh-pages`
+branch. GitHub Pages must be configured to serve `gh-pages` from `/`; no GitHub
+Actions workflow is required or used.
+
+The build and deployment scripts create an empty `.nojekyll` marker in the
+generated site and at the branch root, so GitHub Pages always serves the
+prebuilt output directly instead of processing it with Jekyll.
 
 The same script can publish an archived documentation snapshot under a version
 path. For example:

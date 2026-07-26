@@ -1,5 +1,9 @@
 # Manual Setup (Alternative)
 
+> Build the same infrastructure by hand in the Hetzner Console -- the steps OpenTofu automates.
+
+---
+
 LLMS index: [llms.txt](/kubeclaw/llms.txt)
 
 ---

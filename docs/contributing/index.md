@@ -18,5 +18,5 @@ produce the deployable site.
 
 Section pages:
 
-- [Code of Conduct](/kubeclaw/docs/contributing/code-of-conduct/)
-- [Development Setup](/kubeclaw/docs/contributing/development/)
+- [Development Setup](/kubeclaw/docs/contributing/development/): Local development workflow for infrastructure changes and the documentation site.
+- [Code of Conduct](/kubeclaw/docs/contributing/code-of-conduct/): The behavioural standard this project holds contributors to.

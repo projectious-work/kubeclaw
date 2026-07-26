@@ -1,5 +1,9 @@
 # DNS and NAT64
 
+> How DNS64 and NAT64 give IPv6-only nodes and pods transparent access to IPv4-only services.
+
+---
+
 LLMS index: [llms.txt](/kubeclaw/llms.txt)
 
 ---

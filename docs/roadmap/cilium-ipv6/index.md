@@ -1,5 +1,9 @@
 # Cilium Dual-Stack Pod Network
 
+> Planned work on the Cilium dual-stack pod network.
+
+---
+
 LLMS index: [llms.txt](/kubeclaw/llms.txt)
 
 ---

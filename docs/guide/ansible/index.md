@@ -1,5 +1,9 @@
 # Server Management (Ansible)
 
+> Generate the inventory and run the update, hardening, NAT64, and Kubernetes-prerequisite playbooks.
+
+---
+
 LLMS index: [llms.txt](/kubeclaw/llms.txt)
 
 ---
@@ -93,7 +97,10 @@ See [DNS and NAT64](/kubeclaw/docs/introduction/dns-and-nat64/) for details.
 ansible-playbook playbooks/prepare-k8s-nodes.yml
 ```
 
-This installs containerd, kubeadm, kubelet, and kubectl on all nodes.
+This installs the selected container runtime, kubeadm, kubelet, and kubectl on
+all nodes. The runtime defaults to containerd; pass
+`-e "container_runtime=cri-o"` to use CRI-O instead, matching the
+`container_runtime` variable used by cloud-init.
 
 ## Next Steps
 

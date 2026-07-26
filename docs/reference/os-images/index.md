@@ -1,5 +1,9 @@
 # OS Images
 
+> Hetzner Cloud OS images available for cluster nodes, and why the default is Debian 13.
+
+---
+
 LLMS index: [llms.txt](/kubeclaw/llms.txt)
 
 ---
@@ -16,7 +20,7 @@ Hetzner Cloud offers the following Debian/Ubuntu images:
 ## Why Debian 13?
 
 - **Stability**: long support cycles
-- **Compatibility**: all K8s tools (kubeadm, k3s, etc.) support Debian
+- **Compatibility**: the `pkgs.k8s.io` apt repository used for kubeadm, kubelet, and kubectl ships Debian packages
 - **Small footprint**: leaner than Ubuntu, but not as small as Alpine
 - **No glibc/musl issues**: unlike Alpine, no compatibility problems
 

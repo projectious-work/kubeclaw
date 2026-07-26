@@ -1,5 +1,9 @@
 # Dev Container
 
+> Set up the aibox Dev Container that carries every tool this project needs.
+
+---
+
 LLMS index: [llms.txt](/kubeclaw/llms.txt)
 
 ---

@@ -1,5 +1,9 @@
 # Password Management
 
+> Which credentials exist, where they live, and how to keep terraform.tfvars safe.
+
+---
+
 LLMS index: [llms.txt](/kubeclaw/llms.txt)
 
 ---

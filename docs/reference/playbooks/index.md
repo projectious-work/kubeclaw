@@ -1,5 +1,9 @@
 # Ansible Playbooks Reference
 
+> Purpose, variables, and task list for each Ansible playbook.
+
+---
+
 LLMS index: [llms.txt](/kubeclaw/llms.txt)
 
 ---

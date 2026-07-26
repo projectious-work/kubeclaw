@@ -1,5 +1,9 @@
 # OpenClaw Deployment
 
+> Deploy OpenClaw into an egress-restricted namespace with Cilium FQDN policies.
+
+---
+
 LLMS index: [llms.txt](/kubeclaw/llms.txt)
 
 ---

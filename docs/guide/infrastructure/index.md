@@ -1,5 +1,9 @@
 # Infrastructure (OpenTofu)
 
+> Configure terraform.tfvars, run tofu apply, and set up SSH access to the new nodes.
+
+---
+
 LLMS index: [llms.txt](/kubeclaw/llms.txt)
 
 ---

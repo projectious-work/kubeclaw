@@ -8,7 +8,7 @@ LLMS index: [llms.txt](/kubeclaw/llms.txt)
 
 ---
 
-**A complete, security-first environment for running [OpenClaw](https://github.com/anthropics/openclaw) safely on remote infrastructure**
+**A complete, security-first environment for running [OpenClaw](https://github.com/openclaw/openclaw) safely on remote infrastructure**
 
 Agentic AI environments like OpenClaw execute arbitrary code with tool access -- they can read files, spawn processes, and make network requests. Running such workloads on a local machine or an unsandboxed server is inherently unsafe:
 
@@ -19,42 +19,17 @@ Agentic AI environments like OpenClaw execute arbitrary code with tool access --
 
 KubeClaw provides a fully automated Kubernetes cluster on Hetzner Cloud VPS servers where OpenClaw runs inside containers with strict network controls. Infrastructure is managed through **OpenTofu** and **Ansible**, the cluster uses **Cilium CNI** for eBPF-based network policies that enforce per-namespace egress rules (e.g., allowing only Anthropic API and messaging provider endpoints), and all access is routed through a **Cloudflare Tunnel** -- no open ports, no public SSH, outbound-only connectivity.
 
-## Architecture
+## How it works
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                         Internet                                 │
-└─────────────────────────────────────────────────────────────────┘
-                         │              │
-                         ▼              ▼
-              ┌──────────────┐  ┌───────────────┐
-              │  Cloudflare  │  │  Admin Node   │
-              │   Tunnel     │  │  10.0.0.254   │
-              │  (permanent) │  │  (temporary,  │
-              └──────┬───────┘  │  public IPv6) │
-                     │          └───────┬───────┘
-                     ▼                  ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                    Hetzner Cloud                                 │
-│  ┌─────────────────────────────────────────────────────────────┐│
-│  │              Private Network (10.0.0.0/24)              │    │
-│  │                                                         │    │
-│  │   ┌─────────────────┐  ┌─────────────────┐             │    │
-│  │   │  control-01     │  │  control-02+    │             │    │
-│  │   │    10.0.0.2     │  │   10.0.0.3+     │             │    │
-│  │   │  (master,       │◄►│  (replicas,     │             │    │
-│  │   │   cloudflared)  │  │   0-n instances) │             │    │
-│  │   └────────┬────────┘  └─────────────────┘             │    │
-│  │            │                                            │    │
-│  │            ▼                                            │    │
-│  │   ┌─────────────────┐                                   │    │
-│  │   │  worker-nodes   │                                   │    │
-│  │   │  (0-n instances) │                                   │    │
-│  │   └─────────────────┘                                   │    │
-│  │                                                         │    │
-│  └─────────────────────────────────────────────────────────┘    │
-└─────────────────────────────────────────────────────────────────┘
-```
+1. **OpenTofu** provisions the infrastructure: private network, firewalls, SSH keys, and servers on Hetzner Cloud
+2. **Cloud-init** configures each server on first boot: SSH hardening, fail2ban, UFW, NAT64/DNS64, and Kubernetes prerequisites
+3. **Ansible** handles ongoing server management: updates, security hardening, and configuration changes
+4. **kubeadm** bootstraps a standard Kubernetes cluster with Cilium CNI and Hetzner CSI for persistent storage
+5. **Cloudflare Tunnel** provides secure, outbound-only SSH access without exposing any ports
+6. **Cilium network policies** enforce per-namespace egress rules, restricting OpenClaw to only its required API endpoints
+
+For the node roles, IP layout, and traffic flow behind this, see
+[Architecture](/kubeclaw/docs/introduction/architecture/).
 
 ## Features
 
@@ -69,23 +44,22 @@ KubeClaw provides a fully automated Kubernetes cluster on Hetzner Cloud VPS serv
 - **Debian 13** -- Stable, Kubernetes-compatible OS
 - **kubeadm** -- Standard Kubernetes bootstrapper for CKA certification preparation
 
-## Getting Started
+## Where to start
 
-Ready to deploy? Follow the [Quick Start](/kubeclaw/docs/quick-start/) guide to get up and running.
-
-## How It Works
-
-1. **OpenTofu** provisions the infrastructure: private network, firewalls, SSH keys, and servers on Hetzner Cloud
-2. **Cloud-init** configures each server on first boot: SSH hardening, fail2ban, UFW, NAT64/DNS64, and Kubernetes prerequisites
-3. **Ansible** handles ongoing server management: updates, security hardening, and configuration changes
-4. **kubeadm** bootstraps a standard Kubernetes cluster with Cilium CNI and Hetzner CSI for persistent storage
-5. **Cloudflare Tunnel** provides secure, outbound-only SSH access without exposing any ports
-6. **Cilium network policies** enforce per-namespace egress rules, restricting OpenClaw to only its required API endpoints
+| If you want to... | Go to |
+|-------------------|-------|
+| Deploy a cluster now | [Quick Start](/kubeclaw/docs/quick-start/) |
+| Understand the design first | [Introduction](/kubeclaw/docs/introduction/) -- architecture, security model, DNS/NAT64 |
+| Follow the full deployment path | [Guide](/kubeclaw/docs/guide/) -- Dev Container through OpenClaw, in order |
+| Solve one specific task | [How-to](/kubeclaw/docs/how-to/) |
+| Look up a variable, output, or template | [Reference](/kubeclaw/docs/reference/) |
+| Run the cluster day to day | [Operations](/kubeclaw/docs/operations/) |
 
 ---
 
 Section pages:
 
+- [Quick Start](/kubeclaw/docs/quick-start/): Provision the cluster end to end: prerequisites, Dev Container, OpenTofu, SSH, and the Cloudflare Tunnel.
 - [Introduction](/kubeclaw/docs/introduction/): Understand KubeClaw's architecture, network model, and security boundaries.
 - [Guide](/kubeclaw/docs/guide/): Deploy and operate the KubeClaw infrastructure step by step.
 - [How-to](/kubeclaw/docs/how-to/): Focused procedures for common KubeClaw tasks.
@@ -93,4 +67,3 @@ Section pages:
 - [Operations](/kubeclaw/docs/operations/): Keep the cluster secure, healthy, and maintainable after deployment.
 - [Roadmap](/kubeclaw/docs/roadmap/): Planned improvements and current infrastructure milestones.
 - [Contributing](/kubeclaw/docs/contributing/): Help improve KubeClaw and its documentation.
-- [Quick Start](/kubeclaw/docs/quick-start/)

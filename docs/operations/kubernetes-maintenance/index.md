@@ -1,5 +1,9 @@
 # Kubernetes Maintenance
 
+> Upgrade the control plane and workers, back up volumes, and inspect cluster state.
+
+---
+
 LLMS index: [llms.txt](/kubeclaw/llms.txt)
 
 ---

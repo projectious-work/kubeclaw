@@ -1,5 +1,9 @@
 # Code of Conduct
 
+> The behavioural standard this project holds contributors to.
+
+---
+
 LLMS index: [llms.txt](/kubeclaw/llms.txt)
 
 ---

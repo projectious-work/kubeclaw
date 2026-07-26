@@ -1,5 +1,9 @@
 # Scale Up/Down
 
+> Add or remove control and worker nodes at the infrastructure and Kubernetes levels.
+
+---
+
 LLMS index: [llms.txt](/kubeclaw/llms.txt)
 
 ---

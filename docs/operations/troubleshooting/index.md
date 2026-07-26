@@ -1,5 +1,9 @@
 # Troubleshooting
 
+> Fixes for common infrastructure, tunnel, Ansible, and Kubernetes failures.
+
+---
+
 LLMS index: [llms.txt](/kubeclaw/llms.txt)
 
 ---

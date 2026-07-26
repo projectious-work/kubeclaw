@@ -1,5 +1,9 @@
 # Cloud-Init Templates
 
+> The three cloud-init templates, their template variables, and their conditional sections.
+
+---
+
 LLMS index: [llms.txt](/kubeclaw/llms.txt)
 
 ---

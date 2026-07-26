@@ -1,5 +1,9 @@
 # Variables Reference
 
+> Every OpenTofu input variable with its type, default, and effect.
+
+---
+
 LLMS index: [llms.txt](/kubeclaw/llms.txt)
 
 ---

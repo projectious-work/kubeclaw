@@ -1,5 +1,9 @@
 # SSH Key Rotation
 
+> Rotate auto-generated or custom SSH keys without losing access.
+
+---
+
 LLMS index: [llms.txt](/kubeclaw/llms.txt)
 
 ---

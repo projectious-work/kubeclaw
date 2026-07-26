@@ -1,5 +1,9 @@
 # Security
 
+> What the setup protects against, what to monitor, and the exact SSH hardening applied.
+
+---
+
 LLMS index: [llms.txt](/kubeclaw/llms.txt)
 
 ---

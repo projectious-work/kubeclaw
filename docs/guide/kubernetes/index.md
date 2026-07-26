@@ -1,5 +1,9 @@
 # Kubernetes (kubeadm)
 
+> Bootstrap a dual-stack kubeadm cluster with Cilium CNI and the Hetzner CSI driver.
+
+---
+
 LLMS index: [llms.txt](/kubeclaw/llms.txt)
 
 ---

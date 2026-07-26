@@ -1,5 +1,9 @@
 # Cost Estimate
 
+> Indicative monthly Hetzner Cloud costs for common cluster sizes.
+
+---
+
 LLMS index: [llms.txt](/kubeclaw/llms.txt)
 
 ---

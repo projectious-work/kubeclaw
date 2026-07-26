@@ -1,5 +1,9 @@
 # Outputs Reference
 
+> Every OpenTofu output, what consumes it, and how to query it.
+
+---
+
 LLMS index: [llms.txt](/kubeclaw/llms.txt)
 
 ---
@@ -82,6 +86,7 @@ These outputs are sensitive when auto-generated keys are used.
 | Output | Description |
 |--------|-------------|
 | `cloudflare_tunnel_domain` | Configured Cloudflare Tunnel domain |
+| `cloudflare_tunnel_configured` | Whether `cloudflare_tunnel_token` was set, i.e. whether cloud-init installed the tunnel automatically |
 | `nat64_enabled` | Whether NAT64/DNS64 is enabled |
 | `k8s_prereqs_enabled` | Whether Kubernetes prerequisites are installed via cloud-init |
 

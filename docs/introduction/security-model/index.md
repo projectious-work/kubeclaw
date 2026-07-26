@@ -1,5 +1,9 @@
 # Security Model
 
+> The three security layers: Hetzner firewalls, host hardening, and Kubernetes network policies.
+
+---
+
 LLMS index: [llms.txt](/kubeclaw/llms.txt)
 
 ---

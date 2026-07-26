@@ -5,6 +5,13 @@ description: What the setup protects against, what to monitor, and the exact SSH
 ---
 
 
+{{< alert title="Design intent, not a security guarantee" color="warning" >}}
+This page describes what the design *intends* to protect against. KubeClaw is
+a [prototype]({{< relref "/docs/project-status" >}}) and has not been
+adversarially tested or audited -- assume gaps exist. Treat the table below as
+a statement of intent, not of assurance.
+{{< /alert >}}
+
 ## Security Summary
 
 | Layer | Protection |

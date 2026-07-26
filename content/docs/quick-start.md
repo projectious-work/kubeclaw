@@ -5,6 +5,14 @@ description: "Provision the cluster end to end: prerequisites, Dev Container, Op
 ---
 
 
+{{< alert title="This provisions real, billable infrastructure" color="warning" >}}
+KubeClaw is a [prototype]({{< relref "/docs/project-status" >}}) -- a learning
+project, not production software. The steps below create servers on Hetzner
+Cloud that cost real money, and the resulting cluster has not been security
+reviewed. Do not use it for production traffic, real credentials, or
+third-party data.
+{{< /alert >}}
+
 ## Prerequisites
 
 ### Accounts

@@ -49,10 +49,10 @@
   --pj-ease-out: cubic-bezier(0.33, 1, 0.68, 1);
   --pj-ease-in: cubic-bezier(0.32, 0, 0.67, 0);
 
-  // The mark renders on light surfaces here.
-  --pj-mark-shell: #{$midnight-9};
-  --pj-mark-cut: #ffffff;
-  --pj-mark-bud: #{$orange-9};
+  // The KubeClaw mark renders on light surfaces here.
+  --kc-mark-shell: #{$midnight-9};
+  --kc-mark-claw: #ffffff;
+  --kc-mark-joint: #{$orange-9};
 }
 
 [data-bs-theme="dark"] {
@@ -85,9 +85,9 @@
   --pj-border: rgba(255, 255, 255, 0.08);
   --pj-text-muted: #{$slate-dark-11};
 
-  --pj-mark-shell: #6b8db2;
-  --pj-mark-cut: #{$brand-primary-dark};
-  --pj-mark-bud: #{$orange-9};
+  --kc-mark-shell: #6b8db2;
+  --kc-mark-claw: #{$brand-primary-dark};
+  --kc-mark-joint: #{$orange-9};
 }
 
 // -----------------------------------------------------------------------------
@@ -264,24 +264,26 @@ figcaption,
   }
 
   // On the midnight navbar the mark always uses its dark-surface variant.
-  .projectious-mark {
-    --pj-mark-shell: #6b8db2;
-    --pj-mark-cut: #{$brand-primary-dark};
-    --pj-mark-bud: #{$orange-9};
+  .kubeclaw-mark {
+    --kc-mark-shell: #6b8db2;
+    --kc-mark-claw: #{$brand-primary-dark};
+    --kc-mark-joint: #{$orange-9};
   }
 }
 
-.projectious-mark {
+// KubeClaw mark: Kubernetes heptagon, claw pincer, accent joint. Fills are
+// driven by custom properties so the inlined SVG follows the colour mode.
+.kubeclaw-mark {
   &__shell {
-    fill: var(--pj-mark-shell);
+    fill: var(--kc-mark-shell);
   }
 
-  &__cut {
-    fill: var(--pj-mark-cut);
+  &__claw {
+    fill: var(--kc-mark-claw);
   }
 
-  &__bud {
-    fill: var(--pj-mark-bud);
+  &__joint {
+    fill: var(--kc-mark-joint);
   }
 }
 
@@ -739,6 +741,75 @@ kbd {
 .td-offline-search-results {
   border-radius: $border-radius-lg;
   box-shadow: $box-shadow-lg;
+}
+
+// -----------------------------------------------------------------------------
+// Prototype banner
+// -----------------------------------------------------------------------------
+// Rendered at the top of every docs page via the version-banner override.
+// Uses the accent as an attention colour, per the brand's error/highlight
+// treatment (orange-9 rule on an orange-1 field).
+.kc-prototype-banner {
+  display: flex;
+  align-items: baseline;
+  gap: 0.625rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+  padding: 0.75rem 1rem;
+  border-left: 4px solid var(--pj-orange-9);
+  border-radius: $border-radius;
+  background-color: var(--pj-orange-2);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--bs-body-color);
+
+  // Step 11 over step 2 rather than white over step 9: white on orange-9 is
+  // 3.87:1, below AA for an 11px label. This pairing flips correctly in both
+  // modes (4.61:1 light, 7.83:1 dark).
+  &__tag {
+    flex-shrink: 0;
+    font-family: $font-family-sans-serif;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--pj-orange-2);
+    background-color: var(--pj-orange-11);
+    border-radius: $border-radius-sm;
+    padding: 0.125rem 0.5rem;
+  }
+
+  &__text {
+    flex: 1 1 16rem;
+    min-width: 0;
+  }
+
+  a {
+    color: var(--pj-orange-11);
+    text-decoration: underline;
+
+    &:hover {
+      color: var(--pj-orange-10);
+    }
+  }
+}
+
+[data-bs-theme="dark"] .kc-prototype-banner a {
+  color: var(--pj-orange-11);
+}
+
+// Landing-page variant sits on the dark cover, so it restates its colours.
+.td-cover-block .kc-prototype-banner {
+  display: inline-flex;
+  margin: 0 auto 1.5rem;
+  background-color: rgba(224, 82, 50, 0.14);
+  border-left-color: $orange-9;
+  color: $midnight-dark-12;
+  text-align: left;
+
+  a {
+    color: $orange-dark-10;
+  }
 }
 
 // -----------------------------------------------------------------------------

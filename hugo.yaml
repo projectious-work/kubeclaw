@@ -1,6 +1,6 @@
 baseURL: "https://projectious-work.github.io/kubeclaw/"
 title: KubeClaw
-description: Secure, IPv6-first Kubernetes infrastructure for OpenClaw on Hetzner Cloud.
+description: "Prototype: exploring a secure, scalable Kubernetes environment for AI agents. A learning project, not production software."
 theme: [docsy]
 enableRobotsTXT: true
 enableGitInfo: true

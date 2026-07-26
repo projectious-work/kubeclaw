@@ -1,10 +1,13 @@
 ---
 title: Documentation
 linkTitle: Documentation
-description: Guides and reference material for deploying and operating KubeClaw.
+description: "Guides and reference material for KubeClaw, a prototype environment for running AI agents on Kubernetes."
 ---
 
-**A complete, security-first environment for running [OpenClaw](https://github.com/openclaw/openclaw) safely on remote infrastructure**
+**A prototype environment for running [OpenClaw](https://github.com/openclaw/openclaw) and similar AI agents behind a real isolation boundary**
+
+KubeClaw is a learning project, not production software. Before deploying anything, read
+[Project Status]({{< relref "/docs/project-status" >}}).
 
 Agentic AI environments like OpenClaw execute arbitrary code with tool access -- they can read files, spawn processes, and make network requests. Running such workloads on a local machine or an unsandboxed server is inherently unsafe:
 

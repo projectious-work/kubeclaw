@@ -1,0 +1,32 @@
+{{/*
+  Project override of Docsy's version-banner.
+
+  Docsy calls this partial at the top of every docs page, which makes it the
+  right place to state KubeClaw's prototype status site-wide. The original
+  archived-version behaviour is preserved below.
+*/ -}}
+
+<div class="kc-prototype-banner" role="note">
+  <span class="kc-prototype-banner__tag">Prototype</span>
+  <span class="kc-prototype-banner__text">
+    KubeClaw is a learning project exploring what a secure, scalable Kubernetes
+    environment for AI agents looks like. It is <strong>not production ready and
+    not beta</strong>. Expect breaking changes and unreviewed assumptions.
+    <a href="{{ "/docs/project-status/" | relURL }}">Read the project status</a>.
+  </span>
+</div>
+
+{{ if .Site.Params.archived_version -}}
+  {{ $color := "primary" -}}
+  {{ $latest_version := .Site.Params.url_latest_version -}}
+  {{ $current_version := .Site.Params.version -}}
+  <div class="pageinfo pageinfo-{{ $color }}">
+    {{ with $current_version }}<p>Version {{ . | markdownify }} of the
+      documentation is no longer actively maintained. The site that you are
+      currently viewing is an archived snapshot.
+      {{ with $latest_version }}For up-to-date documentation, see the
+        <a href="{{ $latest_version | safeURL }}" target="_blank">latest version</a>.</p>
+      {{ end -}}
+    {{ end -}}
+  </div>
+{{ end -}}

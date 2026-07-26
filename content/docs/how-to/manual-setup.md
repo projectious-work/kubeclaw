@@ -146,7 +146,7 @@ runcmd:
 1. **Servers** > **Add Server**
 2. **Location**: Any (e.g. Falkenstein)
 3. **Image**: Debian 13
-4. **Type**: CX22 (smallest size is sufficient)
+4. **Type**: CX23 (smallest size is sufficient)
 5. **Networking**:
    - Public IPv6 enabled
    - Private Network: add your network
@@ -252,7 +252,7 @@ runcmd:
 
 1. **Servers** > **Add Server**
 2. **Image**: Debian 13
-3. **Type**: As needed (e.g. CX22 or larger)
+3. **Type**: As needed (e.g. CX23 or larger)
 4. **Networking**:
    - **Public IPv4**: Disabled
    - **Public IPv6**: Enabled (temporarily, for installation)

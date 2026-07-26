@@ -229,18 +229,19 @@ figcaption,
   border-bottom: 3px solid $brand-accent;
   box-shadow: none;
 
+  // Brand rule: no pure #fff as text -- midnight-12 from the dark scale.
   .nav-link,
   .navbar-brand,
   .navbar-brand__name {
     font-family: $headings-font-family;
     font-weight: 600;
-    color: rgba(255, 255, 255, 0.82);
+    color: $slate-dark-11; // 6.36:1 on the midnight navbar
   }
 
   .navbar-brand__name {
     font-weight: 700;
     letter-spacing: -0.3px;
-    color: #ffffff;
+    color: $midnight-dark-12;
   }
 
   .nav-link {
@@ -248,11 +249,11 @@ figcaption,
 
     &:hover,
     &:focus {
-      color: #ffffff;
+      color: $midnight-dark-12;
     }
 
     &.active {
-      color: #ffffff;
+      color: $midnight-dark-12;
       box-shadow: inset 0 -2px 0 $brand-accent;
     }
   }
@@ -291,11 +292,20 @@ figcaption,
 // Surface is midnight-2 from the dark scale; syntax colours come from the
 // digital-experience syntax theme.
 $pj-code-bg: $midnight-dark-2;
-$pj-code-keyword: $midnight-dark-11; // #8aacc8
-$pj-code-string: $brand-accent-light; // #ea7558
-$pj-code-comment: $slate-dark-8; // #5a6a78
-$pj-code-identifier: $midnight-dark-12; // #c5daf0
-$pj-code-operator: $slate-dark-11; // #97a8b8
+$pj-code-keyword: $midnight-dark-11; // #8aacc8 -- 7.06:1
+$pj-code-string: $brand-accent-light; // #ea7558 -- 5.76:1
+$pj-code-identifier: $midnight-dark-12; // #c5daf0 -- 11.74:1
+$pj-code-operator: $slate-dark-11; // #97a8b8 -- 6.90:1
+
+// DEVIATION from the brand syntax theme, which specifies slate-8 for comments.
+// Read against the dark scale (as the rest of the syntax spec must be, since
+// slate-11 operators and midnight-11 keywords are only legible in dark), that
+// is #5a6a78 -- 3.02:1 on the midnight-2 code surface, below the WCAG AA 4.5:1
+// floor for 13px text. No brand step sits between slate-10 (3.78:1) and
+// slate-11 (6.90:1, already used for operators), so this is the lowest point
+// on the slate ramp that clears AA while staying clearly dimmer than
+// operators. Reported upstream: projectious-work/brand.
+$pj-code-comment: #72889d; // 4.59:1
 
 :root,
 [data-bs-theme="light"],
@@ -572,6 +582,51 @@ kbd {
 }
 
 // -----------------------------------------------------------------------------
+// Text on dark surfaces
+// -----------------------------------------------------------------------------
+// `$headings-color` is midnight-9 so headings read correctly on light pages.
+// On midnight surfaces that same value is invisible (#1d3352 on #1d3352 is a
+// 1.00:1 contrast ratio), so every dark surface must restate its text colours.
+// Brand rule: no pure #fff as text -- use midnight-12 from the dark scale,
+// which measures 8.9:1 to 10.8:1 against these backgrounds.
+.td-cover-block,
+.td-overlay--dark,
+.td-box--dark,
+.td-box--primary,
+.td-footer {
+  --bs-body-color: #{$midnight-dark-12};
+  --bs-heading-color: #{$midnight-dark-12};
+  --bs-emphasis-color: #{$midnight-dark-12};
+  --bs-secondary-color: #{$slate-dark-11};
+  color: $midnight-dark-12;
+
+  h1, h2, h3, h4, h5, h6,
+  .h1, .h2, .h3, .h4, .h5, .h6,
+  .display-1, .display-2, .display-3,
+  .display-4, .display-5, .display-6,
+  .td-cover__title,
+  p,
+  li,
+  dt,
+  dd {
+    color: $midnight-dark-12;
+  }
+
+  .lead {
+    color: $slate-dark-11; // 5.2:1 -- supporting copy, still AA
+  }
+
+  a:not(.btn) {
+    color: $midnight-dark-11;
+
+    &:hover,
+    &:focus {
+      color: $orange-dark-10; // accent-light, 5.3:1 on midnight
+    }
+  }
+}
+
+// -----------------------------------------------------------------------------
 // Landing page blocks
 // -----------------------------------------------------------------------------
 .td-cover-block {
@@ -580,15 +635,17 @@ kbd {
     radial-gradient(circle at 88% 18%, rgba(224, 82, 50, 0.26), transparent 36%);
 }
 
-.td-cover__title {
-  max-width: 14ch;
+.td-cover__title,
+.td-cover-block .display-1 {
+  max-width: 16ch;
+  margin-inline: auto;
 }
 
 .td-box--primary {
   background-color: $brand-primary;
-  color: #ffffff;
 }
 
+// Light surface -- inherits the page's normal text colours.
 .td-box--secondary {
   background-color: var(--pj-midnight-2);
   color: var(--bs-body-color);
@@ -659,13 +716,13 @@ kbd {
 
 .td-footer {
   background-color: $brand-primary-dark;
-  color: rgba(255, 255, 255, 0.72);
 
+  // Text colours come from the dark-surface rule above.
   a {
-    color: rgba(255, 255, 255, 0.86);
+    color: $midnight-dark-12;
 
     &:hover {
-      color: $brand-accent-light;
+      color: $orange-dark-10;
     }
   }
 }

@@ -69,7 +69,7 @@ variable "server_image" {
 variable "master_control_node_type" {
   description = "Server type for the master control node (runs cloudflared)"
   type        = string
-  default     = "cx22"
+  default     = "cx23"
 }
 
 variable "control_node_types" {
@@ -161,7 +161,7 @@ variable "enable_admin_node" {
 variable "admin_node_type" {
   description = "Server type for admin node"
   type        = string
-  default     = "cx22"
+  default     = "cx23"
 }
 
 variable "admin_node_public_key" {

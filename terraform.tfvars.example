@@ -23,6 +23,10 @@ location     = "fsn1"  # fsn1 (Falkenstein), nbg1 (Nuremberg), hel1 (Helsinki)
 # -----------------------------------------------------------------------------
 # Server Configuration
 # -----------------------------------------------------------------------------
+# Cost-optimized shared-vCPU line (x86): cx23 (2/4GB), cx33 (4/8GB),
+# cx43 (8/16GB), cx53 (16/32GB). The cx22 generation is retired for new orders.
+# The Arm line (cax11/21/31/41) is cheaper per core but only exists in fsn1,
+# nbg1, and hel1 and needs arm64 images throughout the cluster.
 server_image             = "debian-13"
 master_control_node_type = "cx23"  # The master runs cloudflared
 # control_node_types = [           # Additional replica control nodes

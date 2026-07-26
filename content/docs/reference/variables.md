@@ -34,15 +34,20 @@ All configurable inputs for the OpenTofu infrastructure. Set these in `terraform
 | Variable | Type | Default | Description |
 |----------|------|---------|-------------|
 | `server_image` | `string` | `"debian-13"` | Server image to use |
-| `master_control_node_type` | `string` | `"cx22"` | Server type for the master control node (runs cloudflared) |
+| `master_control_node_type` | `string` | `"cx23"` | Server type for the master control node (runs cloudflared) |
 | `control_node_types` | `list(object({type, count}))` | `[]` | Server types and counts for replica control nodes |
 | `worker_node_types` | `list(object({type, count}))` | `[]` | Server types and counts for worker nodes |
+
+The cost-optimized x86 line is `cx23`, `cx33`, `cx43`, and `cx53`; the Arm
+equivalents are `cax11` through `cax41`. See
+[Cost Estimate]({{< relref "/docs/reference/cost-estimate" >}}) for
+specifications, current prices, and the constraints on the Arm line.
 
 ### Node type examples
 
 ```hcl
 # Master-only (default)
-master_control_node_type = "cx22"
+master_control_node_type = "cx23"
 control_node_types = []
 worker_node_types  = []
 
@@ -57,7 +62,7 @@ worker_node_types = [
 # Mixed worker types
 worker_node_types = [
   { type = "cx23", count = 2 },
-  { type = "cx32", count = 1 },
+  { type = "cx33", count = 1 },
 ]
 ```
 
@@ -92,7 +97,7 @@ If left empty, new keys will be auto-generated and stored in the OpenTofu state.
 | Variable | Type | Default | Description |
 |----------|------|---------|-------------|
 | `enable_admin_node` | `bool` | `true` | Enable a temporary admin node with public IPv6 for initial SSH access. Disable after Cloudflare Tunnel is configured. |
-| `admin_node_type` | `string` | `"cx22"` | Server type for admin node |
+| `admin_node_type` | `string` | `"cx23"` | Server type for admin node |
 
 ## NAT64/DNS64
 

@@ -10,6 +10,12 @@ markup:
   goldmark:
     renderer:
       unsafe: true
+    parser:
+      attribute:
+        # Without block attributes, markdown such as `{.lead .display-6}`
+        # renders as visible literal text instead of applying the classes.
+        block: true
+        title: true
   highlight:
     noClasses: false
   tableOfContents:

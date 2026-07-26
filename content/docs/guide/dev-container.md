@@ -1,5 +1,7 @@
 ---
 title: Dev Container
+weight: 10
+description: Set up the aibox Dev Container that carries every tool this project needs.
 ---
 
 

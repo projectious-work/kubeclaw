@@ -1,5 +1,7 @@
 ---
 title: SSH Keys with Passphrase
+weight: 10
+description: Protect cluster SSH keys with a passphrase and keep Ansible working through ssh-agent.
 ---
 
 

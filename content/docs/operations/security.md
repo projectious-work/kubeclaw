@@ -1,5 +1,7 @@
 ---
 title: Security
+weight: 40
+description: What the setup protects against, what to monitor, and the exact SSH hardening applied.
 ---
 
 

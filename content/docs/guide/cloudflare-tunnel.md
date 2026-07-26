@@ -1,5 +1,7 @@
 ---
 title: Cloudflare Tunnel Setup
+weight: 30
+description: Create the tunnel, route SSH through it, and protect it with a Cloudflare Access policy.
 ---
 
 

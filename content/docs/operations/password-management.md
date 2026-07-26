@@ -1,5 +1,7 @@
 ---
 title: Password Management
+weight: 50
+description: Which credentials exist, where they live, and how to keep terraform.tfvars safe.
 ---
 
 

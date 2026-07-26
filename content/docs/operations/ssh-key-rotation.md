@@ -1,5 +1,7 @@
 ---
 title: SSH Key Rotation
+weight: 20
+description: Rotate auto-generated or custom SSH keys without losing access.
 ---
 
 

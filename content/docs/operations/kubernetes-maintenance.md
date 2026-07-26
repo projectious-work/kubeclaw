@@ -1,5 +1,7 @@
 ---
 title: Kubernetes Maintenance
+weight: 30
+description: Upgrade the control plane and workers, back up volumes, and inspect cluster state.
 ---
 
 

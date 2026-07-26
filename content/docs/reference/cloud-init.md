@@ -1,5 +1,7 @@
 ---
 title: Cloud-Init Templates
+weight: 30
+description: The three cloud-init templates, their template variables, and their conditional sections.
 ---
 
 

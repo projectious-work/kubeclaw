@@ -70,6 +70,15 @@ module:
     - "github.com/FortAwesome/Font-Awesome -> ../node_modules/@fortawesome/fontawesome-free"
     - "github.com/twbs/bootstrap -> ../node_modules/bootstrap"
   mounts:
+    # Declaring any mount for a component replaces Hugo's default mount for
+    # that component. The vendor mounts below target `assets/` and `static/`,
+    # so both defaults must be restored explicitly — otherwise the project's
+    # brand SCSS, logo, and favicons are silently ignored in favour of the
+    # theme's own assets.
+    - source: assets
+      target: assets
+    - source: static
+      target: static
     - source: node_modules/bootstrap
       target: assets/vendor/bootstrap
     - source: node_modules/@fortawesome/fontawesome-free

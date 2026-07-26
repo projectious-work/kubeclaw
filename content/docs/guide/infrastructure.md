@@ -1,5 +1,7 @@
 ---
 title: Infrastructure (OpenTofu)
+weight: 20
+description: Configure terraform.tfvars, run tofu apply, and set up SSH access to the new nodes.
 ---
 
 

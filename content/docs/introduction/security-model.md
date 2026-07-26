@@ -1,5 +1,7 @@
 ---
 title: Security Model
+weight: 20
+description: "The three security layers: Hetzner firewalls, host hardening, and Kubernetes network policies."
 ---
 
 

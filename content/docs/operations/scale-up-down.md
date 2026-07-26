@@ -1,5 +1,7 @@
 ---
 title: Scale Up/Down
+weight: 10
+description: Add or remove control and worker nodes at the infrastructure and Kubernetes levels.
 ---
 
 

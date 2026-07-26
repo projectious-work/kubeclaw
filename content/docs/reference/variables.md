@@ -1,5 +1,7 @@
 ---
 title: Variables Reference
+weight: 10
+description: Every OpenTofu input variable with its type, default, and effect.
 ---
 
 

@@ -1,5 +1,7 @@
 ---
 title: Quick Start
+weight: 5
+description: "Provision the cluster end to end: prerequisites, Dev Container, OpenTofu, SSH, and the Cloudflare Tunnel."
 ---
 
 
@@ -66,12 +68,20 @@ This creates the admin node (temporary jump host), control node, private network
 ```bash
 ./scripts/setup-ssh.sh
 source ./scripts/ssh-agent-setup.sh
+./scripts/generate-ansible-inventory.sh
 ```
 
 This exports SSH keys from the OpenTofu state, generates `~/.ssh/config`
-entries, and starts the ssh-agent with the cluster keys loaded. The project
-override makes `.aibox-home/.ssh/` writable in the container, so these files
-persist across container rebuilds without being committed.
+entries, starts the ssh-agent with the cluster keys loaded, and builds
+`ansible/inventory.ini` from the current state. The project override makes
+`.aibox-home/.ssh/` writable in the container, so these files persist across
+container rebuilds without being committed.
+
+{{< alert title="Rerun after every infrastructure change" >}}
+`generate-ansible-inventory.sh` reads the OpenTofu outputs. Run it again after
+any `tofu apply` that adds or removes nodes -- never hand-edit
+`ansible/inventory.ini`.
+{{< /alert >}}
 
 ## 6. Connect to the control node
 
@@ -80,6 +90,10 @@ ssh control-node   # Routes via admin node automatically
 ```
 
 ## 7. Install Cloudflare Tunnel
+
+Creating the tunnel, routing SSH through it, and adding an Access policy are
+covered step by step in the [Cloudflare Tunnel Setup]({{< relref "/docs/guide/cloudflare-tunnel" >}})
+guide. Once you have a tunnel token, install it one of two ways.
 
 **Option A: Automatic (recommended)** -- Set the tunnel token in `terraform.tfvars` before `tofu apply`:
 
@@ -112,6 +126,7 @@ The master control node always keeps public IPv6 (required for cloudflared).
 
 ## Next steps
 
+- [Server management with Ansible]({{< relref "/docs/guide/ansible" >}}) -- updates, hardening, and Kubernetes prerequisites
 - [Deploy Kubernetes with kubeadm]({{< relref "/docs/guide/kubernetes" >}})
+- [Deploy OpenClaw]({{< relref "/docs/guide/openclaw" >}}) into an egress-restricted namespace
 - [DNS and NAT64]({{< relref "/docs/introduction/dns-and-nat64" >}}) for IPv4 reachability
-- [Server management with Ansible]({{< relref "/docs/guide/ansible" >}}) for ongoing maintenance

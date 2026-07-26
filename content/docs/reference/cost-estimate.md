@@ -1,5 +1,7 @@
 ---
 title: Cost Estimate
+weight: 70
+description: Indicative monthly Hetzner Cloud costs for common cluster sizes.
 ---
 
 

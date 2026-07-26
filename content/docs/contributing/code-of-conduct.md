@@ -1,5 +1,7 @@
 ---
 title: Code of Conduct
+weight: 20
+description: The behavioural standard this project holds contributors to.
 ---
 
 

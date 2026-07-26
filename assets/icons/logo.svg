@@ -1,9 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" aria-labelledby="title desc" role="img">
-  <title id="title">Projectious</title>
-  <desc id="desc">Projectious brand mark</desc>
-  <path d="M20 3.2C29.6 3.2 36 12 34.4 22.4 32.8 30.4 25.6 36 18.4 36S4.8 30.4 5.6 20C6.4 10.4 12 3.2 20 3.2Z" fill="#1d3352"/>
-  <path d="M10.4 29.6C9.6 20 13.6 10.4 20.8 8 27.2 6.4 31.2 12 32 19.2l-.8 5.6c-4 6.4-14.4 8-19.2 5.6Z" fill="#fff" opacity=".85"/>
-  <path d="M12.8 26.4C12 19.2 16 10.4 21.6 10.4c4.8.8 8 5.6 8 10.4-.8 5.6-7.2 8.8-14.4 8Z" fill="#1d3352" opacity=".85"/>
-  <path d="M14.4 24.8c-.8-6.4 3.2-12.8 8-12 3.2.8 4.8 4.8 4 9.6-.8 3.2-6.4 4.8-11.2 3.2Z" fill="#fff" opacity=".8"/>
-  <path d="M16 23.2c0-4.8 2.4-8.8 5.6-8 2.4.8 3.2 4 1.6 6.4-1.6 1.6-5.6 2.4-7.2 1.6Z" fill="#e05232"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" role="img" aria-labelledby="projectiousLogoTitle" class="projectious-mark">
+  <title id="projectiousLogoTitle">projectious.work</title>
+  <path class="projectious-mark__shell" d="M20.0,3.2C29.6,3.2 36.0,12.0 34.4,22.4C32.8,30.4 25.6,36.0 18.4,36.0C11.2,36.0 4.8,30.4 5.6,20.0C6.4,10.4 12.0,3.2 20.0,3.2Z"/>
+  <path class="projectious-mark__cut" d="M10.4,29.6C9.6,20.0 13.6,10.4 20.8,8.0C27.2,6.4 31.2,12.0 32.0,19.2L31.2,24.8C27.2,31.2 16.8,32.8 12.0,30.4Z" opacity="0.85"/>
+  <path class="projectious-mark__shell" d="M12.8,26.4C12.0,19.2 16.0,10.4 21.6,10.4C26.4,11.2 29.6,16.0 29.6,20.8C28.8,26.4 22.4,29.6 15.2,28.8Z" opacity="0.85"/>
+  <path class="projectious-mark__cut" d="M14.4,24.8C13.6,18.4 17.6,12.0 22.4,12.8C25.6,13.6 27.2,17.6 26.4,22.4C25.6,25.6 20.0,27.2 15.2,25.6Z" opacity="0.8"/>
+  <path class="projectious-mark__bud" d="M16.0,23.2C16.0,18.4 18.4,14.4 21.6,15.2C24.0,16.0 24.8,19.2 23.2,21.6C21.6,23.2 17.6,24.0 16.0,23.2Z"/>
 </svg>

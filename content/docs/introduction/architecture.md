@@ -1,5 +1,7 @@
 ---
 title: Architecture
+weight: 10
+description: Node roles, private network layout, and how traffic reaches an IPv6-only cluster.
 ---
 
 

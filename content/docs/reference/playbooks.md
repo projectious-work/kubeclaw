@@ -1,5 +1,7 @@
 ---
 title: Ansible Playbooks Reference
+weight: 40
+description: Purpose, variables, and task list for each Ansible playbook.
 ---
 
 

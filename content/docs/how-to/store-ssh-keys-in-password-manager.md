@@ -1,5 +1,7 @@
 ---
 title: Store SSH Keys in Password Manager
+weight: 20
+description: Back up and restore cluster SSH keys using a password manager.
 ---
 
 

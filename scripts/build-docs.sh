@@ -3,6 +3,27 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DOCS_BASE_URL="${DOCS_BASE_URL:-https://projectious-work.github.io/kubeclaw/}"
+BUILD_DIR="${ROOT_DIR}/public"
+
+BUILD_ARGS=("$@")
+for ((i = 0; i < ${#BUILD_ARGS[@]}; i++)); do
+  case "${BUILD_ARGS[i]}" in
+    --destination)
+      if ((i + 1 >= ${#BUILD_ARGS[@]})); then
+        echo "--destination requires a value." >&2
+        exit 1
+      fi
+      BUILD_DIR="${BUILD_ARGS[i + 1]}"
+      ;;
+    --destination=*)
+      BUILD_DIR="${BUILD_ARGS[i]#--destination=}"
+      ;;
+  esac
+done
+
+if [[ "${BUILD_DIR}" != /* ]]; then
+  BUILD_DIR="${ROOT_DIR}/${BUILD_DIR}"
+fi
 
 command -v hugo >/dev/null 2>&1 || {
   echo "Hugo extended is required: https://gohugo.io/installation/" >&2
@@ -22,4 +43,8 @@ if [[ ! -d "${ROOT_DIR}/node_modules" ]]; then
 fi
 
 cd "${ROOT_DIR}"
-hugo --gc --minify --cleanDestinationDir --baseURL "${DOCS_BASE_URL}" "$@"
+hugo --gc --minify --cleanDestinationDir --baseURL "${DOCS_BASE_URL}" \
+  "${BUILD_ARGS[@]}"
+
+# GitHub Pages must serve Hugo's prebuilt output without Jekyll processing.
+: > "${BUILD_DIR}/.nojekyll"

@@ -1,5 +1,7 @@
 ---
 title: Troubleshooting
+weight: 60
+description: Fixes for common infrastructure, tunnel, Ansible, and Kubernetes failures.
 ---
 
 

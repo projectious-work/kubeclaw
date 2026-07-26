@@ -1,5 +1,7 @@
 ---
 title: OpenClaw Deployment
+weight: 60
+description: Deploy OpenClaw into an egress-restricted namespace with Cilium FQDN policies.
 ---
 
 

@@ -1,5 +1,7 @@
 ---
 title: Kubernetes (kubeadm)
+weight: 50
+description: Bootstrap a dual-stack kubeadm cluster with Cilium CNI and the Hetzner CSI driver.
 ---
 
 

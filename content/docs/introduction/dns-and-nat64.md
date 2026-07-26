@@ -1,5 +1,7 @@
 ---
 title: DNS and NAT64
+weight: 30
+description: How DNS64 and NAT64 give IPv6-only nodes and pods transparent access to IPv4-only services.
 ---
 
 

@@ -1,5 +1,7 @@
 ---
 title: Manual Setup (Alternative)
+weight: 30
+description: Build the same infrastructure by hand in the Hetzner Console -- the steps OpenTofu automates.
 ---
 
 

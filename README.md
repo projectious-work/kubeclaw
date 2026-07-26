@@ -1,6 +1,6 @@
 # KubeClaw
 
-A complete, security-first environment for running [OpenClaw](https://github.com/anthropics/openclaw) safely on remote infrastructure -- because agentic AI workloads should never run uncontained.
+A complete, security-first environment for running [OpenClaw](https://github.com/openclaw/openclaw) safely on remote infrastructure -- because agentic AI workloads should never run uncontained.
 
 📚 **[Read the documentation](https://projectious-work.github.io/kubeclaw/docs/)**
 

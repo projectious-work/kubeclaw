@@ -1,5 +1,7 @@
 ---
 title: Cilium Dual-Stack Pod Network
+weight: 10
+description: Planned work on the Cilium dual-stack pod network.
 ---
 
 

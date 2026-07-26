@@ -12,6 +12,32 @@ interface**. KubeClaw is a prototype — see
 
 Nothing yet.
 
+## [0.1.1] — 2026-07-26
+
+A maintenance release. No infrastructure behaviour changes — the fixes are to
+the documentation site and the contributor toolchain.
+
+### Fixed
+
+- The site favicon now updates when the icon changes. `v0.1.0` shipped the new
+  KubeClaw mark correctly, but published it at the same URLs as the previous
+  icon. Browsers cache favicons far more aggressively than the served
+  `Cache-Control` header and key that cache on URL, so visitors kept seeing the
+  old mark indefinitely. Favicon URLs are now content-fingerprinted, so any
+  future icon change propagates on the next page load rather than requiring a
+  hard refresh.
+- Favicon requests to the conventional unfingerprinted paths return the
+  KubeClaw mark rather than the Docsy theme's default icons.
+
+### Changed
+
+- Documentation asset installs use `npm ci` against the committed lockfile when
+  one is present, falling back to the previous behaviour otherwise.
+  `package.json` pins only the five direct dependencies; the lockfile pins all
+  65, so Docsy builds are now reproducible from a clean checkout.
+- The Dev Container tracks aibox 0.28.12, adds the Claude Code CLI, and drops
+  the MkDocs toolchain, which was unused after the move to Hugo and Docsy.
+
 ## [0.1.0] — 2026-07-26
 
 First tagged pre-release. The infrastructure layer provisions and comes up; the
@@ -66,5 +92,6 @@ automated.
 - Added explicit page weights so documentation navigation follows the
   deployment path rather than sorting alphabetically.
 
-[Unreleased]: https://github.com/projectious-work/kubeclaw/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/projectious-work/kubeclaw/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/projectious-work/kubeclaw/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/projectious-work/kubeclaw/releases/tag/v0.1.0

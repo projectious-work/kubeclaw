@@ -1,0 +1,4 @@
+# Public project contact address, intentionally published in the security and
+# community policies.
+[sensitive_data.email_allowlist]
+addresses = ["bnaard@gmx.net"]

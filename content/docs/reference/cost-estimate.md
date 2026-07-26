@@ -81,6 +81,9 @@ storage.
 
 ## Notes
 
+- Estimates exclude VAT, outbound-traffic overages, domains, paid identity
+  features, developer time, incident response, and resources accidentally left
+  running.
 - The admin node (`cx23`, €5.49/month) is temporary. Set
   `enable_admin_node = false` once the Cloudflare Tunnel works, and the charge
   stops -- see [Quick Start]({{< relref "/docs/quick-start" >}}).

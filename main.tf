@@ -223,20 +223,20 @@ resource "hcloud_server" "master_control_node" {
 
   public_net {
     ipv4_enabled = false
-    ipv6_enabled = true  # Always enabled - master needs internet for cloudflared
+    ipv6_enabled = true # Always enabled - master needs internet for cloudflared
   }
 
   user_data = templatefile("${path.module}/cloud-init/control-node.yaml.tpl", {
-    ssh_public_key         = local.control_node_public_key
-    root_password          = var.root_password
-    admin_user             = var.admin_user
-    keyboard_layout        = var.keyboard_layout
-    is_master              = true
-    enable_nat64           = var.enable_nat64
-    dns64_resolvers        = var.dns64_resolvers
-    enable_k8s_prereqs     = var.enable_k8s_prereqs
-    kubernetes_version     = var.kubernetes_version
-    container_runtime      = var.container_runtime
+    ssh_public_key          = local.control_node_public_key
+    root_password           = var.root_password
+    admin_user              = var.admin_user
+    keyboard_layout         = var.keyboard_layout
+    is_master               = true
+    enable_nat64            = var.enable_nat64
+    dns64_resolvers         = var.dns64_resolvers
+    enable_k8s_prereqs      = var.enable_k8s_prereqs
+    kubernetes_version      = var.kubernetes_version
+    container_runtime       = var.container_runtime
     cloudflare_tunnel_token = var.cloudflare_tunnel_token
   })
 
@@ -281,16 +281,16 @@ resource "hcloud_server" "control_node_replica" {
   }
 
   user_data = templatefile("${path.module}/cloud-init/control-node.yaml.tpl", {
-    ssh_public_key         = local.control_node_public_key
-    root_password          = var.root_password
-    admin_user             = var.admin_user
-    keyboard_layout        = var.keyboard_layout
-    is_master              = false
-    enable_nat64           = var.enable_nat64
-    dns64_resolvers        = var.dns64_resolvers
-    enable_k8s_prereqs     = var.enable_k8s_prereqs
-    kubernetes_version     = var.kubernetes_version
-    container_runtime      = var.container_runtime
+    ssh_public_key          = local.control_node_public_key
+    root_password           = var.root_password
+    admin_user              = var.admin_user
+    keyboard_layout         = var.keyboard_layout
+    is_master               = false
+    enable_nat64            = var.enable_nat64
+    dns64_resolvers         = var.dns64_resolvers
+    enable_k8s_prereqs      = var.enable_k8s_prereqs
+    kubernetes_version      = var.kubernetes_version
+    container_runtime       = var.container_runtime
     cloudflare_tunnel_token = ""
   })
 
@@ -431,7 +431,7 @@ resource "hcloud_server" "admin_node" {
 
   public_net {
     ipv4_enabled = false
-    ipv6_enabled = true  # Always enabled - this is the admin node's purpose
+    ipv6_enabled = true # Always enabled - this is the admin node's purpose
   }
 
   user_data = templatefile("${path.module}/cloud-init/admin-node.yaml.tpl", {

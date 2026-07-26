@@ -27,6 +27,10 @@
 
 ---
 
+**What has actually been tested?** Read the dated
+[validation and learning ledger](https://projectious-work.github.io/kubeclaw/docs/validation-ledger/)
+before treating any design claim as observed behaviour.
+
 ## What this is
 
 Agentic AI environments like [OpenClaw](https://github.com/openclaw/openclaw)
@@ -110,6 +114,7 @@ Full documentation lives at
 | Section | Contents |
 |---------|----------|
 | [Project Status](https://projectious-work.github.io/kubeclaw/docs/project-status/) | What this is and is not — read first |
+| [Validation Ledger](https://projectious-work.github.io/kubeclaw/docs/validation-ledger/) | Dated evidence, untested claims, risks, and next experiments |
 | [Introduction](https://projectious-work.github.io/kubeclaw/docs/introduction/) | Architecture, security model, DNS/NAT64 |
 | [Guide](https://projectious-work.github.io/kubeclaw/docs/guide/) | Ordered path: Dev Container → OpenClaw |
 | [How-to](https://projectious-work.github.io/kubeclaw/docs/how-to/) | Focused procedures |

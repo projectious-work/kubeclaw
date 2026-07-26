@@ -73,6 +73,10 @@ automated, and the Kubernetes-specific firewall rules are deliberately still
 excluded from the OpenTofu configuration. See the
 [Roadmap]({{< relref "/docs/roadmap" >}}) for what comes next.
 
+The dated [Validation and Learning Ledger]({{< relref
+"/docs/validation-ledger" >}}) records what has been exercised, what is only
+implemented, and what remains untested.
+
 ## Versioning
 
 Releases use `v0.x` and follow semantic versioning only loosely. While the

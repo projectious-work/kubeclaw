@@ -1,15 +1,40 @@
 {{/*
-  projectious.work brand favicons.
+  KubeClaw favicons.
 
   Overrides the Docsy default, which references an icongen file set this
-  project does not ship. Assets come from
-  github.com/projectious-work/brand -> brand/logo/favicon and brand/logo/svg.
+  project does not ship.
+
+  Every URL is content-fingerprinted. Favicons are the one asset browsers cache
+  far more aggressively than the served Cache-Control header, and they key that
+  cache on URL. Publishing a new image at a stable path therefore leaves users
+  looking at the previous icon indefinitely — which is exactly what happened
+  when the projectious mark was replaced by the KubeClaw mark. Fingerprinting
+  makes the URL change whenever the bytes change, so a redesign propagates on
+  the next page load instead of needing a hard refresh.
+
+  Sources live in assets/favicons/ and are generated from
+  static/logo/kubeclaw-light.svg.
 */ -}}
-<link rel="icon" href="{{ "favicons/favicon.ico" | relURL }}" sizes="any">
-<link rel="icon" type="image/svg+xml" href="{{ "favicons/favicon.svg" | relURL }}">
-<link rel="icon" type="image/png" href="{{ "favicons/favicon-16x16.png" | relURL }}" sizes="16x16">
-<link rel="icon" type="image/png" href="{{ "favicons/favicon-32x32.png" | relURL }}" sizes="32x32">
-<link rel="icon" type="image/png" href="{{ "favicons/favicon-48x48.png" | relURL }}" sizes="48x48">
-<link rel="icon" type="image/png" href="{{ "favicons/icon-128x128.png" | relURL }}" sizes="128x128">
-<link rel="icon" type="image/png" href="{{ "favicons/icon-256x256.png" | relURL }}" sizes="256x256">
-<link rel="apple-touch-icon" href="{{ "favicons/apple-touch-icon-180x180.png" | relURL }}" sizes="180x180">
+
+{{- $icons := slice
+  (dict "file" "favicons/favicon.ico"                  "rel" "icon"             "type" ""              "sizes" "any")
+  (dict "file" "favicons/favicon.svg"                  "rel" "icon"             "type" "image/svg+xml" "sizes" "")
+  (dict "file" "favicons/favicon-16x16.png"            "rel" "icon"             "type" "image/png"     "sizes" "16x16")
+  (dict "file" "favicons/favicon-32x32.png"            "rel" "icon"             "type" "image/png"     "sizes" "32x32")
+  (dict "file" "favicons/favicon-48x48.png"            "rel" "icon"             "type" "image/png"     "sizes" "48x48")
+  (dict "file" "favicons/icon-128x128.png"             "rel" "icon"             "type" "image/png"     "sizes" "128x128")
+  (dict "file" "favicons/icon-256x256.png"             "rel" "icon"             "type" "image/png"     "sizes" "256x256")
+  (dict "file" "favicons/apple-touch-icon-180x180.png" "rel" "apple-touch-icon" "type" ""              "sizes" "180x180")
+-}}
+{{ range $icon := $icons -}}
+  {{ with resources.Get $icon.file -}}
+    {{/* Also publish at the conventional unfingerprinted path. Docsy ships its
+         own favicon set in the theme's static/, which would otherwise surface
+         at these paths for anything that guesses them rather than reading the
+         link tags below. */ -}}
+    {{ $stable := resources.Copy (printf "/%s" $icon.file) . -}}
+    {{ $stable.Publish -}}
+    {{ $r := . | fingerprint "md5" -}}
+    <link rel="{{ $icon.rel }}" href="{{ $r.RelPermalink }}"{{ with $icon.type }} type="{{ . }}"{{ end }}{{ with $icon.sizes }} sizes="{{ . }}"{{ end }}>
+  {{ end -}}
+{{ end -}}

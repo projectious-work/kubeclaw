@@ -94,7 +94,7 @@ Docsy theme submodule when needed.&lt;/p&gt;</description></item><item><title>Sc
 &lt;p&gt;Edit &lt;code&gt;terraform.tfvars&lt;/code&gt; &amp;ndash; update &lt;code&gt;worker_node_types&lt;/code&gt;:&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-hcl" data-lang="hcl"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="n"&gt;worker_node_types&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="n"&gt; { type&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt; &amp;#34;cx23&amp;#34;, count&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="m"&gt;2&lt;/span&gt; }&lt;span class="p"&gt;,&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="n"&gt; { type&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt; &amp;#34;cx32&amp;#34;, count&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="m"&gt;1&lt;/span&gt; }&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="c1"&gt; # 3 workers total, mixed types
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="n"&gt; { type&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt; &amp;#34;cx33&amp;#34;, count&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="m"&gt;1&lt;/span&gt; }&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="c1"&gt; # 3 workers total, mixed types
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;]&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/li&gt;
 &lt;li&gt;
@@ -221,7 +221,7 @@ Docsy theme submodule when needed.&lt;/p&gt;</description></item><item><title>Sc
 			&lt;tr&gt;
 					&lt;td&gt;&lt;code&gt;master_control_node_type&lt;/code&gt;&lt;/td&gt;
 					&lt;td&gt;&lt;code&gt;string&lt;/code&gt;&lt;/td&gt;
-					&lt;td&gt;&lt;code&gt;&amp;quot;cx22&amp;quot;&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;&lt;code&gt;&amp;quot;cx23&amp;quot;&lt;/code&gt;&lt;/td&gt;
 					&lt;td&gt;Server type for the master control node (runs cloudflared)&lt;/td&gt;
 			&lt;/tr&gt;
 			&lt;tr&gt;
@@ -238,58 +238,10 @@ Docsy theme submodule when needed.&lt;/p&gt;</description></item><item><title>Sc
 			&lt;/tr&gt;
 	&lt;/tbody&gt;
 &lt;/table&gt;
-&lt;h3 id="node-type-examples"&gt;Node type examples&lt;/h3&gt;
-&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-hcl" data-lang="hcl"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# Master-only (default)
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="n"&gt;master_control_node_type&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;cx22&amp;#34;&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="n"&gt;control_node_types&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[]&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="n"&gt;worker_node_types&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[]&lt;/span&gt;&lt;span class="c1"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 3 control nodes + 2 workers
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="n"&gt;control_node_types&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="n"&gt; { type&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt; &amp;#34;cx23&amp;#34;, count&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="m"&gt;2&lt;/span&gt; }&lt;span class="p"&gt;,&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;]&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="n"&gt;worker_node_types&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="n"&gt; { type&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt; &amp;#34;cx23&amp;#34;, count&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="m"&gt;2&lt;/span&gt; }&lt;span class="p"&gt;,&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="c1"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# Mixed worker types
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="n"&gt;worker_node_types&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="n"&gt; { type&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt; &amp;#34;cx23&amp;#34;, count&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="m"&gt;2&lt;/span&gt; }&lt;span class="p"&gt;,&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="n"&gt; { type&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt; &amp;#34;cx32&amp;#34;, count&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="m"&gt;1&lt;/span&gt; }&lt;span class="p"&gt;,&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;]&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id="authentication"&gt;Authentication&lt;/h2&gt;
-&lt;table&gt;
-	&lt;thead&gt;
-			&lt;tr&gt;
-					&lt;th&gt;Variable&lt;/th&gt;
-					&lt;th&gt;Type&lt;/th&gt;
-					&lt;th&gt;Default&lt;/th&gt;
-					&lt;th&gt;Description&lt;/th&gt;
-			&lt;/tr&gt;
-	&lt;/thead&gt;
-	&lt;tbody&gt;
-			&lt;tr&gt;
-					&lt;td&gt;&lt;code&gt;root_password&lt;/code&gt;&lt;/td&gt;
-					&lt;td&gt;&lt;code&gt;string&lt;/code&gt;&lt;/td&gt;
-					&lt;td&gt;&lt;code&gt;&amp;quot;ChangeMe123!&amp;quot;&lt;/code&gt;&lt;/td&gt;
-					&lt;td&gt;Root password for emergency Web-Console access (sensitive)&lt;/td&gt;
-			&lt;/tr&gt;
-			&lt;tr&gt;
-					&lt;td&gt;&lt;code&gt;admin_user&lt;/code&gt;&lt;/td&gt;
-					&lt;td&gt;&lt;code&gt;string&lt;/code&gt;&lt;/td&gt;
-					&lt;td&gt;&lt;code&gt;&amp;quot;kubernetes-admin&amp;quot;&lt;/code&gt;&lt;/td&gt;
-					&lt;td&gt;Admin user name for SSH access&lt;/td&gt;
-			&lt;/tr&gt;
-			&lt;tr&gt;
-					&lt;td&gt;&lt;code&gt;keyboard_layout&lt;/code&gt;&lt;/td&gt;
-					&lt;td&gt;&lt;code&gt;string&lt;/code&gt;&lt;/td&gt;
-					&lt;td&gt;&lt;code&gt;&amp;quot;de&amp;quot;&lt;/code&gt;&lt;/td&gt;
-					&lt;td&gt;Keyboard layout for cloud-init&lt;/td&gt;
-			&lt;/tr&gt;
-	&lt;/tbody&gt;
-&lt;/table&gt;
-&lt;h2 id="ssh-keys"&gt;SSH Keys&lt;/h2&gt;
-&lt;p&gt;If left empty, new keys will be auto-generated and stored in the OpenTofu state. When using custom keys, manage private keys yourself.&lt;/p&gt;</description></item><item><title>Code of Conduct</title><link>https://projectious-work.github.io/kubeclaw/docs/contributing/code-of-conduct/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/contributing/code-of-conduct/</guid><description>&lt;p&gt;This project follows the &lt;a href="https://www.contributor-covenant.org/version/2/1/code_of_conduct/"&gt;Contributor Covenant v2.1&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;The cost-optimized x86 line is &lt;code&gt;cx23&lt;/code&gt;, &lt;code&gt;cx33&lt;/code&gt;, &lt;code&gt;cx43&lt;/code&gt;, and &lt;code&gt;cx53&lt;/code&gt;; the Arm
+equivalents are &lt;code&gt;cax11&lt;/code&gt; through &lt;code&gt;cax41&lt;/code&gt;. See
+&lt;a href="https://projectious-work.github.io/kubeclaw/docs/reference/cost-estimate/"&gt;Cost Estimate&lt;/a&gt; for
+specifications, current prices, and the constraints on the Arm line.&lt;/p&gt;</description></item><item><title>Code of Conduct</title><link>https://projectious-work.github.io/kubeclaw/docs/contributing/code-of-conduct/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/contributing/code-of-conduct/</guid><description>&lt;p&gt;This project follows the &lt;a href="https://www.contributor-covenant.org/version/2/1/code_of_conduct/"&gt;Contributor Covenant v2.1&lt;/a&gt;.&lt;/p&gt;
 &lt;p&gt;Please read the full text at the link above. In summary: be respectful, be constructive, and create a welcoming environment for everyone.&lt;/p&gt;
 &lt;h2 id="reporting"&gt;Reporting&lt;/h2&gt;
 &lt;p&gt;If you experience or witness unacceptable behavior, please contact the project maintainer at &lt;a href="mailto:bnaard@gmx.net"&gt;bnaard@gmx.net&lt;/a&gt;.&lt;/p&gt;</description></item><item><title>Infrastructure (OpenTofu)</title><link>https://projectious-work.github.io/kubeclaw/docs/guide/infrastructure/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/guide/infrastructure/</guid><description>&lt;p&gt;KubeClaw uses OpenTofu (Terraform-compatible) to provision all infrastructure on Hetzner Cloud. This page walks through the provisioning workflow step by step. See &lt;a href="https://projectious-work.github.io/kubeclaw/docs/reference/variables/"&gt;Variables Reference&lt;/a&gt; for all configurable options.&lt;/p&gt;
@@ -1209,80 +1161,13 @@ The value must be a string in quotes (`"6"`, not `6`). Cloudflared defaults to I
 &lt;li&gt;Is the ssh-agent running with keys loaded? (&lt;code&gt;ssh-add -l&lt;/code&gt;)&lt;/li&gt;
 &lt;/ol&gt;
 &lt;h3 id="state-lost--keys-gone"&gt;State lost / keys gone&lt;/h3&gt;
-&lt;p&gt;With auto-generated keys:&lt;/p&gt;</description></item><item><title>Cost Estimate</title><link>https://projectious-work.github.io/kubeclaw/docs/reference/cost-estimate/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/reference/cost-estimate/</guid><description>&lt;h2 id="example-2-node-cluster"&gt;Example: 2-node cluster&lt;/h2&gt;
-&lt;table&gt;
-	&lt;thead&gt;
-			&lt;tr&gt;
-					&lt;th&gt;Component&lt;/th&gt;
-					&lt;th&gt;Specification&lt;/th&gt;
-					&lt;th&gt;Monthly Cost&lt;/th&gt;
-			&lt;/tr&gt;
-	&lt;/thead&gt;
-	&lt;tbody&gt;
-			&lt;tr&gt;
-					&lt;td&gt;Node 1 (CX22, IPv6-only)&lt;/td&gt;
-					&lt;td&gt;2 vCPU / 4 GB RAM&lt;/td&gt;
-					&lt;td&gt;~€3.29&lt;/td&gt;
-			&lt;/tr&gt;
-			&lt;tr&gt;
-					&lt;td&gt;Node 2 (CX22, IPv6-only)&lt;/td&gt;
-					&lt;td&gt;2 vCPU / 4 GB RAM&lt;/td&gt;
-					&lt;td&gt;~€3.29&lt;/td&gt;
-			&lt;/tr&gt;
-			&lt;tr&gt;
-					&lt;td&gt;Block Volumes (10 GB each)&lt;/td&gt;
-					&lt;td&gt;Hetzner CSI&lt;/td&gt;
-					&lt;td&gt;~€0.96&lt;/td&gt;
-			&lt;/tr&gt;
-			&lt;tr&gt;
-					&lt;td&gt;Private Network&lt;/td&gt;
-					&lt;td&gt;&amp;ndash;&lt;/td&gt;
-					&lt;td&gt;Free&lt;/td&gt;
-			&lt;/tr&gt;
-			&lt;tr&gt;
-					&lt;td&gt;Cloudflare Tunnel + Access&lt;/td&gt;
-					&lt;td&gt;Up to 50 users&lt;/td&gt;
-					&lt;td&gt;Free&lt;/td&gt;
-			&lt;/tr&gt;
-			&lt;tr&gt;
-					&lt;td&gt;&lt;strong&gt;Total&lt;/strong&gt;&lt;/td&gt;
-					&lt;td&gt;&lt;/td&gt;
-					&lt;td&gt;&lt;strong&gt;~€7.54/month&lt;/strong&gt;&lt;/td&gt;
-			&lt;/tr&gt;
-	&lt;/tbody&gt;
-&lt;/table&gt;
-&lt;h2 id="notes"&gt;Notes&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;Costs vary with server types and volume count&lt;/li&gt;
-&lt;li&gt;IPv6-only nodes are cheaper (no IPv4 address surcharge)&lt;/li&gt;
-&lt;li&gt;The admin node (CX22, ~€3.29/month) is temporary and should be deleted after tunnel setup&lt;/li&gt;
-&lt;li&gt;Block volumes are billed per GB per month (~€0.048/GB)&lt;/li&gt;
-&lt;li&gt;See &lt;a href="https://www.hetzner.com/cloud/"&gt;Hetzner Cloud pricing&lt;/a&gt; for current prices&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2 id="scaling-costs"&gt;Scaling costs&lt;/h2&gt;
-&lt;table&gt;
-	&lt;thead&gt;
-			&lt;tr&gt;
-					&lt;th&gt;Configuration&lt;/th&gt;
-					&lt;th&gt;Nodes&lt;/th&gt;
-					&lt;th&gt;Estimated Monthly Cost&lt;/th&gt;
-			&lt;/tr&gt;
-	&lt;/thead&gt;
-	&lt;tbody&gt;
-			&lt;tr&gt;
-					&lt;td&gt;Master-only (dev/learning)&lt;/td&gt;
-					&lt;td&gt;1&lt;/td&gt;
-					&lt;td&gt;~€3.29&lt;/td&gt;
-			&lt;/tr&gt;
-			&lt;tr&gt;
-					&lt;td&gt;Master + 1 worker&lt;/td&gt;
-					&lt;td&gt;2&lt;/td&gt;
-					&lt;td&gt;~€6.58 + volumes&lt;/td&gt;
-			&lt;/tr&gt;
-			&lt;tr&gt;
-					&lt;td&gt;3 control + 2 workers (HA)&lt;/td&gt;
-					&lt;td&gt;5&lt;/td&gt;
-					&lt;td&gt;~€16.45 + volumes&lt;/td&gt;
-			&lt;/tr&gt;
-	&lt;/tbody&gt;
-&lt;/table&gt;</description></item></channel></rss>
+&lt;p&gt;With auto-generated keys:&lt;/p&gt;</description></item><item><title>Cost Estimate</title><link>https://projectious-work.github.io/kubeclaw/docs/reference/cost-estimate/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/reference/cost-estimate/</guid><description>&lt;p&gt;All figures are list prices in EUR excluding VAT, current as of the Hetzner
+price adjustment of 15 June 2026. Hetzner bills hourly; the monthly figure is
+the cap you will not exceed. Always check
+&lt;a href="https://www.hetzner.com/cloud/"&gt;Hetzner Cloud pricing&lt;/a&gt; before committing &amp;ndash;
+prices changed several times during 2026.&lt;/p&gt;
+&lt;h2 id="server-types"&gt;Server types&lt;/h2&gt;
+&lt;p&gt;KubeClaw defaults to the cost-optimized &lt;strong&gt;CX&lt;/strong&gt; line (shared vCPU, x86). The
+&lt;strong&gt;CAX&lt;/strong&gt; line offers the same resources on Ampere Arm cores, but is only
+available in the German and Finnish locations (&lt;code&gt;fsn1&lt;/code&gt;, &lt;code&gt;nbg1&lt;/code&gt;, &lt;code&gt;hel1&lt;/code&gt;) and
+requires &lt;code&gt;arm64&lt;/code&gt; container images throughout the cluster.&lt;/p&gt;</description></item></channel></rss>

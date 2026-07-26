@@ -19,7 +19,7 @@ This guide covers scaling your cluster at both the infrastructure and Kubernetes
     ```hcl
     worker_node_types = [
       { type = "cx23", count = 2 },
-      { type = "cx32", count = 1 },  # 3 workers total, mixed types
+      { type = "cx33", count = 1 },  # 3 workers total, mixed types
     ]
     ```
 
@@ -101,6 +101,6 @@ control_node_types = [
 ]
 worker_node_types = [
   { type = "cx23", count = 2 },
-  { type = "cx32", count = 1 },
+  { type = "cx33", count = 1 },
 ]
 ```

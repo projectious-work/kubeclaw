@@ -1,4 +1,64 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Documentation on KubeClaw</title><link>https://projectious-work.github.io/kubeclaw/docs/</link><description>Recent content in Documentation on KubeClaw</description><generator>Hugo</generator><language>en</language><atom:link href="https://projectious-work.github.io/kubeclaw/docs/index.xml" rel="self" type="application/rss+xml"/><item><title>Quick Start</title><link>https://projectious-work.github.io/kubeclaw/docs/quick-start/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/quick-start/</guid><description>&lt;h2 id="prerequisites"&gt;Prerequisites&lt;/h2&gt;
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Documentation on KubeClaw</title><link>https://projectious-work.github.io/kubeclaw/docs/</link><description>Recent content in Documentation on KubeClaw</description><generator>Hugo</generator><language>en</language><atom:link href="https://projectious-work.github.io/kubeclaw/docs/index.xml" rel="self" type="application/rss+xml"/><item><title>Project Status</title><link>https://projectious-work.github.io/kubeclaw/docs/project-status/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/project-status/</guid><description>&lt;h2 id="kubeclaw-is-a-prototype"&gt;KubeClaw is a prototype&lt;/h2&gt;
+&lt;p&gt;KubeClaw is a &lt;strong&gt;learning project&lt;/strong&gt;. Its objective is to explore what a secure,
+scalable environment for running AI agents on Kubernetes actually requires &amp;ndash;
+by building one end to end and finding out where the difficulties are.&lt;/p&gt;
+&lt;p&gt;It is &lt;strong&gt;not production ready&lt;/strong&gt;. It is &lt;strong&gt;not beta&lt;/strong&gt;. There is no supported
+release, no stability guarantee, and no security review.&lt;/p&gt;
+&lt;h2 id="what-that-means-concretely"&gt;What that means concretely&lt;/h2&gt;
+&lt;table&gt;
+	&lt;thead&gt;
+			&lt;tr&gt;
+					&lt;th&gt;&lt;/th&gt;
+					&lt;th&gt;Status&lt;/th&gt;
+			&lt;/tr&gt;
+	&lt;/thead&gt;
+	&lt;tbody&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Maturity&lt;/td&gt;
+					&lt;td&gt;Prototype / experiment&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Suitable for production&lt;/td&gt;
+					&lt;td&gt;&lt;strong&gt;No&lt;/strong&gt;&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Suitable for handling real secrets or customer data&lt;/td&gt;
+					&lt;td&gt;&lt;strong&gt;No&lt;/strong&gt;&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Security reviewed or audited&lt;/td&gt;
+					&lt;td&gt;&lt;strong&gt;No&lt;/strong&gt;&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;API / variable stability&lt;/td&gt;
+					&lt;td&gt;None &amp;ndash; variables and layouts change without notice&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Support&lt;/td&gt;
+					&lt;td&gt;None &amp;ndash; issues may go unanswered&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Breaking changes&lt;/td&gt;
+					&lt;td&gt;Expected, without a deprecation period&lt;/td&gt;
+			&lt;/tr&gt;
+	&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2 id="why-it-exists"&gt;Why it exists&lt;/h2&gt;
+&lt;p&gt;Agentic AI workloads execute arbitrary code with tool access. Running them
+without an isolation boundary is genuinely risky, and the interesting question
+is what a &lt;em&gt;correct&lt;/em&gt; boundary looks like: which network controls actually hold,
+how much egress restriction is practical, what the operational cost is, and
+where the design breaks under load.&lt;/p&gt;</description></item><item><title>Quick Start</title><link>https://projectious-work.github.io/kubeclaw/docs/quick-start/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/quick-start/</guid><description>&lt;div class="alert alert-warning" role="alert"&gt;&lt;div class="h4 alert-heading" role="heading"&gt;This provisions real, billable infrastructure&lt;/div&gt;
+
+
+KubeClaw is a [prototype](/kubeclaw/docs/project-status/) -- a learning
+project, not production software. The steps below create servers on Hetzner
+Cloud that cost real money, and the resulting cluster has not been security
+reviewed. Do not use it for production traffic, real credentials, or
+third-party data.
+&lt;/div&gt;
+
+&lt;h2 id="prerequisites"&gt;Prerequisites&lt;/h2&gt;
 &lt;h3 id="accounts"&gt;Accounts&lt;/h3&gt;
 &lt;ul&gt;
 &lt;li&gt;&lt;strong&gt;Hetzner Cloud account&lt;/strong&gt; with an API token (&lt;a href="https://console.hetzner.cloud"&gt;console.hetzner.cloud&lt;/a&gt;)&lt;/li&gt;

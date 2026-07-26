@@ -8,6 +8,17 @@ LLMS index: [llms.txt](/kubeclaw/llms.txt)
 
 ---
 
+<div class="alert alert-warning" role="alert"><div class="h4 alert-heading" role="heading">This provisions real, billable infrastructure</div>
+
+
+KubeClaw is a [prototype](/kubeclaw/docs/project-status/) -- a learning
+project, not production software. The steps below create servers on Hetzner
+Cloud that cost real money, and the resulting cluster has not been security
+reviewed. Do not use it for production traffic, real credentials, or
+third-party data.
+</div>
+
+
 ## Prerequisites
 
 ### Accounts

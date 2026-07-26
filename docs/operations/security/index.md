@@ -8,6 +8,16 @@ LLMS index: [llms.txt](/kubeclaw/llms.txt)
 
 ---
 
+<div class="alert alert-warning" role="alert"><div class="h4 alert-heading" role="heading">Design intent, not a security guarantee</div>
+
+
+This page describes what the design *intends* to protect against. KubeClaw is
+a [prototype](/kubeclaw/docs/project-status/) and has not been
+adversarially tested or audited -- assume gaps exist. Treat the table below as
+a statement of intent, not of assurance.
+</div>
+
+
 ## Security Summary
 
 | Layer | Protection |

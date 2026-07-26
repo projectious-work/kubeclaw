@@ -94,7 +94,16 @@ During rotation SSH access may be briefly interrupted. Keep Hetzner web console 
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 7. Uncordon the node&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;kubectl uncordon &lt;span class="k"&gt;$(&lt;/span&gt;hostname&lt;span class="k"&gt;)&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id="upgrade-worker-nodes"&gt;Upgrade worker nodes&lt;/h3&gt;
-&lt;p&gt;On each worker node:&lt;/p&gt;</description></item><item><title>Security</title><link>https://projectious-work.github.io/kubeclaw/docs/operations/security/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/operations/security/</guid><description>&lt;h2 id="security-summary"&gt;Security Summary&lt;/h2&gt;
+&lt;p&gt;On each worker node:&lt;/p&gt;</description></item><item><title>Security</title><link>https://projectious-work.github.io/kubeclaw/docs/operations/security/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://projectious-work.github.io/kubeclaw/docs/operations/security/</guid><description>&lt;div class="alert alert-warning" role="alert"&gt;&lt;div class="h4 alert-heading" role="heading"&gt;Design intent, not a security guarantee&lt;/div&gt;
+
+
+This page describes what the design *intends* to protect against. KubeClaw is
+a [prototype](/kubeclaw/docs/project-status/) and has not been
+adversarially tested or audited -- assume gaps exist. Treat the table below as
+a statement of intent, not of assurance.
+&lt;/div&gt;
+
+&lt;h2 id="security-summary"&gt;Security Summary&lt;/h2&gt;
 &lt;table&gt;
 	&lt;thead&gt;
 			&lt;tr&gt;

@@ -39,7 +39,13 @@ if [[ ! -f "${ROOT_DIR}/themes/docsy/theme.toml" ]]; then
 fi
 
 if [[ ! -d "${ROOT_DIR}/node_modules" ]]; then
-  npm --prefix "${ROOT_DIR}" install --no-package-lock
+  # Prefer the lockfile so Docsy's transitive dependencies are pinned too;
+  # package.json only pins the direct ones.
+  if [[ -f "${ROOT_DIR}/package-lock.json" ]]; then
+    npm --prefix "${ROOT_DIR}" ci
+  else
+    npm --prefix "${ROOT_DIR}" install --no-package-lock
+  fi
 fi
 
 cd "${ROOT_DIR}"

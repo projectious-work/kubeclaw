@@ -157,7 +157,7 @@ RUN ARCH=$(uname -m) && \
     fi
 
 
-FROM ghcr.io/projectious-work/aibox:base-debian-runtime-v0.28.11 AS aibox
+FROM ghcr.io/projectious-work/aibox:base-debian-runtime-v0.28.12 AS aibox
 
 ENV SHELL=/bin/bash
 ENV UV_CACHE_DIR=/tmp/aibox/uv-cache
@@ -165,6 +165,26 @@ ENV UV_CACHE_DIR=/tmp/aibox/uv-cache
 USER root
 RUN mkdir -p /home/aibox/.cache/starship /home/aibox/.cache/uv /home/aibox/.tmux/plugins /tmp/aibox/uv-cache; \
     chown -R aibox:aibox /home/aibox/.cache /tmp/aibox
+
+# Addon: ai-claude
+# Install Claude Code CLI from Anthropic's signed Debian repository.
+# The native home-directory installer writes to ~/.local/bin and ~/.claude;
+# both are runtime mounts in aibox projects, so a system package is more
+# stable for containers and avoids stale home-owned symlinks.
+# Ref: https://code.claude.com/docs/en/setup#install-with-linux-package-managers
+RUN set -eux; \
+    install -d -m 0755 /etc/apt/keyrings; \
+    curl -fsSL https://downloads.claude.ai/keys/claude-code.asc \
+      -o /etc/apt/keyrings/claude-code.asc; \
+    echo "deb [signed-by=/etc/apt/keyrings/claude-code.asc] https://downloads.claude.ai/claude-code/apt/latest latest main" \
+      > /etc/apt/sources.list.d/claude-code.list; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends claude-code; \
+    rm -rf /var/lib/apt/lists/*; \
+    claude_path="$(command -v claude)"; \
+    claude_real="$(readlink -f "$claude_path")"; \
+    install -m 0755 "$claude_real" /usr/local/bin/claude; \
+    /usr/local/bin/claude --version
 
 # Addon: audio-voice — PulseAudio/Sox support for interactive voice tools.
 USER root
@@ -309,10 +329,6 @@ RUN UV_PYTHON_INSTALL_DIR=/opt/aibox-python uv python install 3.14 && \
 
 
 
-# Addon: docs-mkdocs
-RUN UV_CACHE_DIR=/tmp/aibox-uv-cache uv tool install 'mkdocs==1.6.1' --with 'mkdocs-material==9.7.6' && \
-    rm -rf /tmp/aibox-uv-cache
-
 # Addon: rust (runtime — copy from builder)
 COPY --from=rust-builder /home/aibox/.cargo /home/aibox/.cargo
 COPY --from=rust-builder /home/aibox/.rustup /home/aibox/.rustup
@@ -371,6 +387,6 @@ USER root
 
 # Record image version inside container for runtime checks
 USER root
-LABEL aibox.version="0.28.11"
+LABEL aibox.version="0.28.12"
 LABEL aibox.profile="human-dev"
-RUN echo "0.28.11" > /etc/aibox-version
+RUN echo "0.28.12" > /etc/aibox-version
